@@ -10,10 +10,8 @@ build/
 *.egg
 
 # Django
-*.sqlite3
 *.log
 local_settings.py
-db.sqlite3
 media/*
 !media/joints/
 media/joints/*
