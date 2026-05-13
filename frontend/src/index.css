@@ -52,6 +52,7 @@ body {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 9px 18px; border-radius: 7px; border: none;
   font-size: .88rem; font-weight: 600; cursor: pointer;
+  text-decoration: none;
   transition: opacity .15s, transform .1s;
 }
 .btn:hover { opacity: .88; }

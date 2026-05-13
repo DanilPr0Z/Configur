@@ -1049,12 +1049,12 @@ function SchemeHint() {
       {open && (
         <div style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           <img
-            src="/scheme1.png"
+            src={`${import.meta.env.BASE_URL}scheme1.png`}
             alt="Схема сборки — план раскладки"
             style={{ width: '100%', borderRadius: 10, border: '1px solid #e0e8f5', display: 'block' }}
           />
           <img
-            src="/scheme2.png"
+            src={`${import.meta.env.BASE_URL}scheme2.png`}
             alt="Схема сборки — типы узлов"
             style={{ width: '100%', borderRadius: 10, border: '1px solid #e0e8f5', display: 'block' }}
           />

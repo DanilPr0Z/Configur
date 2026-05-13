@@ -178,8 +178,8 @@ function SchemeHint() {
       </button>
       {open && (
         <div style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <img src="/scheme1.png" alt="Схема раскладки" style={{ width: '100%', borderRadius: 10, border: '1px solid #e0e8f5' }} />
-          <img src="/scheme2.png" alt="Типы узлов" style={{ width: '100%', borderRadius: 10, border: '1px solid #e0e8f5' }} />
+          <img src={`${import.meta.env.BASE_URL}scheme1.png`} alt="Схема раскладки" style={{ width: '100%', borderRadius: 10, border: '1px solid #e0e8f5' }} />
+          <img src={`${import.meta.env.BASE_URL}scheme2.png`} alt="Типы узлов" style={{ width: '100%', borderRadius: 10, border: '1px solid #e0e8f5' }} />
         </div>
       )}
     </div>
