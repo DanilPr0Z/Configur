@@ -1,0 +1,20 @@
+[Unit]
+Description=NUOVO 60 Gunicorn
+After=network.target
+
+[Service]
+User=www-data
+Group=www-data
+WorkingDirectory=/var/www/nuovo60
+EnvironmentFile=/var/www/nuovo60/.env
+ExecStart=/var/www/nuovo60/.venv/bin/gunicorn \
+    config.wsgi \
+    --bind unix:/run/nuovo60/gunicorn.sock \
+    --workers 2 \
+    --timeout 120
+RuntimeDirectory=nuovo60
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

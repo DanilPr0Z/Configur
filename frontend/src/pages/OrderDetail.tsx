@@ -1,91 +1,10 @@
-import { useEffect, useState, useCallback, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import {
-  fetchOrder, updateOrder, fetchJointTypes, fetchFinishGroups, fetchProfileColors,
-  createPanel, updatePanel, deletePanel,
-  createDoorPanel, updateDoorPanel, deleteDoorPanel,
-  importExcel,
-} from '../api'
-import type { Order, Panel, DoorPanel, JointType, FinishGroup, ProfileColor } from '../api'
-import PanelRow from '../components/PanelRow'
-import DoorPanelRow from '../components/DoorPanelRow'
-import WallCalculator from '../components/WallCalculator'
-import OrderSummaryView from '../components/OrderSummaryView'
+import { fetchOrder, updateOrder } from '../api'
+import type { Order } from '../api'
 import WallScheme from '../components/WallScheme'
 
 type Step = 'info' | 'panels'
-
-const emptyPanel = (orderId: number, position: number, wallNumber: string): Partial<Panel> => ({
-  order: orderId,
-  position,
-  wall_number: wallNumber,
-  quantity: 1,
-  height_mm: 0,
-  width_mm: 0,
-  joint_left: null,
-  joint_right: null,
-  joint_top: null,
-  joint_bottom: null,
-  finish_group: null,
-  finish: null,
-  veneer_direction: '',
-  decor_name: '',
-  aluminum_vertical_count: 0,
-  aluminum_horizontal_count: 0,
-  aluminum_color: null,
-  markup_percent: 0,
-  notes: '',
-})
-
-const emptyDoorPanel = (orderId: number, position: number, wallNumber: string): Partial<DoorPanel> => ({
-  order: orderId,
-  position,
-  wall_number: wallNumber,
-  door_order_number: '',
-  opening_width: 0,
-  opening_height: 0,
-  ceiling_height: 0,
-  mount_type: 'ceiling',
-  opening_direction: 'in',
-  joint_top_left: null,
-  joint_top_right: null,
-  joint_bottom: null,
-  edge_left: null,
-  edge_right: null,
-  edge_top: null,
-  edge_bottom: null,
-  quantity: 1,
-  panel_height: 0,
-  panel_width: 0,
-  finish_group: null,
-  finish: null,
-  veneer_direction: '',
-  decor_name: '',
-  markup_percent: 0,
-  notes: '',
-})
-
-interface WallGroup<T> {
-  wallNum: string
-  items: T[]
-}
-
-function groupByWall<T extends { wall_number: string }>(items: T[]): WallGroup<T>[] {
-  const map = new Map<string, T[]>()
-  for (const item of items) {
-    const wn = item.wall_number || '1'
-    if (!map.has(wn)) map.set(wn, [])
-    map.get(wn)!.push(item)
-  }
-  return Array.from(map.entries()).map(([wallNum, items]) => ({ wallNum, items }))
-}
-
-function nextWallNum(items: { wall_number: string }[]): string {
-  if (items.length === 0) return '1'
-  const nums = items.map(p => parseInt(p.wall_number, 10)).filter(n => !isNaN(n))
-  if (nums.length === 0) return '1'
-  return String(Math.max(...nums) + 1)
-}
 
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>()
@@ -93,31 +12,12 @@ export default function OrderDetail() {
   const navigate = useNavigate()
 
   const [order, setOrder] = useState<Order | null>(null)
-  const [panels, setPanels] = useState<Panel[]>([])
-  const [doorPanels, setDoorPanels] = useState<DoorPanel[]>([])
-  const [jointTypes, setJointTypes] = useState<JointType[]>([])
-  const [finishGroups, setFinishGroups] = useState<FinishGroup[]>([])
-  const [profileColors, setProfileColors] = useState<ProfileColor[]>([])
   const [step, setStep] = useState<Step>('info')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
-  const [importing, setImporting] = useState(false)
-  const [importMsg, setImportMsg] = useState('')
 
   useEffect(() => {
-    Promise.all([
-      fetchOrder(orderId),
-      fetchJointTypes(),
-      fetchFinishGroups(),
-      fetchProfileColors(),
-    ]).then(([ord, jt, fg, pc]) => {
-      setOrder(ord)
-      setPanels(ord.panels ?? [])
-      setDoorPanels(ord.door_panels ?? [])
-      setJointTypes(jt)
-      setFinishGroups(fg)
-      setProfileColors(pc)
-    })
+    fetchOrder(orderId).then(ord => setOrder(ord))
   }, [orderId])
 
   const saveOrder = async () => {
@@ -136,127 +36,6 @@ export default function OrderDetail() {
     setSaving(false)
     setSaved(true)
     setTimeout(() => setSaved(false), 2000)
-  }
-
-  // ─── Стеновые панели ────────────────────────────────────────────────────────
-
-  const wallGroups = useMemo(() => groupByWall(panels), [panels])
-
-  const addPanel = async (wallNum: string) => {
-    const pos = panels.filter(p => p.wall_number === wallNum).length + 1
-    const created = await createPanel(emptyPanel(orderId, pos, wallNum))
-    setPanels(prev => [...prev, created])
-  }
-
-  const addWall = async () => {
-    const wallNum = nextWallNum(panels)
-    const created = await createPanel(emptyPanel(orderId, 1, wallNum))
-    setPanels(prev => [...prev, created])
-  }
-
-  const renameWall = async (oldNum: string, newNum: string) => {
-    if (!newNum.trim() || oldNum === newNum) return
-    const toUpdate = panels.filter(p => p.wall_number === oldNum)
-    const updated = panels.map(p => p.wall_number === oldNum ? { ...p, wall_number: newNum } : p)
-    setPanels(updated)
-    for (const p of toUpdate) {
-      if (p.id) await updatePanel(p.id, { wall_number: newNum })
-    }
-  }
-
-  const changePanel = (panelId: number, updated: Panel) => {
-    setPanels(prev => prev.map(p => p.id === panelId ? updated : p))
-  }
-
-  const savePanel = async (panel: Panel) => {
-    if (!panel.id) return
-    const saved = await updatePanel(panel.id, panel)
-    setPanels(prev => prev.map(p => p.id === saved.id ? saved : p))
-  }
-
-  const removePanel = async (panel: Panel) => {
-    if (panel.id) await deletePanel(panel.id)
-    setPanels(prev => prev.filter(p => p.id !== panel.id))
-  }
-
-  const addPanelsFromCalc = useCallback(async (width: number, count: number, leftCode: string, rightCode: string) => {
-    const leftJoint = jointTypes.find(j => j.code === leftCode)
-    const rightJoint = jointTypes.find(j => j.code === rightCode)
-    const wallNum = nextWallNum(panels)
-    const newPanels: Panel[] = []
-    for (let i = 0; i < count; i++) {
-      const created = await createPanel({
-        ...emptyPanel(orderId, i + 1, wallNum),
-        width_mm: width,
-        joint_left: leftJoint?.id ?? null,
-        joint_right: rightJoint?.id ?? null,
-      })
-      newPanels.push(created)
-    }
-    setPanels(prev => [...prev, ...newPanels])
-  }, [orderId, panels, jointTypes])
-
-  // ─── Дверные панели ─────────────────────────────────────────────────────────
-
-  const doorWallGroups = useMemo(() => groupByWall(doorPanels), [doorPanels])
-
-  const addDoorPanel = async (wallNum: string) => {
-    const pos = doorPanels.filter(p => p.wall_number === wallNum).length + 1
-    const created = await createDoorPanel(emptyDoorPanel(orderId, pos, wallNum))
-    setDoorPanels(prev => [...prev, created])
-  }
-
-  const addDoorWall = async () => {
-    const wallNum = nextWallNum(doorPanels)
-    const created = await createDoorPanel(emptyDoorPanel(orderId, 1, wallNum))
-    setDoorPanels(prev => [...prev, created])
-  }
-
-  const renameDoorWall = async (oldNum: string, newNum: string) => {
-    if (!newNum.trim() || oldNum === newNum) return
-    const toUpdate = doorPanels.filter(p => p.wall_number === oldNum)
-    const updated = doorPanels.map(p => p.wall_number === oldNum ? { ...p, wall_number: newNum } : p)
-    setDoorPanels(updated)
-    for (const p of toUpdate) {
-      if (p.id) await updateDoorPanel(p.id, { wall_number: newNum })
-    }
-  }
-
-  const changeDoorPanel = (panelId: number, updated: DoorPanel) => {
-    setDoorPanels(prev => prev.map(p => p.id === panelId ? updated : p))
-  }
-
-  const saveDoorPanel = async (panel: DoorPanel) => {
-    if (!panel.id) return
-    const saved = await updateDoorPanel(panel.id, panel)
-    setDoorPanels(prev => prev.map(p => p.id === saved.id ? saved : p))
-  }
-
-  const removeDoorPanel = async (panel: DoorPanel) => {
-    if (panel.id) await deleteDoorPanel(panel.id)
-    setDoorPanels(prev => prev.filter(p => p.id !== panel.id))
-  }
-
-  // ─── Импорт Excel ───────────────────────────────────────────────────────────
-
-  const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setImporting(true)
-    setImportMsg('')
-    try {
-      const res = await importExcel(orderId, file)
-      setImportMsg(`Импортировано ${res.panels_imported} панел.${res.order_updated ? ' Данные заказа обновлены.' : ''}`)
-      const ord = await fetchOrder(orderId)
-      setOrder(ord)
-      setPanels(ord.panels ?? [])
-      setDoorPanels(ord.door_panels ?? [])
-    } catch (err: any) {
-      setImportMsg(err.response?.data?.error ?? 'Ошибка импорта')
-    } finally {
-      setImporting(false)
-      e.target.value = ''
-    }
   }
 
   const setOrderField = (field: keyof Order, value: any) =>
@@ -355,57 +134,6 @@ export default function OrderDetail() {
           <ConfiguratorSpecView order={order} onEdit={() => navigate(`/?order=${orderId}`)} />
         )}
       </div>
-    </div>
-  )
-}
-
-// ─── Вспомогательный компонент: секция одной стены ──────────────────────────
-
-interface WallSectionProps {
-  wallNum: string
-  label?: string
-  onRename: (newNum: string) => void
-  onAddPanel: () => void
-  addLabel?: string
-  children: React.ReactNode
-}
-
-function WallSection({ wallNum, label = 'Стена', onRename, onAddPanel, addLabel = '+ Добавить панель', children }: WallSectionProps) {
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(wallNum)
-
-  const commit = () => {
-    setEditing(false)
-    onRename(draft)
-  }
-
-  return (
-    <div style={{ marginBottom: 24 }}>
-      <div className="flex flex-center gap-2" style={{ marginBottom: 8 }}>
-        <span style={{ fontWeight: 700, fontSize: '1rem', color: '#1a4d8a' }}>{label}</span>
-        {editing ? (
-          <>
-            <input
-              value={draft}
-              autoFocus
-              onChange={e => setDraft(e.target.value)}
-              onBlur={commit}
-              onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setEditing(false) }}
-              style={{ width: 80, fontWeight: 700 }}
-            />
-          </>
-        ) : (
-          <span
-            style={{ fontWeight: 700, fontSize: '1rem', cursor: 'pointer', borderBottom: '1px dashed #aaa', minWidth: 30 }}
-            title="Нажмите чтобы изменить номер"
-            onClick={() => { setDraft(wallNum); setEditing(true) }}
-          >
-            {wallNum}
-          </span>
-        )}
-        <button className="btn btn-ghost btn-sm" onClick={onAddPanel} style={{ marginLeft: 12 }}>{addLabel}</button>
-      </div>
-      {children}
     </div>
   )
 }

@@ -171,8 +171,9 @@ export default function WallScheme({ walls, doors, panels, itemOrder }: Props) {
     lx, ly, angle, children, ...props
   }: {
     lx: number; ly: number; angle: number; children: ReactNode
-    textAnchor?: string; fontSize?: string | number; fill?: string
-    fontWeight?: string | number; dominantBaseline?: string
+    textAnchor?: React.SVGProps<SVGTextElement>['textAnchor']
+    fontSize?: string | number; fill?: string; fontWeight?: string | number
+    dominantBaseline?: React.SVGProps<SVGTextElement>['dominantBaseline']
   }) {
     return (
       <text

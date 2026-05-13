@@ -288,14 +288,23 @@ function getInitialConfig() {
             ..._SAVED_CONFIG.doors.map(d => ({ type: 'door' as const, id: d.id })),
           ]
     // Мигрируем старые DoorSeg без новых полей добора
-    const doors = _SAVED_CONFIG.doors.map(d => ({
-      wallDepth: 200,
-      trimLeftNode: 'A', trimLeftW: (d as any).wallDepth ?? 200, trimLeftH: (d as any).openingH ?? 2100,
-      trimRightNode: 'A', trimRightW: (d as any).wallDepth ?? 200, trimRightH: (d as any).openingH ?? 2100,
-      trimTopLeftNode: 'A', trimTopRightNode: 'A',
-      trimTopW: (d as any).openingW ?? 900, trimTopH: (d as any).wallDepth ?? 200,
-      ...d,
-    }))
+    const doors = _SAVED_CONFIG.doors.map(d => {
+      const da = d as any
+      return {
+        ...d,
+        wallDepth: da.wallDepth ?? 200,
+        trimLeftNode: da.trimLeftNode ?? 'A',
+        trimLeftW: da.trimLeftW ?? da.wallDepth ?? 200,
+        trimLeftH: da.trimLeftH ?? da.openingH ?? 2100,
+        trimRightNode: da.trimRightNode ?? 'A',
+        trimRightW: da.trimRightW ?? da.wallDepth ?? 200,
+        trimRightH: da.trimRightH ?? da.openingH ?? 2100,
+        trimTopLeftNode: da.trimTopLeftNode ?? 'A',
+        trimTopRightNode: da.trimTopRightNode ?? 'A',
+        trimTopW: da.trimTopW ?? da.openingW ?? 900,
+        trimTopH: da.trimTopH ?? da.wallDepth ?? 200,
+      }
+    })
     return {
       walls: _SAVED_CONFIG.walls,
       doors,
