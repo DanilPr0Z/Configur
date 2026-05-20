@@ -58,6 +58,8 @@ interface DoorSeg {
   trimTopRightNode: string // узел правой стороны верхнего добора
   trimTopW: number     // ширина верхнего добора (= openingW по умолч.)
   trimTopH: number     // высота верхнего добора (= wallDepth по умолч.)
+  trimLeftWallNode: string   // узел внешнего (к стене) края левого добора
+  trimRightWallNode: string  // узел внешнего (к стене) края правого добора
   finishGroup: string
   finishName: string
   veneerDirection: string
@@ -245,6 +247,7 @@ function makeDoor(n: number): DoorSeg {
     wallDepth: 200, trimLeftNode: 'A', trimLeftW: 200, trimLeftH: 2100,
     trimRightNode: 'A', trimRightW: 200, trimRightH: 2100,
     trimTopLeftNode: 'A', trimTopRightNode: 'A', trimTopW: 900, trimTopH: 200,
+    trimLeftWallNode: 'A', trimRightWallNode: 'A',
     finishGroup: '', finishName: '',
     veneerDirection: '', decor3d: '',
     copies: 1, notes: '',
@@ -303,6 +306,8 @@ function getInitialConfig() {
         trimTopRightNode: da.trimTopRightNode ?? 'A',
         trimTopW: da.trimTopW ?? da.openingW ?? 900,
         trimTopH: da.trimTopH ?? da.wallDepth ?? 200,
+        trimLeftWallNode: da.trimLeftWallNode ?? 'A',
+        trimRightWallNode: da.trimRightWallNode ?? 'A',
       }
     })
     return {
@@ -470,11 +475,10 @@ function buildSpec(
       panelLabel: `${doorLabel}.${trimN++}`,
       wallName: `${doorName} — Левое`,
       height: lh, width: lw,
-      leftNode: 'A', rightNode: d.trimLeftNode,
+      leftNode: d.trimLeftWallNode || 'A', rightNode: 'O',
     })
     totalPanels += copies
-    addEdge('A', copies)
-    addEdge(d.trimLeftNode, copies)
+    addEdge(d.trimLeftWallNode || 'A', copies)
 
     const rw = d.trimRightW || d.wallDepth
     const rh = d.trimRightH || d.openingH
@@ -483,11 +487,10 @@ function buildSpec(
       panelLabel: `${doorLabel}.${trimN++}`,
       wallName: `${doorName} — Правое`,
       height: rh, width: rw,
-      leftNode: d.trimRightNode, rightNode: 'A',
+      leftNode: 'O', rightNode: d.trimRightWallNode || 'A',
     })
     totalPanels += copies
-    addEdge(d.trimRightNode, copies)
-    addEdge('A', copies)
+    addEdge(d.trimRightWallNode || 'A', copies)
   })
 
   pc['hanger'] = totalPanels * 4
@@ -549,6 +552,44 @@ function calcPanelCosts(
 
 const fmt = (n: number) => n > 0 ? n.toLocaleString('ru-RU', { maximumFractionDigits: 0 }) : '—'
 
+// ─── StepNav ─────────────────────────────────────────────────────────────────
+
+const STEP_LABELS = ['Стены и узлы', 'Отделки', 'Спецификация', 'Оформление']
+
+function StepNav({ step, onStep }: { step: number; onStep: (s: number) => void }) {
+  return (
+    <div className="no-print" style={{
+      display: 'flex', borderRadius: 10, overflow: 'hidden',
+      border: '1.5px solid #e2e8f0', marginBottom: 24,
+    }}>
+      {STEP_LABELS.map((label, i) => {
+        const n = i + 1
+        const active = step === n
+        const done = step > n
+        return (
+          <button key={n} type="button"
+            onClick={() => onStep(n)}
+            style={{
+              flex: 1, padding: '11px 6px', border: 'none',
+              borderRight: n < 4 ? '1px solid #e2e8f0' : 'none',
+              cursor: 'pointer', textAlign: 'center', transition: 'all .15s',
+              background: active ? '#4c6ef5' : done ? '#eef2ff' : '#fafafa',
+              color: active ? '#fff' : done ? '#4c6ef5' : '#94a3b8',
+            }}
+          >
+            <span style={{ display: 'block', fontSize: '0.62rem', opacity: active ? 0.85 : 0.7, marginBottom: 3, fontWeight: 600, letterSpacing: '.03em' }}>
+              {done ? '✓ готово' : `ШАГ ${n}`}
+            </span>
+            <span style={{ display: 'block', fontSize: '0.82rem', fontWeight: active ? 700 : done ? 600 : 400 }}>
+              {label}
+            </span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 // ─── WallCard ─────────────────────────────────────────────────────────────────
 
 interface WallCardProps {
@@ -559,9 +600,10 @@ interface WallCardProps {
   onChange: (u: Partial<WallSeg>) => void
   onRemove: () => void
   canRemove: boolean
+  phase?: 'geometry' | 'finish'
 }
 
-function WallCard({ wall, jointTypes, finishGroups, profileColors, onChange, onRemove, canRemove }: WallCardProps) {
+function WallCard({ wall, jointTypes, finishGroups, profileColors, onChange, onRemove, canRemove, phase }: WallCardProps) {
   const calc = calcWall(wall)
   const selectedGroup = finishGroups.find(g => g.name === wall.finishGroup)
   const finishes: Finish[] = (selectedGroup?.finishes as Finish[]) ?? []
@@ -580,72 +622,77 @@ function WallCard({ wall, jointTypes, finishGroups, profileColors, onChange, onR
         {canRemove && <button className="btn btn-danger btn-sm" onClick={onRemove}>✕</button>}
       </div>
 
-      {/* Размеры + кол-во */}
-      <div className="grid-4" style={{ marginBottom: 10 }}>
-        <div className="field">
-          <label>Высота стены, мм</label>
-          <input type="number" value={wall.wallHeight || ''} min={0}
-            onChange={e => onChange({ wallHeight: +e.target.value })} />
+      {/* ── Геометрия (шаг 1) ──────────────────────────────── */}
+      {(!phase || phase === 'geometry') && <>
+        {/* Размеры + кол-во */}
+        <div className="grid-4" style={{ marginBottom: 10 }}>
+          <div className="field">
+            <label>Высота стены, мм</label>
+            <input type="number" value={wall.wallHeight || ''} min={0}
+              onChange={e => onChange({ wallHeight: +e.target.value })} />
+          </div>
+          <div className="field">
+            <label>Длина стены, мм</label>
+            <input type="number" value={wall.wallLength || ''} min={0}
+              onChange={e => onChange({ wallLength: +e.target.value })} />
+          </div>
+          <div className="field">
+            <label>
+              Кол-во панелей
+              <button type="button" onClick={() => onChange({ numPanels: suggestPanels(wall) })}
+                title="Авто (макс. 1200 мм)"
+                style={{ marginLeft: 6, fontSize: '.72rem', color: '#4c6ef5', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
+                [авто]
+              </button>
+            </label>
+            <input type="number" min={1} max={30} value={wall.numPanels || ''}
+              onChange={e => onChange({ numPanels: Math.max(1, +e.target.value) })} />
+          </div>
+          <div className="field">
+            <label>Копий (одинак. стен)</label>
+            <input type="number" min={1} value={wall.copies}
+              onChange={e => onChange({ copies: Math.max(1, +e.target.value) })} />
+          </div>
         </div>
-        <div className="field">
-          <label>Длина стены, мм</label>
-          <input type="number" value={wall.wallLength || ''} min={0}
-            onChange={e => onChange({ wallLength: +e.target.value })} />
-        </div>
-        <div className="field">
-          <label>
-            Кол-во панелей
-            <button type="button" onClick={() => onChange({ numPanels: suggestPanels(wall) })}
-              title="Авто (макс. 1200 мм)"
-              style={{ marginLeft: 6, fontSize: '.72rem', color: '#4c6ef5', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
-              [авто]
-            </button>
-          </label>
-          <input type="number" min={1} max={30} value={wall.numPanels || ''}
-            onChange={e => onChange({ numPanels: Math.max(1, +e.target.value) })} />
-        </div>
-        <div className="field">
-          <label>Копий (одинак. стен)</label>
-          <input type="number" min={1} value={wall.copies}
-            onChange={e => onChange({ copies: Math.max(1, +e.target.value) })} />
-        </div>
-      </div>
 
-      {/* Узлы */}
-      <div className="grid-3" style={{ marginBottom: 10 }}>
-        <div className="field">
-          <label>Узел левого края</label>
-          <JointSelectCode value={wall.leftNode} codes={EDGE_NODE_CODES} jointTypes={jointTypes}
-            onChange={code => onChange({ leftNode: code })} />
+        {/* Узлы */}
+        <div className="grid-3" style={{ marginBottom: 10 }}>
+          <div className="field">
+            <label>Узел левого края</label>
+            <JointSelectCode value={wall.leftNode} codes={EDGE_NODE_CODES} jointTypes={jointTypes}
+              onChange={code => onChange({ leftNode: code })} />
+          </div>
+          <div className="field">
+            <label>Соединение панелей</label>
+            <JointSelectCode value={wall.connType} codes={CONN_NODE_CODES} jointTypes={jointTypes}
+              onChange={code => onChange({ connType: code as ConnType })} />
+          </div>
+          <div className="field">
+            <label>Узел правого края</label>
+            <JointSelectCode value={wall.rightNode} codes={EDGE_NODE_CODES} jointTypes={jointTypes}
+              onChange={code => onChange({ rightNode: code })} />
+          </div>
         </div>
-        <div className="field">
-          <label>Соединение панелей</label>
-          <JointSelectCode value={wall.connType} codes={CONN_NODE_CODES} jointTypes={jointTypes}
-            onChange={code => onChange({ connType: code as ConnType })} />
-        </div>
-        <div className="field">
-          <label>Узел правого края</label>
-          <JointSelectCode value={wall.rightNode} codes={EDGE_NODE_CODES} jointTypes={jointTypes}
-            onChange={code => onChange({ rightNode: code })} />
-        </div>
-      </div>
 
-      {/* Верх/Низ кромки */}
-      <div className="grid-2" style={{ marginBottom: 10 }}>
-        <div className="field">
-          <label>Верхняя кромка (тип узла)</label>
-          <JointSelectCode value={wall.topEdge} codes={EDGE_TOPBOT_CODES} jointTypes={jointTypes}
-            onChange={code => onChange({ topEdge: code })} allowEmpty
-            fallback={NODES.map(n => ({ code: n.code, name: n.label }))} />
+        {/* Верх/Низ кромки */}
+        <div className="grid-2" style={{ marginBottom: 10 }}>
+          <div className="field">
+            <label>Верхняя кромка (тип узла)</label>
+            <JointSelectCode value={wall.topEdge} codes={EDGE_TOPBOT_CODES} jointTypes={jointTypes}
+              onChange={code => onChange({ topEdge: code })} allowEmpty
+              fallback={NODES.map(n => ({ code: n.code, name: n.label }))} />
+          </div>
+          <div className="field">
+            <label>Нижняя кромка (тип узла)</label>
+            <JointSelectCode value={wall.bottomEdge} codes={EDGE_TOPBOT_CODES} jointTypes={jointTypes}
+              onChange={code => onChange({ bottomEdge: code })} allowEmpty
+              fallback={NODES.map(n => ({ code: n.code, name: n.label }))} />
+          </div>
         </div>
-        <div className="field">
-          <label>Нижняя кромка (тип узла)</label>
-          <JointSelectCode value={wall.bottomEdge} codes={EDGE_TOPBOT_CODES} jointTypes={jointTypes}
-            onChange={code => onChange({ bottomEdge: code })} allowEmpty
-            fallback={NODES.map(n => ({ code: n.code, name: n.label }))} />
-        </div>
-      </div>
+      </>}
 
+      {/* ── Отделка (шаг 2) ──────────────────────────────── */}
+      {(!phase || phase === 'finish') && <>
       {/* Отделка */}
       <div className="grid-4" style={{ marginBottom: 10 }}>
         <div className="field">
@@ -741,9 +788,10 @@ function WallCard({ wall, jointTypes, finishGroups, profileColors, onChange, onR
         <input value={wall.notes} placeholder="—"
           onChange={e => onChange({ notes: e.target.value })} />
       </div>
+      </>}
 
       {/* Результат расчёта */}
-      {calc.valid && (
+      {(!phase || phase === 'geometry') && calc.valid && (
         <div className="calc-result">
           <strong>Расчёт:</strong>{' '}
           длина по панелям <strong>{calc.wallLengthByPanels} мм</strong>
@@ -892,7 +940,7 @@ function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove }: DoorCa
           {/* Левое */}
           <div>
             <div style={{ fontSize: '.75rem', fontWeight: 600, color: '#64748b', marginBottom: 6 }}>Левое обрамление</div>
-            <div style={{ display: 'flex', gap: 6 }}>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
               <div className="field" style={{ flex: 1 }}>
                 <label>Ширина, мм</label>
                 <input type="number" value={door.trimLeftW ?? door.wallDepth ?? 200} min={0}
@@ -904,12 +952,20 @@ function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove }: DoorCa
                   onChange={e => onChange({ trimLeftH: +e.target.value })} />
               </div>
             </div>
+            <div className="field">
+              <label>Узел к стене</label>
+              <JointSelectCode value={door.trimLeftWallNode ?? 'A'} codes={EDGE_NODE_CODES} jointTypes={jointTypes}
+                onChange={code => onChange({ trimLeftWallNode: code })} />
+            </div>
+            <div style={{ fontSize: '.72rem', color: '#94a3b8', marginTop: 4 }}>
+              К коробке: <span className="badge badge-gray" style={{ fontSize: '.68rem' }}>O</span> авто
+            </div>
           </div>
 
           {/* Правое */}
           <div>
             <div style={{ fontSize: '.75rem', fontWeight: 600, color: '#64748b', marginBottom: 6 }}>Правое обрамление</div>
-            <div style={{ display: 'flex', gap: 6 }}>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
               <div className="field" style={{ flex: 1 }}>
                 <label>Ширина, мм</label>
                 <input type="number" value={door.trimRightW ?? door.wallDepth ?? 200} min={0}
@@ -921,12 +977,20 @@ function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove }: DoorCa
                   onChange={e => onChange({ trimRightH: +e.target.value })} />
               </div>
             </div>
+            <div className="field">
+              <label>Узел к стене</label>
+              <JointSelectCode value={door.trimRightWallNode ?? 'A'} codes={EDGE_NODE_CODES} jointTypes={jointTypes}
+                onChange={code => onChange({ trimRightWallNode: code })} />
+            </div>
+            <div style={{ fontSize: '.72rem', color: '#94a3b8', marginTop: 4 }}>
+              К коробке: <span className="badge badge-gray" style={{ fontSize: '.68rem' }}>O</span> авто
+            </div>
           </div>
 
           {/* Верхнее */}
           <div>
             <div style={{ fontSize: '.75rem', fontWeight: 600, color: '#64748b', marginBottom: 6 }}>Верхнее обрамление</div>
-            <div style={{ display: 'flex', gap: 6 }}>
+            <div style={{ display: 'flex', gap: 6, marginBottom: 6 }}>
               <div className="field" style={{ flex: 1 }}>
                 <label>Ширина, мм</label>
                 <input type="number" value={door.trimTopW ?? door.openingW ?? 900} min={0}
@@ -936,6 +1000,18 @@ function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove }: DoorCa
                 <label>Высота, мм</label>
                 <input type="number" value={door.trimTopH ?? door.wallDepth ?? 200} min={0}
                   onChange={e => onChange({ trimTopH: +e.target.value })} />
+              </div>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
+              <div className="field">
+                <label>Узел лев.</label>
+                <JointSelectCode value={door.trimTopLeftNode ?? 'A'} codes={EDGE_NODE_CODES} jointTypes={jointTypes}
+                  onChange={code => onChange({ trimTopLeftNode: code })} />
+              </div>
+              <div className="field">
+                <label>Узел пр.</label>
+                <JointSelectCode value={door.trimTopRightNode ?? 'A'} codes={EDGE_NODE_CODES} jointTypes={jointTypes}
+                  onChange={code => onChange({ trimTopRightNode: code })} />
               </div>
             </div>
           </div>
@@ -1296,6 +1372,7 @@ export default function Configurator() {
   const [wallSeq, setWallSeq] = useState(_INIT.wallSeq)
   const [doorSeq, setDoorSeq] = useState(_INIT.doorSeq)
   const [itemOrder, setItemOrder] = useState<{ type: 'wall' | 'door'; id: string }[]>(_INIT.itemOrder)
+  const [activeStep, setActiveStep] = useState<number>(1)
   const [copied, setCopied] = useState(false)
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [editOrder, setEditOrder] = useState<Order | null>(null)
@@ -1420,50 +1497,122 @@ export default function Configurator() {
         <div className="container">
           <h1 className="page-title">Конфигуратор стеновых панелей</h1>
 
-          <SchemeHint />
+          <StepNav step={activeStep} onStep={setActiveStep} />
 
-          <div className="flex gap-2 no-print" style={{ marginBottom: 20 }}>
-            <button className="btn btn-primary" onClick={addWall}>+ Добавить стену</button>
-            <button className="btn btn-ghost" onClick={addDoor}>+ Дверной проём</button>
-            <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
-              {editOrder && (
-                <span style={{ fontSize: 13, color: '#555' }}>
-                  Редактирование: <strong>{editOrder.order_number || `Заказ #${editOrder.id}`}</strong>
-                </span>
+          {/* ── Шаг 1: Стены и узлы ── */}
+          {activeStep === 1 && (
+            <>
+              <SchemeHint />
+              <div className="flex gap-2 no-print" style={{ marginBottom: 20 }}>
+                <button className="btn btn-primary" onClick={addWall}>+ Добавить стену</button>
+                <button className="btn btn-ghost" onClick={addDoor}>+ Дверной проём</button>
+                <div style={{ marginLeft: 'auto' }}>
+                  <button className="btn btn-primary" onClick={() => setActiveStep(2)}>
+                    Далее: Отделки →
+                  </button>
+                </div>
+              </div>
+
+              {itemOrder.map(item => {
+                if (item.type === 'wall') {
+                  const w = walls.find(w => w.id === item.id)
+                  if (!w) return null
+                  return (
+                    <WallCard key={w.id} wall={w} jointTypes={jointTypes} finishGroups={finishGroups} profileColors={profileColors}
+                      onChange={u => updateWall(w.id, u)}
+                      onRemove={() => removeWall(w.id)}
+                      canRemove={walls.length > 1}
+                      phase="geometry" />
+                  )
+                } else {
+                  const d = doors.find(d => d.id === item.id)
+                  if (!d) return null
+                  return (
+                    <DoorCard key={d.id} door={d} jointTypes={jointTypes} finishGroups={finishGroups}
+                      onChange={u => updateDoor(d.id, u)}
+                      onRemove={() => removeDoor(d.id)} />
+                  )
+                }
+              })}
+
+              <div className="no-print" style={{ textAlign: 'right', marginTop: 16 }}>
+                <button className="btn btn-primary" onClick={() => setActiveStep(2)}>
+                  Далее: Отделки →
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* ── Шаг 2: Отделки ── */}
+          {activeStep === 2 && (
+            <>
+              <div className="flex gap-2 no-print" style={{ marginBottom: 20 }}>
+                <button className="btn btn-ghost" onClick={() => setActiveStep(1)}>← Назад</button>
+                <div style={{ marginLeft: 'auto' }}>
+                  <button className="btn btn-primary" onClick={() => setActiveStep(3)}>
+                    Далее: Спецификация →
+                  </button>
+                </div>
+              </div>
+
+              {itemOrder.map(item => {
+                if (item.type === 'wall') {
+                  const w = walls.find(w => w.id === item.id)
+                  if (!w) return null
+                  return (
+                    <WallCard key={w.id} wall={w} jointTypes={jointTypes} finishGroups={finishGroups} profileColors={profileColors}
+                      onChange={u => updateWall(w.id, u)}
+                      onRemove={() => removeWall(w.id)}
+                      canRemove={walls.length > 1}
+                      phase="finish" />
+                  )
+                } else {
+                  const d = doors.find(d => d.id === item.id)
+                  if (!d) return null
+                  return (
+                    <DoorCard key={d.id} door={d} jointTypes={jointTypes} finishGroups={finishGroups}
+                      onChange={u => updateDoor(d.id, u)}
+                      onRemove={() => removeDoor(d.id)} />
+                  )
+                }
+              })}
+
+              <div className="no-print" style={{ textAlign: 'right', marginTop: 16 }}>
+                <button className="btn btn-primary" onClick={() => setActiveStep(3)}>
+                  Далее: Спецификация →
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* ── Шаг 3 / 4: Спецификация + Оформление ── */}
+          {(activeStep === 3 || activeStep === 4) && (
+            <div className="no-print flex gap-2" style={{ marginBottom: 20 }}>
+              <button className="btn btn-ghost" onClick={() => setActiveStep(activeStep === 4 ? 3 : 2)}>← Назад</button>
+              {activeStep === 3 && (
+                <div style={{ marginLeft: 'auto' }}>
+                  <button className="btn btn-primary" onClick={() => setActiveStep(4)}>
+                    Далее: Оформление →
+                  </button>
+                </div>
               )}
-              <button
-                className="btn btn-primary"
-                onClick={() => setShowSaveModal(true)}
-                disabled={loadingOrder}
-              >
-                {loadingOrder ? 'Загрузка...' : editOrder ? 'Обновить заказ' : 'Сохранить заказ'}
-              </button>
+              {activeStep === 4 && (
+                <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 10 }}>
+                  {editOrder && (
+                    <span style={{ fontSize: 13, color: '#555' }}>
+                      Редактирование: <strong>{editOrder.order_number || `Заказ #${editOrder.id}`}</strong>
+                    </span>
+                  )}
+                  <button className="btn btn-primary" onClick={() => setShowSaveModal(true)} disabled={loadingOrder}>
+                    {loadingOrder ? 'Загрузка...' : editOrder ? 'Обновить заказ' : 'Сохранить заказ'}
+                  </button>
+                </div>
+              )}
             </div>
-          </div>
+          )}
 
-          {itemOrder.map(item => {
-            if (item.type === 'wall') {
-              const w = walls.find(w => w.id === item.id)
-              if (!w) return null
-              return (
-                <WallCard key={w.id} wall={w} jointTypes={jointTypes} finishGroups={finishGroups} profileColors={profileColors}
-                  onChange={u => updateWall(w.id, u)}
-                  onRemove={() => removeWall(w.id)}
-                  canRemove={walls.length > 1} />
-              )
-            } else {
-              const d = doors.find(d => d.id === item.id)
-              if (!d) return null
-              return (
-                <DoorCard key={d.id} door={d} jointTypes={jointTypes} finishGroups={finishGroups}
-                  onChange={u => updateDoor(d.id, u)}
-                  onRemove={() => removeDoor(d.id)} />
-              )
-            }
-          })}
-
-          {/* ── Спецификация ── */}
-          <div className="card" style={{ marginTop: 24 }}>
+          {/* ── Спецификация (шаги 3 и 4) ── */}
+          {activeStep >= 3 && <div className="card" style={{ marginTop: 24 }}>
             <div className="flex justify-between flex-center no-print" style={{ marginBottom: 14 }}>
               <h2 style={{ margin: 0 }}>Спецификация</h2>
               <div className="flex gap-2">
@@ -1604,10 +1753,10 @@ export default function Configurator() {
                 )}
               </>
             )}
-          </div>
+          </div>}
 
-          {/* ── Схема раскладки ── */}
-          {spec.panels.length > 0 && (
+          {/* ── Схема раскладки (шаги 3 и 4) ── */}
+          {activeStep >= 3 && spec.panels.length > 0 && (
             <div className="card" style={{ marginTop: 24 }}>
               <h2 style={{ margin: '0 0 16px' }}>Схема раскладки</h2>
               <WallScheme walls={walls} doors={doors} panels={spec.panels} itemOrder={itemOrder} />

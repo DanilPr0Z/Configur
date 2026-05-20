@@ -346,53 +346,50 @@ export default function WallScheme({ walls, doors, panels, itemOrder }: Props) {
             leafEndX = seg.pxLen; leafEndY = faceY - r; hingeX = seg.pxLen
           }
 
-          // ── Полосы доборов (обрамления) ────────────────────────────────────
-          const TRIM_TOP_H = 20   // высота полосы верхнего добора, px
-          const TRIM_GAP   = 4    // зазор между дверью и полосой верхнего добора
+          // ── Доборы: размерные линии + узлы (без отрисовки панелей) ──────────────
+          const TRIM_GAP   = 4
           const leftTrimPx  = Math.max(10, Math.min(70, (d.trimLeftW  || d.wallDepth || 200) * scale))
           const rightTrimPx = Math.max(10, Math.min(70, (d.trimRightW || d.wallDepth || 200) * scale))
           const showTopTrim = d.mountType !== 'В ПОТОЛОК'
 
           return (
             <g key={seg.id} transform={transform}>
-              {/* ── Левый добор (обрамление) — зелёная полоса */}
-              <rect x={-leftTrimPx} y={-BAR_H / 2} width={leftTrimPx} height={BAR_H}
-                fill="#d1fae5" stroke="#34d399" strokeWidth="1.5" rx="1" />
-              <rect x={-leftTrimPx} y={-BAR_H / 2} width={leftTrimPx} height={3}
-                fill="#059669" opacity={0.5} rx="1" />
-              {leftTrimPx >= 28 && (
-                <HText lx={-leftTrimPx / 2} ly={9} angle={a}
-                  textAnchor="middle" fontSize="7" fill="#065f46">
-                  {d.trimLeftW || d.wallDepth || 200}
+              {/* ── Левый добор: штриховая линия + метка + узел к коробке (авто O) */}
+              <line x1={-leftTrimPx} y1={0} x2={0} y2={0}
+                stroke="#94a3b8" strokeWidth="1" strokeDasharray="4 3" />
+              {leftTrimPx >= 22 && (
+                <HText lx={-leftTrimPx / 2} ly={-BAR_H / 2 - 13} angle={a}
+                  textAnchor="middle" fontSize="7" fill="#64748b">
+                  {d.trimLeftW || d.wallDepth || 200}мм
                 </HText>
               )}
+              <Badge x={-12} y={0} code={'O'} angle={a} />
 
-              {/* ── Правый добор (обрамление) — зелёная полоса */}
-              <rect x={seg.pxLen} y={-BAR_H / 2} width={rightTrimPx} height={BAR_H}
-                fill="#d1fae5" stroke="#34d399" strokeWidth="1.5" rx="1" />
-              <rect x={seg.pxLen} y={-BAR_H / 2} width={rightTrimPx} height={3}
-                fill="#059669" opacity={0.5} rx="1" />
-              {rightTrimPx >= 28 && (
-                <HText lx={seg.pxLen + rightTrimPx / 2} ly={9} angle={a}
-                  textAnchor="middle" fontSize="7" fill="#065f46">
-                  {d.trimRightW || d.wallDepth || 200}
+              {/* ── Правый добор: штриховая линия + метка + узел к коробке (авто O) */}
+              <line x1={seg.pxLen} y1={0} x2={seg.pxLen + rightTrimPx} y2={0}
+                stroke="#94a3b8" strokeWidth="1" strokeDasharray="4 3" />
+              {rightTrimPx >= 22 && (
+                <HText lx={seg.pxLen + rightTrimPx / 2} ly={-BAR_H / 2 - 13} angle={a}
+                  textAnchor="middle" fontSize="7" fill="#64748b">
+                  {d.trimRightW || d.wallDepth || 200}мм
                 </HText>
               )}
+              <Badge x={seg.pxLen + 12} y={0} code={'O'} angle={a} />
 
-              {/* ── Верхний добор (обрамление) — зелёная полоса снизу проёма */}
+              {/* ── Верхний добор (только В ПРОЕМ): штриховая линия + метка + узлы краёв */}
               {showTopTrim && (
                 <g>
-                  <rect x={0} y={BAR_H / 2 + TRIM_GAP} width={seg.pxLen} height={TRIM_TOP_H}
-                    fill="#d1fae5" stroke="#34d399" strokeWidth="1.5" rx="1" />
-                  <HText lx={seg.pxLen / 2} ly={BAR_H / 2 + TRIM_GAP + TRIM_TOP_H / 2} angle={a}
-                    textAnchor="middle" dominantBaseline="central" fontSize="7" fill="#065f46" fontWeight="600">
-                    верх {d.trimTopH || d.wallDepth || 200} мм
+                  <line x1={0} y1={BAR_H / 2 + TRIM_GAP} x2={seg.pxLen} y2={BAR_H / 2 + TRIM_GAP}
+                    stroke="#94a3b8" strokeWidth="1" strokeDasharray="4 3" />
+                  <HText lx={seg.pxLen / 2} ly={BAR_H / 2 + TRIM_GAP + 13} angle={a}
+                    textAnchor="middle" fontSize="7" fill="#64748b">
+                    верх {d.trimTopH || d.wallDepth || 200}мм
                   </HText>
-                  {d.topEdge && (
-                    <Badge x={-14} y={BAR_H / 2 + TRIM_GAP + TRIM_TOP_H + 39} code={d.topEdge} angle={a} />
+                  {d.trimTopLeftNode && (
+                    <Badge x={-12} y={BAR_H / 2 + TRIM_GAP + 28} code={d.trimTopLeftNode} angle={a} />
                   )}
-                  {d.bottomEdge && (
-                    <Badge x={seg.pxLen + 14} y={BAR_H / 2 + TRIM_GAP + TRIM_TOP_H + 39} code={d.bottomEdge} angle={a} />
+                  {d.trimTopRightNode && (
+                    <Badge x={seg.pxLen + 12} y={BAR_H / 2 + TRIM_GAP + 28} code={d.trimTopRightNode} angle={a} />
                   )}
                 </g>
               )}
@@ -445,7 +442,7 @@ export default function WallScheme({ walls, doors, panels, itemOrder }: Props) {
               {/* Монтаж — тыльная сторона, ниже верхнего добора */}
               {(() => {
                 const trimOff = showTopTrim
-                  ? BAR_H / 2 + TRIM_GAP + TRIM_TOP_H + 22
+                  ? BAR_H / 2 + TRIM_GAP + 46
                   : BAR_H / 2 + 18
                 const mountOff = isIn ? Math.max(r + 18, trimOff) : trimOff
                 return (
