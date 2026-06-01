@@ -177,6 +177,9 @@ export const uploadJointImage = (id: number, file: File) => {
 export const deleteJointImage = (id: number) =>
   api.delete<{ ok: boolean }>(`joint-types/${id}/delete-image/`).then(r => r.data)
 
+export const updateJointType = (id: number, data: Partial<Pick<JointType, 'offset_mm' | 'price_per_meter' | 'profile_article' | 'profile_count'>>) =>
+  api.patch<JointType>(`joint-types/${id}/`, data).then(r => r.data)
+
 export const fetchFinishGroups = () =>
   api.get<FinishGroup[]>('finish-groups/').then(r => r.data)
 

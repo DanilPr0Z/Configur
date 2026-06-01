@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from 'react'
-import { fetchJointTypes, uploadJointImage, deleteJointImage } from '../api'
+import { fetchJointTypes, uploadJointImage, deleteJointImage, updateJointType } from '../api'
 import type { JointType } from '../api'
 
 export default function JointImages() {
@@ -58,7 +58,7 @@ export default function JointImages() {
           Рекомендуемый размер: от 400×300 пикселей, формат JPG или PNG.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
           {joints.map(joint => (
             <JointCard
               key={joint.id}
@@ -67,6 +67,7 @@ export default function JointImages() {
               msg={msg?.id === joint.id ? msg : null}
               onUpload={file => handleUpload(joint, file)}
               onDelete={() => handleDelete(joint)}
+              onUpdate={updated => setJoints(prev => prev.map(j => j.id === updated.id ? updated : j))}
             />
           ))}
         </div>
@@ -81,21 +82,52 @@ interface CardProps {
   msg: { text: string; ok: boolean } | null
   onUpload: (file: File) => void
   onDelete: () => void
+  onUpdate: (updated: JointType) => void
 }
 
-function JointCard({ joint, busy, msg, onUpload, onDelete }: CardProps) {
+function JointCard({ joint, busy, msg, onUpload, onDelete, onUpdate }: CardProps) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [draft, setDraft] = useState({
+    offset_mm: joint.offset_mm,
+    price_per_meter: joint.price_per_meter,
+    profile_article: joint.profile_article,
+    profile_count: joint.profile_count,
+  })
+
+  const startEdit = () => {
+    setDraft({
+      offset_mm: joint.offset_mm,
+      price_per_meter: joint.price_per_meter,
+      profile_article: joint.profile_article,
+      profile_count: joint.profile_count,
+    })
+    setEditing(true)
+  }
+
+  const handleSave = async () => {
+    setSaving(true)
+    try {
+      const updated = await updateJointType(joint.id, draft)
+      onUpdate(updated)
+      setEditing(false)
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <div
       style={{
         background: '#fff',
-        border: '1px solid #e0e8f5',
+        border: editing ? '1.5px solid #93c5fd' : '1px solid #e0e8f5',
         borderRadius: 12,
         overflow: 'hidden',
-        boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+        boxShadow: editing ? '0 0 0 3px #dbeafe' : '0 2px 8px rgba(0,0,0,0.06)',
         display: 'flex',
         flexDirection: 'column',
+        transition: 'box-shadow 0.15s, border-color 0.15s',
       }}
     >
       {/* Превью */}
@@ -148,9 +180,124 @@ function JointCard({ joint, busy, msg, onUpload, onDelete }: CardProps) {
       </div>
 
       {/* Инфо */}
-      <div style={{ padding: '10px 12px', flex: 1 }}>
+      <div style={{ padding: '10px 12px 6px' }}>
         <div style={{ fontWeight: 700, fontSize: 15, color: '#1a4d8a' }}>{joint.code}</div>
         {joint.name && <div style={{ fontSize: 12, color: '#777', marginTop: 2 }}>{joint.name}</div>}
+      </div>
+
+      {/* Формула расчёта */}
+      <div style={{
+        margin: '0 10px 8px',
+        background: editing ? '#f0f7ff' : '#f8faff',
+        border: editing ? '1px solid #93c5fd' : '1px solid #ddeaff',
+        borderRadius: 8,
+        padding: '7px 10px',
+        fontSize: 11,
+        lineHeight: 1.7,
+        fontFamily: 'monospace',
+      }}>
+        <div style={{ marginBottom: 4, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <span style={{ fontFamily: 'sans-serif', fontSize: 10, fontWeight: 600, color: '#888', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+            Формула расчёта
+          </span>
+          {!editing && (
+            <button
+              onClick={startEdit}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#3b82f6', fontSize: 10, padding: '1px 4px', borderRadius: 4 }}
+              title="Редактировать"
+            >
+              ✏️ изм.
+            </button>
+          )}
+        </div>
+
+        {editing ? (
+          <div style={{ fontFamily: 'sans-serif', fontSize: 11 }}>
+            <label style={{ display: 'block', marginBottom: 5 }}>
+              <span style={{ color: '#555', fontSize: 10 }}>Δ ширины (вычет), мм</span>
+              <input
+                type="number"
+                value={draft.offset_mm}
+                step="0.5"
+                onChange={e => setDraft(d => ({ ...d, offset_mm: +e.target.value }))}
+                style={{ display: 'block', width: '100%', marginTop: 2, padding: '3px 6px', border: '1px solid #93c5fd', borderRadius: 4, fontSize: 12, boxSizing: 'border-box' }}
+              />
+            </label>
+            <label style={{ display: 'block', marginBottom: 5 }}>
+              <span style={{ color: '#555', fontSize: 10 }}>Обработка, руб/пм</span>
+              <input
+                type="number"
+                value={draft.price_per_meter}
+                step="0.01"
+                min={0}
+                onChange={e => setDraft(d => ({ ...d, price_per_meter: +e.target.value }))}
+                style={{ display: 'block', width: '100%', marginTop: 2, padding: '3px 6px', border: '1px solid #93c5fd', borderRadius: 4, fontSize: 12, boxSizing: 'border-box' }}
+              />
+            </label>
+            <label style={{ display: 'block', marginBottom: 5 }}>
+              <span style={{ color: '#555', fontSize: 10 }}>Артикул профиля</span>
+              <input
+                type="text"
+                value={draft.profile_article}
+                onChange={e => setDraft(d => ({ ...d, profile_article: e.target.value }))}
+                style={{ display: 'block', width: '100%', marginTop: 2, padding: '3px 6px', border: '1px solid #93c5fd', borderRadius: 4, fontSize: 12, boxSizing: 'border-box' }}
+              />
+            </label>
+            <label style={{ display: 'block', marginBottom: 6 }}>
+              <span style={{ color: '#555', fontSize: 10 }}>Кол-во профилей / узел</span>
+              <input
+                type="number"
+                value={draft.profile_count}
+                step="0.5"
+                min={0}
+                onChange={e => setDraft(d => ({ ...d, profile_count: +e.target.value }))}
+                style={{ display: 'block', width: '100%', marginTop: 2, padding: '3px 6px', border: '1px solid #93c5fd', borderRadius: 4, fontSize: 12, boxSizing: 'border-box' }}
+              />
+            </label>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button
+                onClick={handleSave}
+                disabled={saving}
+                style={{ flex: 1, background: '#2563eb', color: '#fff', border: 'none', borderRadius: 5, padding: '4px 0', fontSize: 11, cursor: saving ? 'not-allowed' : 'pointer', opacity: saving ? 0.7 : 1 }}
+              >
+                {saving ? '...' : 'Сохранить'}
+              </button>
+              <button
+                onClick={() => setEditing(false)}
+                disabled={saving}
+                style={{ flex: 1, background: '#e5e7eb', color: '#374151', border: 'none', borderRadius: 5, padding: '4px 0', fontSize: 11, cursor: 'pointer' }}
+              >
+                Отмена
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 4 }}>
+              <span style={{ color: '#555' }}>Δ ширины:</span>
+              <span style={{ color: joint.offset_mm === 0 ? '#999' : joint.offset_mm > 0 ? '#1a7a3a' : '#b91c1c', fontWeight: 600 }}>
+                {joint.offset_mm > 0 ? '+' : ''}{joint.offset_mm} мм
+              </span>
+            </div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 4 }}>
+              <span style={{ color: '#555' }}>Обработка:</span>
+              <span style={{ color: '#1a4d8a', fontWeight: 600 }}>
+                {joint.price_per_meter > 0 ? `${joint.price_per_meter} руб/пм` : <span style={{ color: '#bbb' }}>—</span>}
+              </span>
+            </div>
+            {joint.profile_article && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', gap: 4 }}>
+                <span style={{ color: '#555' }}>Профиль:</span>
+                <span style={{ color: '#7c3aed', fontWeight: 600 }}>
+                  {joint.profile_article}{joint.profile_count > 0 ? ` × ${joint.profile_count}` : ''}
+                </span>
+              </div>
+            )}
+            <div style={{ marginTop: 5, paddingTop: 5, borderTop: '1px dashed #dde', color: '#777', fontSize: 10, fontFamily: 'sans-serif' }}>
+              {'B = (L_стены + Δлев + Δпр) / N'}
+            </div>
+          </>
+        )}
       </div>
 
       {/* Кнопки */}

@@ -11,6 +11,7 @@ interface W {
   wallLength: number; wallHeight: number
   numPanels: number; connType: string
   leftNode: string; rightNode: string; copies: number
+  wallFacing?: 'front' | 'back'
 }
 
 interface D {
@@ -19,6 +20,7 @@ interface D {
   mountType: string; openingDir: string; hingeDir: string
   leftNode: string; rightNode: string; copies: number
   wallDepth?: number
+  hasTrim?: boolean
   trimLeftNode?: string; trimLeftW?: number
   trimRightNode?: string; trimRightW?: number
   trimTopLeftNode?: string; trimTopRightNode?: string; trimTopH?: number
@@ -236,18 +238,15 @@ export default function WallScheme({ walls, doors, panels, itemOrder }: Props) {
                 <rect x={0} y={-BAR_H / 2} width={seg.pxLen} height={BAR_H}
                   fill="#dbeafe" stroke="#93c5fd" strokeWidth="1.5" rx="2" />
 
-                {/* Лицевая сторона: акцентная полоска на верхнем крае (local -y = face side) */}
-                <rect x={0} y={-BAR_H / 2} width={seg.pxLen} height={3}
+                {/* Лицевая сторона: акцентная полоска (front = верх, back = низ) */}
+                <rect x={0} y={w.wallFacing === 'back' ? BAR_H / 2 - 3 : -BAR_H / 2} width={seg.pxLen} height={3}
                   fill="#1e40af" rx="1" opacity={0.4} />
 
-                {/* Стрелка лицевой стороны — LOCAL coords, поворачивается вместе с полосой.
-                    ↑ всегда указывает на local -y (лицевая): 0°=↑  90°=→  180°=↓  270°=←
-                    lx=14 (рядом с левым значком) — не конфликтует с центрированным лейблом
-                    для вертикальных стен (у них label и стрелка на разной global_y). */}
-                <text x={14} y={-BAR_H / 2 - 6}
-                  textAnchor="middle" dominantBaseline="auto"
+                {/* Стрелка лицевой стороны */}
+                <text x={14} y={w.wallFacing === 'back' ? BAR_H / 2 + 14 : -BAR_H / 2 - 6}
+                  textAnchor="middle" dominantBaseline="central"
                   fontSize="12" fill="#1e40af" opacity={0.8} fontWeight="700">
-                  ↑
+                  {w.wallFacing === 'back' ? '↓' : '↑'}
                 </text>
 
                 {/* Разделители панелей */}
@@ -347,34 +346,39 @@ export default function WallScheme({ walls, doors, panels, itemOrder }: Props) {
           }
 
           // ── Доборы: размерные линии + узлы (без отрисовки панелей) ──────────────
-          const TRIM_GAP   = 4
-          const leftTrimPx  = Math.max(10, Math.min(70, (d.trimLeftW  || d.wallDepth || 200) * scale))
-          const rightTrimPx = Math.max(10, Math.min(70, (d.trimRightW || d.wallDepth || 200) * scale))
-          const showTopTrim = d.mountType !== 'В ПОТОЛОК'
+          const TRIM_GAP    = 4
+          const trimEnabled = d.hasTrim !== false
+          const leftTrimPx  = trimEnabled ? Math.max(10, Math.min(70, (d.trimLeftW  || d.wallDepth || 200) * scale)) : 0
+          const rightTrimPx = trimEnabled ? Math.max(10, Math.min(70, (d.trimRightW || d.wallDepth || 200) * scale)) : 0
+          const showTopTrim = trimEnabled && d.mountType !== 'В ПОТОЛОК'
 
           return (
             <g key={seg.id} transform={transform}>
               {/* ── Левый добор: штриховая линия + метка + узел к коробке (авто O) */}
-              <line x1={-leftTrimPx} y1={0} x2={0} y2={0}
-                stroke="#94a3b8" strokeWidth="1" strokeDasharray="4 3" />
-              {leftTrimPx >= 22 && (
-                <HText lx={-leftTrimPx / 2} ly={-BAR_H / 2 - 13} angle={a}
-                  textAnchor="middle" fontSize="7" fill="#64748b">
-                  {d.trimLeftW || d.wallDepth || 200}мм
-                </HText>
-              )}
-              <Badge x={-12} y={0} code={'O'} angle={a} />
+              {trimEnabled && <>
+                <line x1={-leftTrimPx} y1={0} x2={0} y2={0}
+                  stroke="#94a3b8" strokeWidth="1" strokeDasharray="4 3" />
+                {leftTrimPx >= 22 && (
+                  <HText lx={-leftTrimPx / 2} ly={-BAR_H / 2 - 13} angle={a}
+                    textAnchor="middle" fontSize="7" fill="#64748b">
+                    {d.trimLeftW || d.wallDepth || 200}мм
+                  </HText>
+                )}
+                <Badge x={-12} y={0} code={'O'} angle={a} />
+              </>}
 
               {/* ── Правый добор: штриховая линия + метка + узел к коробке (авто O) */}
-              <line x1={seg.pxLen} y1={0} x2={seg.pxLen + rightTrimPx} y2={0}
-                stroke="#94a3b8" strokeWidth="1" strokeDasharray="4 3" />
-              {rightTrimPx >= 22 && (
-                <HText lx={seg.pxLen + rightTrimPx / 2} ly={-BAR_H / 2 - 13} angle={a}
-                  textAnchor="middle" fontSize="7" fill="#64748b">
-                  {d.trimRightW || d.wallDepth || 200}мм
-                </HText>
-              )}
-              <Badge x={seg.pxLen + 12} y={0} code={'O'} angle={a} />
+              {trimEnabled && <>
+                <line x1={seg.pxLen} y1={0} x2={seg.pxLen + rightTrimPx} y2={0}
+                  stroke="#94a3b8" strokeWidth="1" strokeDasharray="4 3" />
+                {rightTrimPx >= 22 && (
+                  <HText lx={seg.pxLen + rightTrimPx / 2} ly={-BAR_H / 2 - 13} angle={a}
+                    textAnchor="middle" fontSize="7" fill="#64748b">
+                    {d.trimRightW || d.wallDepth || 200}мм
+                  </HText>
+                )}
+                <Badge x={seg.pxLen + 12} y={0} code={'O'} angle={a} />
+              </>}
 
               {/* ── Верхний добор (только В ПРОЕМ): штриховая линия + метка + узлы краёв */}
               {showTopTrim && (

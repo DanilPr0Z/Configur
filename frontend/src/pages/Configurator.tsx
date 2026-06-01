@@ -30,6 +30,7 @@ interface WallSeg {
   aluminumColor: string
   markup: number
   notes: string
+  wallFacing: 'front' | 'back'
 }
 
 interface DoorSeg {
@@ -65,6 +66,7 @@ interface DoorSeg {
   veneerDirection: string
   decor3d: string
   copies: number
+  hasTrim: boolean
   notes: string
 }
 
@@ -234,6 +236,7 @@ function makeWall(n: number): WallSeg {
     copies: 1,
     aluminumVertical: 0, aluminumHorizontal: 0, aluminumColor: '',
     markup: 0, notes: '',
+    wallFacing: 'front' as const,
   }
 }
 
@@ -242,7 +245,7 @@ function makeDoor(n: number): DoorSeg {
     id: uid(), label: `Дверной проём ${n}`,
     doorRef: '', openingW: 900, openingH: 2100, ceilingH: 2700,
     mountType: 'В ПРОЕМ', openingDir: 'ВНУТРЬ', hingeDir: 'СЛЕВА',
-    leftNode: 'A', rightNode: 'A',
+    leftNode: 'B', rightNode: 'B',
     topEdge: '', bottomEdge: '',
     wallDepth: 200, trimLeftNode: 'A', trimLeftW: 200, trimLeftH: 2100,
     trimRightNode: 'A', trimRightW: 200, trimRightH: 2100,
@@ -250,7 +253,7 @@ function makeDoor(n: number): DoorSeg {
     trimLeftWallNode: 'A', trimRightWallNode: 'A',
     finishGroup: '', finishName: '',
     veneerDirection: '', decor3d: '',
-    copies: 1, notes: '',
+    copies: 1, hasTrim: true, notes: '',
   }
 }
 
@@ -290,6 +293,11 @@ function getInitialConfig() {
             ..._SAVED_CONFIG.walls.map(w => ({ type: 'wall' as const, id: w.id })),
             ..._SAVED_CONFIG.doors.map(d => ({ type: 'door' as const, id: d.id })),
           ]
+    // Мигрируем стены (wallFacing)
+    const walls = _SAVED_CONFIG.walls.map(w => {
+      const wa = w as any
+      return { ...w, wallFacing: (wa.wallFacing ?? 'front') as 'front' | 'back' }
+    })
     // Мигрируем старые DoorSeg без новых полей добора
     const doors = _SAVED_CONFIG.doors.map(d => {
       const da = d as any
@@ -308,10 +316,13 @@ function getInitialConfig() {
         trimTopH: da.trimTopH ?? da.wallDepth ?? 200,
         trimLeftWallNode: da.trimLeftWallNode ?? 'A',
         trimRightWallNode: da.trimRightWallNode ?? 'A',
+        hasTrim: da.hasTrim ?? true,
+        leftNode: ['B', 'C'].includes(da.leftNode) ? da.leftNode : 'B',
+        rightNode: ['B', 'C'].includes(da.rightNode) ? da.rightNode : 'B',
       }
     })
     return {
-      walls: _SAVED_CONFIG.walls,
+      walls,
       doors,
       itemOrder: io,
       wallSeq: _SAVED_CONFIG.wallSeq ?? _SAVED_CONFIG.walls.length,
@@ -437,7 +448,7 @@ function buildSpec(
         wallName: doorName,
         height: ph, width: d.openingW,
         leftNode: d.leftNode, rightNode: d.rightNode,
-        topEdge: d.topEdge, bottomEdge: d.bottomEdge,
+        topEdge: d.topEdge, bottomEdge: dtype,
         quantity: copies,
         finishGroup: d.finishGroup, finishName: d.finishName,
         veneerDirection: d.veneerDirection, decor3d: d.decor3d,
@@ -451,46 +462,48 @@ function buildSpec(
       else pc['lamelle_H'] += copies
     }
 
-    // Панели добора обрамления
-    let trimN = 1
+    // Панели добора обрамления (только если hasTrim)
+    if (d.hasTrim !== false) {
+      let trimN = 1
 
-    if (d.mountType !== 'В ПОТОЛОК') {
-      const tw = d.trimTopW || d.openingW
-      const th = d.trimTopH || d.wallDepth
+      if (d.mountType !== 'В ПОТОЛОК') {
+        const tw = d.trimTopW || d.openingW
+        const th = d.trimTopH || d.wallDepth
+        panels.push({
+          ...trimBase,
+          panelLabel: `${doorLabel}.${trimN++}`,
+          wallName: `${doorName} — Верхнее`,
+          height: th, width: tw,
+          leftNode: d.trimTopLeftNode || 'A', rightNode: d.trimTopRightNode || 'A',
+        })
+        totalPanels += copies
+        addEdge('A', copies * 2)
+      }
+
+      const lw = d.trimLeftW || d.wallDepth
+      const lh = d.trimLeftH || d.openingH
       panels.push({
         ...trimBase,
         panelLabel: `${doorLabel}.${trimN++}`,
-        wallName: `${doorName} — Верхнее`,
-        height: th, width: tw,
-        leftNode: d.trimTopLeftNode || 'A', rightNode: d.trimTopRightNode || 'A',
+        wallName: `${doorName} — Левое`,
+        height: lh, width: lw,
+        leftNode: d.trimLeftWallNode || 'A', rightNode: 'O',
       })
       totalPanels += copies
-      addEdge('A', copies * 2)
+      addEdge(d.trimLeftWallNode || 'A', copies)
+
+      const rw = d.trimRightW || d.wallDepth
+      const rh = d.trimRightH || d.openingH
+      panels.push({
+        ...trimBase,
+        panelLabel: `${doorLabel}.${trimN++}`,
+        wallName: `${doorName} — Правое`,
+        height: rh, width: rw,
+        leftNode: 'O', rightNode: d.trimRightWallNode || 'A',
+      })
+      totalPanels += copies
+      addEdge(d.trimRightWallNode || 'A', copies)
     }
-
-    const lw = d.trimLeftW || d.wallDepth
-    const lh = d.trimLeftH || d.openingH
-    panels.push({
-      ...trimBase,
-      panelLabel: `${doorLabel}.${trimN++}`,
-      wallName: `${doorName} — Левое`,
-      height: lh, width: lw,
-      leftNode: d.trimLeftWallNode || 'A', rightNode: 'O',
-    })
-    totalPanels += copies
-    addEdge(d.trimLeftWallNode || 'A', copies)
-
-    const rw = d.trimRightW || d.wallDepth
-    const rh = d.trimRightH || d.openingH
-    panels.push({
-      ...trimBase,
-      panelLabel: `${doorLabel}.${trimN++}`,
-      wallName: `${doorName} — Правое`,
-      height: rh, width: rw,
-      leftNode: 'O', rightNode: d.trimRightWallNode || 'A',
-    })
-    totalPanels += copies
-    addEdge(d.trimRightWallNode || 'A', copies)
   })
 
   pc['hanger'] = totalPanels * 4
@@ -652,6 +665,15 @@ function WallCard({ wall, jointTypes, finishGroups, profileColors, onChange, onR
             <label>Копий (одинак. стен)</label>
             <input type="number" min={1} value={wall.copies}
               onChange={e => onChange({ copies: Math.max(1, +e.target.value) })} />
+          </div>
+        </div>
+
+        {/* Лицевая сторона */}
+        <div className="field" style={{ marginBottom: 10 }}>
+          <label>Лицевая сторона стены (в схеме)</label>
+          <div style={{ display: 'flex', gap: 6 }}>
+            <button type="button" onClick={() => onChange({ wallFacing: 'front' })} style={{ padding: '4px 14px', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontWeight: 600, border: wall.wallFacing !== 'back' ? '1.5px solid #1a4d8a' : '1.5px solid #d0d7e3', background: wall.wallFacing !== 'back' ? '#1a4d8a' : '#fff', color: wall.wallFacing !== 'back' ? '#fff' : '#555' }}>↑ Вперёд</button>
+            <button type="button" onClick={() => onChange({ wallFacing: 'back' })} style={{ padding: '4px 14px', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontWeight: 600, border: wall.wallFacing === 'back' ? '1.5px solid #1a4d8a' : '1.5px solid #d0d7e3', background: wall.wallFacing === 'back' ? '#1a4d8a' : '#fff', color: wall.wallFacing === 'back' ? '#fff' : '#555' }}>↓ Назад</button>
           </div>
         </div>
 
@@ -841,6 +863,13 @@ function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove }: DoorCa
         <button className="btn btn-danger btn-sm" onClick={onRemove}>✕</button>
       </div>
 
+      {/* № заказа дверного полотна — первым полем */}
+      <div className="field" style={{ marginBottom: 10 }}>
+        <label>№ заказа дверного полотна (DGV)</label>
+        <input value={door.doorRef} placeholder="—"
+          onChange={e => onChange({ doorRef: e.target.value })} />
+      </div>
+
       {/* Размеры проёма */}
       <div className="grid-4" style={{ marginBottom: 10 }}>
         <div className="field">
@@ -893,21 +922,21 @@ function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove }: DoorCa
         </div>
       </div>
 
-      {/* Узлы */}
+      {/* Узлы левый/правый — только B или C */}
       <div className="grid-2" style={{ marginBottom: 10 }}>
         <div className="field">
-          <label>Узел левого края</label>
-          <JointSelectCode value={door.leftNode} codes={EDGE_NODE_CODES} jointTypes={jointTypes}
+          <label>Узел левого края (только B/C)</label>
+          <JointSelectCode value={door.leftNode} codes={CONN_NODE_CODES} jointTypes={jointTypes}
             onChange={code => onChange({ leftNode: code })} />
         </div>
         <div className="field">
-          <label>Узел правого края</label>
-          <JointSelectCode value={door.rightNode} codes={EDGE_NODE_CODES} jointTypes={jointTypes}
+          <label>Узел правого края (только B/C)</label>
+          <JointSelectCode value={door.rightNode} codes={CONN_NODE_CODES} jointTypes={jointTypes}
             onChange={code => onChange({ rightNode: code })} />
         </div>
       </div>
 
-      {/* Верх/Низ кромки */}
+      {/* Верхняя кромка + нижняя (авто) */}
       <div className="grid-2" style={{ marginBottom: 10 }}>
         <div className="field">
           <label>Верхняя кромка</label>
@@ -916,19 +945,34 @@ function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove }: DoorCa
             fallback={NODES.map(n => ({ code: n.code, name: n.label }))} />
         </div>
         <div className="field">
-          <label>Нижняя кромка</label>
-          <JointSelectCode value={door.bottomEdge} codes={EDGE_TOPBOT_CODES} jointTypes={jointTypes}
-            onChange={code => onChange({ bottomEdge: code })} allowEmpty
-            fallback={NODES.map(n => ({ code: n.code, name: n.label }))} />
+          <label>Нижняя кромка (авто по открыванию)</label>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, height: 30, padding: '0 10px', border: '1.5px solid #e2e8f0', borderRadius: 6, background: '#f8fafc' }}>
+            {dtype !== null ? (
+              <>
+                <span style={{ background: '#ef4444', color: '#fff', borderRadius: 4, padding: '1px 6px', fontSize: 11, fontWeight: 700 }}>{dtype}</span>
+                <span style={{ fontSize: 11, color: '#555' }}>{dtype === 'G' ? 'Тип G (наружу)' : 'Тип H (внутрь)'}</span>
+              </>
+            ) : (
+              <span style={{ fontSize: 12, color: '#94a3b8' }}>В ПОТОЛОК — не задано</span>
+            )}
+          </div>
         </div>
       </div>
 
       {/* Добор обрамления */}
       <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 10, marginBottom: 10 }}>
-        <div style={{ fontSize: '.8rem', fontWeight: 600, color: '#64748b', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '.04em' }}>
-          Добор обрамления
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+          <span style={{ fontSize: '.8rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.04em' }}>
+            Добор обрамления
+          </span>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 13, color: '#374151' }}>
+            <input type="checkbox" checked={door.hasTrim !== false}
+              onChange={e => onChange({ hasTrim: e.target.checked })} />
+            нужен
+          </label>
         </div>
 
+        {door.hasTrim !== false && <>
         <div className="field" style={{ maxWidth: 180, marginBottom: 10 }}>
           <label>Глубина стены, мм</label>
           <input type="number" value={door.wallDepth ?? 200} min={0}
@@ -1016,13 +1060,7 @@ function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove }: DoorCa
             </div>
           </div>
         </div>
-      </div>
-
-      {/* № заказа двери */}
-      <div className="field" style={{ marginBottom: 10 }}>
-        <label>№ заказа дверного полотна (DGV)</label>
-        <input value={door.doorRef} placeholder="—"
-          onChange={e => onChange({ doorRef: e.target.value })} />
+        </>}
       </div>
 
       {/* Отделка */}
@@ -1087,8 +1125,11 @@ function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove }: DoorCa
 
       {dtype !== null && panelH !== null && (
         <div className="calc-result" style={{ background: '#f0fdf4', color: '#166534', borderColor: '#bbf7d0' }}>
-          <strong>Панель над дверью</strong> (тип {dtype}):
-          {' '}<strong>{panelH} × {door.openingW} мм</strong>
+          <strong>Расчёт панели над дверью</strong>:{' '}
+          <strong>{panelH} × {door.openingW} мм</strong>
+          {' '}· нижняя кромка:{' '}
+          <span style={{ background: '#ef4444', color: '#fff', borderRadius: 3, padding: '0 5px', fontSize: '0.8rem', fontWeight: 700 }}>{dtype}</span>
+          {' '}(авто)
         </div>
       )}
       {door.mountType === 'В ПОТОЛОК' && (
@@ -1311,20 +1352,20 @@ function SaveOrderModal({
             />
           </div>
           <div className="field">
-            <label>Агент</label>
-            <input value={form.agent_name} placeholder="—" onChange={e => set('agent_name', e.target.value)} disabled={saving} />
-          </div>
-          <div className="field">
-            <label>Контрагент</label>
-            <input value={form.counterparty} placeholder="—" onChange={e => set('counterparty', e.target.value)} disabled={saving} />
-          </div>
-          <div className="field">
             <label>Номер заказа</label>
             <input value={form.order_number} placeholder="2025-001" onChange={e => set('order_number', e.target.value)} disabled={saving} />
           </div>
           <div className="field">
             <label>Номер счёта</label>
             <input value={form.invoice_number} placeholder="—" onChange={e => set('invoice_number', e.target.value)} disabled={saving} />
+          </div>
+          <div className="field">
+            <label>Агент</label>
+            <input value={form.agent_name} placeholder="—" onChange={e => set('agent_name', e.target.value)} disabled={saving} />
+          </div>
+          <div className="field">
+            <label>Контрагент</label>
+            <input value={form.counterparty} placeholder="—" onChange={e => set('counterparty', e.target.value)} disabled={saving} />
           </div>
           <div className="field">
             <label>Дата заказа</label>
@@ -1540,6 +1581,13 @@ export default function Configurator() {
                   Далее: Отделки →
                 </button>
               </div>
+
+              {spec.panels.length > 0 && (
+                <div className="card" style={{ marginTop: 24 }}>
+                  <h2 style={{ margin: '0 0 16px' }}>Схема раскладки</h2>
+                  <WallScheme walls={walls} doors={doors} panels={spec.panels} itemOrder={itemOrder} />
+                </div>
+              )}
             </>
           )}
 
@@ -1671,35 +1719,58 @@ export default function Configurator() {
                       </tr>
                     </thead>
                     <tbody>
-                      {spec.panels.map((p, i) => {
-                        const c = panelCosts[i]
-                        return (
-                          <tr key={i}>
-                            <td><strong>{p.panelLabel}</strong></td>
-                            <td>{p.wallName}</td>
-                            <td><strong>{p.height}</strong></td>
-                            <td><span className="badge badge-blue">{p.leftNode}</span></td>
-                            <td><strong>{p.width}</strong></td>
-                            <td><span className="badge badge-blue">{p.rightNode}</span></td>
-                            <td><strong>{p.quantity}</strong></td>
-                            <td className="text-right">{fmt(c.sideCost)}</td>
-                            <td>{p.topEdge ? <span className="badge badge-gray">{p.topEdge}</span> : '—'}</td>
-                            <td>{p.bottomEdge ? <span className="badge badge-gray">{p.bottomEdge}</span> : '—'}</td>
-                            <td className="text-right">{fmt(c.topBotCost)}</td>
-                            <td>{p.finishGroup || '—'}</td>
-                            <td>{p.finishName || '—'}</td>
-                            <td>{p.veneerDirection || '—'}</td>
-                            <td className="text-muted">{p.decor3d || '—'}</td>
-                            <td>{p.aluminumVertical || '—'}</td>
-                            <td>{p.aluminumHorizontal || '—'}</td>
-                            <td className="text-muted">{p.aluminumColor || '—'}</td>
-                            <td className="text-right">{c.areaSqm.toFixed(2)}</td>
-                            <td>{p.markup > 0 ? `${p.markup}%` : '—'}</td>
-                            <td className="text-right price"><strong>{fmt(c.total)}</strong></td>
-                            <td className="text-muted">{p.notes || '—'}</td>
-                          </tr>
-                        )
-                      })}
+                      {(() => {
+                        let lastBase = ''
+                        return spec.panels.flatMap((p, i) => {
+                          const baseName = p.wallName.split(' — ')[0]
+                          const isDoor = p.panelLabel.startsWith('Д')
+                          const c = panelCosts[i]
+                          const dataRow = (
+                            <tr key={i}>
+                              <td><strong>{p.panelLabel}</strong></td>
+                              <td>{p.wallName}</td>
+                              <td><strong>{p.height}</strong></td>
+                              <td><span className="badge badge-blue">{p.leftNode}</span></td>
+                              <td><strong>{p.width}</strong></td>
+                              <td><span className="badge badge-blue">{p.rightNode}</span></td>
+                              <td><strong>{p.quantity}</strong></td>
+                              <td className="text-right">{fmt(c.sideCost)}</td>
+                              <td>{p.topEdge ? <span className="badge badge-gray">{p.topEdge}</span> : '—'}</td>
+                              <td>{p.bottomEdge ? <span className="badge badge-gray">{p.bottomEdge}</span> : '—'}</td>
+                              <td className="text-right">{fmt(c.topBotCost)}</td>
+                              <td>{p.finishGroup || '—'}</td>
+                              <td>{p.finishName || '—'}</td>
+                              <td>{p.veneerDirection || '—'}</td>
+                              <td className="text-muted">{p.decor3d || '—'}</td>
+                              <td>{p.aluminumVertical || '—'}</td>
+                              <td>{p.aluminumHorizontal || '—'}</td>
+                              <td className="text-muted">{p.aluminumColor || '—'}</td>
+                              <td className="text-right">{c.areaSqm.toFixed(2)}</td>
+                              <td>{p.markup > 0 ? `${p.markup}%` : '—'}</td>
+                              <td className="text-right price"><strong>{fmt(c.total)}</strong></td>
+                              <td className="text-muted">{p.notes || '—'}</td>
+                            </tr>
+                          )
+                          if (baseName !== lastBase) {
+                            lastBase = baseName
+                            return [
+                              <tr key={`hdr-${i}`}>
+                                <td colSpan={22} style={{
+                                  background: isDoor ? '#f0fdf4' : '#eff6ff',
+                                  color: isDoor ? '#166534' : '#1e40af',
+                                  fontWeight: 700, fontSize: '0.82rem',
+                                  padding: '7px 12px', letterSpacing: '.04em',
+                                  borderTop: i > 0 ? `2px solid ${isDoor ? '#bbf7d0' : '#bfdbfe'}` : undefined,
+                                }}>
+                                  {baseName.toUpperCase()}
+                                </td>
+                              </tr>,
+                              dataRow,
+                            ]
+                          }
+                          return [dataRow]
+                        })
+                      })()}
                     </tbody>
                   </table>
                 </div>
@@ -1755,13 +1826,6 @@ export default function Configurator() {
             )}
           </div>}
 
-          {/* ── Схема раскладки (шаги 3 и 4) ── */}
-          {activeStep >= 3 && spec.panels.length > 0 && (
-            <div className="card" style={{ marginTop: 24 }}>
-              <h2 style={{ margin: '0 0 16px' }}>Схема раскладки</h2>
-              <WallScheme walls={walls} doors={doors} panels={spec.panels} itemOrder={itemOrder} />
-            </div>
-          )}
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-from rest_framework import viewsets, status
+from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.shortcuts import get_object_or_404
@@ -18,7 +18,8 @@ from .serializers import (
 )
 
 
-class JointTypeViewSet(viewsets.ReadOnlyModelViewSet):
+class JointTypeViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
+                       mixins.UpdateModelMixin, viewsets.GenericViewSet):
     queryset = JointType.objects.all()
     serializer_class = JointTypeSerializer
 
