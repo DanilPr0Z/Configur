@@ -1,0 +1,249 @@
+[
+  {
+    "model": "panels.jointtype",
+    "pk": 1,
+    "fields": {
+      "code": "A",
+      "name": "Торцевой финишный профиль",
+      "offset_mm": -15.0,
+      "price_per_meter": 350.0,
+      "profile_article": "104.256",
+      "profile_count": 1.0,
+      "image": null
+    }
+  },
+  {
+    "model": "panels.jointtype",
+    "pk": 2,
+    "fields": {
+      "code": "B",
+      "name": "Ламель соединительная",
+      "offset_mm": 0.0,
+      "price_per_meter": 350.0,
+      "profile_article": "ХДФ 3,2 ММ",
+      "profile_count": 0.5,
+      "image": null
+    }
+  },
+  {
+    "model": "panels.jointtype",
+    "pk": 3,
+    "fields": {
+      "code": "C",
+      "name": "Соединительный профиль",
+      "offset_mm": -4.0,
+      "price_per_meter": 500.0,
+      "profile_article": "104.259",
+      "profile_count": 0.5,
+      "image": null
+    }
+  },
+  {
+    "model": "panels.jointtype",
+    "pk": 4,
+    "fields": {
+      "code": "D",
+      "name": "Угловой профиль (тип D)",
+      "offset_mm": 19.4,
+      "price_per_meter": 700.0,
+      "profile_article": "104.270",
+      "profile_count": 0.5,
+      "image": null
+    }
+  },
+  {
+    "model": "panels.jointtype",
+    "pk": 5,
+    "fields": {
+      "code": "DG",
+      "name": "Угловой профиль DG",
+      "offset_mm": 51.9,
+      "price_per_meter": 700.0,
+      "profile_article": "104.270",
+      "profile_count": 0.5,
+      "image": null
+    }
+  },
+  {
+    "model": "panels.jointtype",
+    "pk": 6,
+    "fields": {
+      "code": "DH",
+      "name": "Угловой профиль DH",
+      "offset_mm": 43.5,
+      "price_per_meter": 700.0,
+      "profile_article": "104.270",
+      "profile_count": 0.5,
+      "image": null
+    }
+  },
+  {
+    "model": "panels.jointtype",
+    "pk": 7,
+    "fields": {
+      "code": "E",
+      "name": "Тип E",
+      "offset_mm": 26.0,
+      "price_per_meter": 350.0,
+      "profile_article": "",
+      "profile_count": 0.0,
+      "image": null
+    }
+  },
+  {
+    "model": "panels.jointtype",
+    "pk": 8,
+    "fields": {
+      "code": "FL",
+      "name": "Торцевой финишный профиль (левый)",
+      "offset_mm": -15.0,
+      "price_per_meter": 0.0,
+      "profile_article": "",
+      "profile_count": 0.0,
+      "image": null
+    }
+  },
+  {
+    "model": "panels.jointtype",
+    "pk": 9,
+    "fields": {
+      "code": "FR",
+      "name": "Торцевой финишный профиль (правый)",
+      "offset_mm": -26.0,
+      "price_per_meter": 0.0,
+      "profile_article": "",
+      "profile_count": 0.0,
+      "image": null
+    }
+  },
+  {
+    "model": "panels.jointtype",
+    "pk": 10,
+    "fields": {
+      "code": "G",
+      "name": "Ламель стыковочная 43 мм (тип G)",
+      "offset_mm": 43.0,
+      "price_per_meter": 800.0,
+      "profile_article": "ХДФ 3,2 ММ",
+      "profile_count": 0.0,
+      "image": null
+    }
+  },
+  {
+    "model": "panels.jointtype",
+    "pk": 11,
+    "fields": {
+      "code": "H",
+      "name": "Ламель стыковочная 51,5 мм (тип H)",
+      "offset_mm": 51.5,
+      "price_per_meter": 800.0,
+      "profile_article": "ХДФ 3,2 ММ",
+      "profile_count": 0.0,
+      "image": null
+    }
+  },
+  {
+    "model": "panels.jointtype",
+    "pk": 12,
+    "fields": {
+      "code": "I",
+      "name": "Тип I",
+      "offset_mm": -1.2,
+      "price_per_meter": 350.0,
+      "profile_article": "104.256",
+      "profile_count": 0.0,
+      "image": null
+    }
+  },
+  {
+    "model": "panels.jointtype",
+    "pk": 13,
+    "fields": {
+      "code": "J",
+      "name": "Тип J",
+      "offset_mm": 0.0,
+      "price_per_meter": 0.0,
+      "profile_article": "",
+      "profile_count": 0.0,
+      "image": null
+    }
+  },
+  {
+    "model": "panels.jointtype",
+    "pk": 14,
+    "fields": {
+      "code": "K",
+      "name": "Тип K",
+      "offset_mm": 0.0,
+      "price_per_meter": 0.0,
+      "profile_article": "",
+      "profile_count": 0.0,
+      "image": null
+    }
+  },
+  {
+    "model": "panels.jointtype",
+    "pk": 15,
+    "fields": {
+      "code": "O",
+      "name": "Тип O",
+      "offset_mm": -27.1,
+      "price_per_meter": 0.0,
+      "profile_article": "",
+      "profile_count": 0.0,
+      "image": null
+    }
+  },
+  {
+    "model": "panels.jointtype",
+    "pk": 16,
+    "fields": {
+      "code": "P",
+      "name": "Декоративная фрезеровка (узел P)",
+      "offset_mm": -6.0,
+      "price_per_meter": 500.0,
+      "profile_article": "",
+      "profile_count": 0.0,
+      "image": null
+    }
+  },
+  {
+    "model": "panels.jointtype",
+    "pk": 17,
+    "fields": {
+      "code": "R",
+      "name": "Фрезеровка декора (узел R)",
+      "offset_mm": -6.0,
+      "price_per_meter": 350.0,
+      "profile_article": "",
+      "profile_count": 0.0,
+      "image": null
+    }
+  },
+  {
+    "model": "panels.jointtype",
+    "pk": 18,
+    "fields": {
+      "code": "S",
+      "name": "Тип S",
+      "offset_mm": 0.0,
+      "price_per_meter": 600.0,
+      "profile_article": "",
+      "profile_count": 0.0,
+      "image": null
+    }
+  },
+  {
+    "model": "panels.jointtype",
+    "pk": 19,
+    "fields": {
+      "code": "T",
+      "name": "Тип T",
+      "offset_mm": 0.0,
+      "price_per_meter": 700.0,
+      "profile_article": "",
+      "profile_count": 0.0,
+      "image": null
+    }
+  }
+]
