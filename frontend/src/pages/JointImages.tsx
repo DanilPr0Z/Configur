@@ -1,16 +1,66 @@
-import { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import { fetchJointTypes, uploadJointImage, deleteJointImage, updateJointType } from '../api'
 import type { JointType } from '../api'
 
+const PASSWORD = 'VkHdd@Wc2'
+const SESSION_KEY = 'joint_images_auth'
+
 export default function JointImages() {
+  const [auth, setAuth] = useState(() => sessionStorage.getItem(SESSION_KEY) === '1')
+  const [pwInput, setPwInput] = useState('')
+  const [pwError, setPwError] = useState(false)
+
+  const handlePwSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (pwInput === PASSWORD) {
+      sessionStorage.setItem(SESSION_KEY, '1')
+      setAuth(true)
+    } else {
+      setPwError(true)
+      setPwInput('')
+      setTimeout(() => setPwError(false), 1500)
+    }
+  }
+
   const [joints, setJoints] = useState<JointType[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState<number | null>(null)
   const [msg, setMsg] = useState<{ id: number; text: string; ok: boolean } | null>(null)
 
   useEffect(() => {
+    if (!auth) return
     fetchJointTypes().then(data => { setJoints(data); setLoading(false) })
-  }, [])
+  }, [auth])
+
+  if (!auth) return (
+    <div className="page">
+      <div className="container" style={{ display: 'flex', justifyContent: 'center', paddingTop: 80 }}>
+        <form onSubmit={handlePwSubmit} style={{
+          background: '#fff', border: '1px solid #e0e8f5', borderRadius: 14,
+          boxShadow: '0 4px 24px rgba(0,0,0,0.08)', padding: '40px 36px', minWidth: 300, textAlign: 'center',
+        }}>
+          <div style={{ fontSize: 36, marginBottom: 12 }}>🔒</div>
+          <h2 style={{ margin: '0 0 6px', color: '#1a4d8a', fontSize: 18 }}>Фотографии узлов</h2>
+          <p style={{ color: '#888', fontSize: 13, margin: '0 0 24px' }}>Введите пароль для доступа</p>
+          <input
+            type="password"
+            value={pwInput}
+            autoFocus
+            onChange={e => setPwInput(e.target.value)}
+            placeholder="Пароль"
+            style={{
+              display: 'block', width: '100%', boxSizing: 'border-box',
+              padding: '10px 14px', fontSize: 15, borderRadius: 8,
+              border: pwError ? '1.5px solid #ef4444' : '1.5px solid #d1d5db',
+              outline: 'none', marginBottom: 12, transition: 'border-color 0.15s',
+            }}
+          />
+          {pwError && <div style={{ color: '#ef4444', fontSize: 12, marginBottom: 10 }}>Неверный пароль</div>}
+          <button type="submit" className="btn btn-primary" style={{ width: '100%' }}>Войти</button>
+        </form>
+      </div>
+    </div>
+  )
 
   const showMsg = (id: number, text: string, ok: boolean) => {
     setMsg({ id, text, ok })

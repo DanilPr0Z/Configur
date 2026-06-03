@@ -121,8 +121,8 @@
     "pk": 10,
     "fields": {
       "code": "G",
-      "name": "Ламель стыковочная 43 мм (тип G)",
-      "offset_mm": 43.0,
+      "name": "Стык с коробкой (НАРУЖУ)",
+      "offset_mm": 50.1,
       "price_per_meter": 800.0,
       "profile_article": "ХДФ 3,2 ММ",
       "profile_count": 0.0,
@@ -134,8 +134,8 @@
     "pk": 11,
     "fields": {
       "code": "H",
-      "name": "Ламель стыковочная 51,5 мм (тип H)",
-      "offset_mm": 51.5,
+      "name": "Стык с коробкой (ВНУТРЬ)",
+      "offset_mm": 58.5,
       "price_per_meter": 800.0,
       "profile_article": "ХДФ 3,2 ММ",
       "profile_count": 0.0,

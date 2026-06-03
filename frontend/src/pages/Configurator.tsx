@@ -122,8 +122,8 @@ const NODES: NodeDef[] = [
   { code: 'E',  label: 'E — Торцевой (+26 мм)',   offset: 26,    article: null,      ppe: 0   },
   { code: 'FL', label: 'FL — Финишный лев.',       offset: -15,   article: null,      ppe: 0   },
   { code: 'FR', label: 'FR — Финишный пр.',        offset: -26,   article: null,      ppe: 0   },
-  { code: 'G',  label: 'G — Тип G',               offset: 43,    article: null,      ppe: 0   },
-  { code: 'H',  label: 'H — Тип H',               offset: 51.5,  article: null,      ppe: 0   },
+  { code: 'G',  label: 'G — Стык с коробкой (НАРУЖУ)',  offset: 50.1, article: null, ppe: 0 },
+  { code: 'H',  label: 'H — Стык с коробкой (ВНУТРЬ)', offset: 58.5, article: null, ppe: 0 },
   { code: 'O',  label: 'O — Без профиля',          offset: -27.1, article: null,      ppe: 0   },
   { code: 'P',  label: 'P — Декор',               offset: 0,     article: null,      ppe: 0   },
   { code: 'R',  label: 'R — Подрез',              offset: -6,    article: null,      ppe: 0   },
@@ -253,7 +253,7 @@ function makeDoor(n: number): DoorSeg {
     trimLeftWallNode: 'A', trimRightWallNode: 'A',
     finishGroup: '', finishName: '',
     veneerDirection: '', decor3d: '',
-    copies: 1, hasTrim: true, notes: '',
+    copies: 1, hasTrim: false, notes: '',
   }
 }
 
@@ -316,7 +316,7 @@ function getInitialConfig() {
         trimTopH: da.trimTopH ?? da.wallDepth ?? 200,
         trimLeftWallNode: da.trimLeftWallNode ?? 'A',
         trimRightWallNode: da.trimRightWallNode ?? 'A',
-        hasTrim: da.hasTrim ?? true,
+        hasTrim: da.hasTrim ?? false,
         leftNode: ['B', 'C'].includes(da.leftNode) ? da.leftNode : 'B',
         rightNode: ['B', 'C'].includes(da.rightNode) ? da.rightNode : 'B',
       }
@@ -355,6 +355,15 @@ function calcWall(w: WallSeg) {
   const ph = w.wallHeight + topOff + botOff
   const pw = Math.round((wlbp / w.numPanels) * 10) / 10
   return { wallLengthByPanels: Math.round(wlbp * 10) / 10, panelHeight: ph, panelWidth: pw, valid: true }
+}
+
+function calcDoorPanelWidth(d: DoorSeg): number {
+  const node = d.leftNode
+  const adj = (d.openingDir === 'НАРУЖУ' && node === 'B') ? 100.5
+            : (d.openingDir === 'НАРУЖУ')                  ? 108.5
+            : (node === 'B')                               ? 117.5
+            :                                                125.5
+  return Math.round((d.openingW - adj) * 10) / 10
 }
 
 function suggestPanels(w: WallSeg, maxW = 1200): number {
@@ -443,10 +452,11 @@ function buildSpec(
     if (d.mountType !== 'В ПОТОЛОК') {
       const dtype = d.openingDir === 'НАРУЖУ' ? 'G' : 'H'
       const ph = Math.round((d.ceilingH - d.openingH + (dtype === 'G' ? 43 : 51.5)) * 10) / 10
+      const pw = calcDoorPanelWidth(d)
       panels.push({
         panelLabel: doorLabel,
-        wallName: doorName,
-        height: ph, width: d.openingW,
+        wallName: doorName + ' — Надпроёмная',
+        height: ph, width: pw,
         leftNode: d.leftNode, rightNode: d.rightNode,
         topEdge: d.topEdge, bottomEdge: dtype,
         quantity: copies,
@@ -463,7 +473,7 @@ function buildSpec(
     }
 
     // Панели добора обрамления (только если hasTrim)
-    if (d.hasTrim !== false) {
+    if (d.hasTrim === true) {
       let trimN = 1
 
       if (d.mountType !== 'В ПОТОЛОК') {
@@ -851,6 +861,7 @@ function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove }: DoorCa
   const panelH = dtype !== null
     ? Math.round((door.ceilingH - door.openingH + (dtype === 'G' ? 43 : 51.5)) * 10) / 10
     : null
+  const panelW = dtype !== null ? calcDoorPanelWidth(door) : null
 
   return (
     <div className="card" style={{ borderLeft: '3px solid #2f9e44' }}>
@@ -1126,7 +1137,7 @@ function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove }: DoorCa
       {dtype !== null && panelH !== null && (
         <div className="calc-result" style={{ background: '#f0fdf4', color: '#166534', borderColor: '#bbf7d0' }}>
           <strong>Расчёт панели над дверью</strong>:{' '}
-          <strong>{panelH} × {door.openingW} мм</strong>
+          <strong>{panelH} × {panelW} мм</strong>
           {' '}· нижняя кромка:{' '}
           <span style={{ background: '#ef4444', color: '#fff', borderRadius: 3, padding: '0 5px', fontSize: '0.8rem', fontWeight: 700 }}>{dtype}</span>
           {' '}(авто)
