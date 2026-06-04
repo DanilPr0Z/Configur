@@ -353,7 +353,7 @@ function calcWall(w: WallSeg) {
   const topOff = NODE_MAP.get(w.topEdge)?.heightOffset ?? 0
   const botOff = NODE_MAP.get(w.bottomEdge)?.heightOffset ?? 0
   const ph = w.wallHeight + topOff + botOff
-  const pw = Math.round((wlbp / w.numPanels) * 10) / 10
+  const pw = Math.round((wlbp / w.numPanels) * 2) / 2
   return { wallLengthByPanels: Math.round(wlbp * 10) / 10, panelHeight: ph, panelWidth: pw, valid: true }
 }
 
@@ -363,7 +363,7 @@ function calcDoorPanelWidth(d: DoorSeg): number {
             : (d.openingDir === 'НАРУЖУ')                  ? 108.5
             : (node === 'B')                               ? 117.5
             :                                                125.5
-  return Math.round((d.openingW - adj) * 10) / 10
+  return Math.round((d.openingW - adj) * 2) / 2
 }
 
 function suggestPanels(w: WallSeg, maxW = 1200): number {
@@ -451,7 +451,7 @@ function buildSpec(
     // Панель НАД проёмом (только В ПРОЕМ)
     if (d.mountType !== 'В ПОТОЛОК') {
       const dtype = d.openingDir === 'НАРУЖУ' ? 'G' : 'H'
-      const ph = Math.round((d.ceilingH - d.openingH + (dtype === 'G' ? 43 : 51.5)) * 10) / 10
+      const ph = Math.round((d.ceilingH - d.openingH + (dtype === 'G' ? 43 : 51.5)) * 2) / 2
       const pw = calcDoorPanelWidth(d)
       panels.push({
         panelLabel: doorLabel,
@@ -839,9 +839,10 @@ interface DoorCardProps {
   finishGroups: FinishGroup[]
   onChange: (u: Partial<DoorSeg>) => void
   onRemove: () => void
+  phase?: 'geometry' | 'finish'
 }
 
-function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove }: DoorCardProps) {
+function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove, phase }: DoorCardProps) {
   const selectedGroup = finishGroups.find(g => g.name === door.finishGroup)
   const finishes: Finish[] = (selectedGroup?.finishes as Finish[]) ?? []
   const isVeneer = isVeneerGroup(door.finishGroup)
@@ -1065,6 +1066,7 @@ function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove }: DoorCa
         </>}
       </div>
 
+      {(!phase || phase === 'finish') && <>
       {/* Отделка */}
       <div className="grid-4" style={{ marginBottom: 10 }}>
         <div className="field">
@@ -1124,6 +1126,7 @@ function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove }: DoorCa
         <input value={door.notes} placeholder="—"
           onChange={e => onChange({ notes: e.target.value })} />
       </div>
+      </>}
 
       {dtype !== null && panelH !== null && (
         <div className="calc-result" style={{ background: '#f0fdf4', color: '#166534', borderColor: '#bbf7d0' }}>
@@ -1573,7 +1576,8 @@ export default function Configurator() {
                   return (
                     <DoorCard key={d.id} door={d} jointTypes={jointTypes} finishGroups={finishGroups}
                       onChange={u => updateDoor(d.id, u)}
-                      onRemove={() => removeDoor(d.id)} />
+                      onRemove={() => removeDoor(d.id)}
+                      phase="geometry" />
                   )
                 }
               })}
@@ -1622,7 +1626,8 @@ export default function Configurator() {
                   return (
                     <DoorCard key={d.id} door={d} jointTypes={jointTypes} finishGroups={finishGroups}
                       onChange={u => updateDoor(d.id, u)}
-                      onRemove={() => removeDoor(d.id)} />
+                      onRemove={() => removeDoor(d.id)}
+                      phase="finish" />
                   )
                 }
               })}
