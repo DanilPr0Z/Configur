@@ -237,6 +237,9 @@ export default function WallScheme({ walls, doors, panels, itemOrder }: Props) {
                 {/* Полоса стены */}
                 <rect x={0} y={-BAR_H / 2} width={seg.pxLen} height={BAR_H}
                   fill="#dbeafe" stroke="#93c5fd" strokeWidth="1.5" rx="2" />
+                {/* Акцентная полоска — всегда снизу (лицевая сторона) */}
+                <rect x={0} y={BAR_H / 2 - 4} width={seg.pxLen} height={4}
+                  fill="#3b82f6" opacity={0.7} rx="1" />
 
                 {/* Разделители панелей */}
                 {Array.from({ length: N - 1 }, (_, i) => (

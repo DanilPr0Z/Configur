@@ -678,15 +678,6 @@ function WallCard({ wall, jointTypes, finishGroups, profileColors, onChange, onR
           </div>
         </div>
 
-        {/* Лицевая сторона */}
-        <div className="field" style={{ marginBottom: 10 }}>
-          <label>Лицевая сторона стены (в схеме)</label>
-          <div style={{ display: 'flex', gap: 6 }}>
-            <button type="button" onClick={() => onChange({ wallFacing: 'front' })} style={{ padding: '4px 14px', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontWeight: 600, border: wall.wallFacing !== 'back' ? '1.5px solid #1a4d8a' : '1.5px solid #d0d7e3', background: wall.wallFacing !== 'back' ? '#1a4d8a' : '#fff', color: wall.wallFacing !== 'back' ? '#fff' : '#555' }}>↑ Вперёд</button>
-            <button type="button" onClick={() => onChange({ wallFacing: 'back' })} style={{ padding: '4px 14px', borderRadius: 6, fontSize: 13, cursor: 'pointer', fontWeight: 600, border: wall.wallFacing === 'back' ? '1.5px solid #1a4d8a' : '1.5px solid #d0d7e3', background: wall.wallFacing === 'back' ? '#1a4d8a' : '#fff', color: wall.wallFacing === 'back' ? '#fff' : '#555' }}>↓ Назад</button>
-          </div>
-        </div>
-
         {/* Узлы */}
         <div className="grid-3" style={{ marginBottom: 10 }}>
           <div className="field">
