@@ -238,17 +238,6 @@ export default function WallScheme({ walls, doors, panels, itemOrder }: Props) {
                 <rect x={0} y={-BAR_H / 2} width={seg.pxLen} height={BAR_H}
                   fill="#dbeafe" stroke="#93c5fd" strokeWidth="1.5" rx="2" />
 
-                {/* Лицевая сторона: акцентная полоска (front = верх, back = низ) */}
-                <rect x={0} y={w.wallFacing === 'back' ? BAR_H / 2 - 3 : -BAR_H / 2} width={seg.pxLen} height={3}
-                  fill="#1e40af" rx="1" opacity={0.4} />
-
-                {/* Стрелка лицевой стороны */}
-                <text x={14} y={w.wallFacing === 'back' ? BAR_H / 2 + 14 : -BAR_H / 2 - 6}
-                  textAnchor="middle" dominantBaseline="central"
-                  fontSize="12" fill="#1e40af" opacity={0.8} fontWeight="700">
-                  {w.wallFacing === 'back' ? '↓' : '↑'}
-                </text>
-
                 {/* Разделители панелей */}
                 {Array.from({ length: N - 1 }, (_, i) => (
                   <line key={i}
