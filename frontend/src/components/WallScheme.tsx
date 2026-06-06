@@ -85,7 +85,6 @@ export default function WallScheme({ walls, doors, panels, itemOrder }: Props) {
   const PAD      = 70    // отступ вокруг схемы
   const ITEM_GAP = 52    // px между элементами — достаточно чтобы значки не касались
   const BAR_H    = 44    // высота полосы (две строки внутри)
-  const MAX_ARC  = 50    // макс. радиус дуги двери
 
   // ── Масштаб ─────────────────────────────────────────────────────────────────
   const totalMm = itemOrder.reduce((s, item) => {
@@ -138,9 +137,8 @@ export default function WallScheme({ walls, doors, panels, itemOrder }: Props) {
   }
 
   // ── Вычисление bounding box ──────────────────────────────────────────────
-  // Включаем место для горизонтальных подписей над/сбоку от полосы
-  // При !isIn: дуга до -(faceY+MAX_ARC)=-(22+50)=72, label offset=96+текст~30=126
-  const LABEL_SPACE = BAR_H / 2 + MAX_ARC + 110
+  const maxDoorPx = doors.length > 0 ? Math.max(...doors.map(d => d.openingW * scale)) : 0
+  const LABEL_SPACE = BAR_H / 2 + maxDoorPx + 110
   const allPts: [number, number][] = []
 
   for (const seg of segs) {
@@ -312,29 +310,27 @@ export default function WallScheme({ walls, doors, panels, itemOrder }: Props) {
 
           const isIn   = d.openingDir === 'ВНУТРЬ'
           const isLeft = d.hingeDir !== 'СПРАВА'
-          const r      = Math.min(seg.pxLen, MAX_ARC)
+          const L      = seg.pxLen  // радиус дуги = полная ширина проёма
 
-          // faceY — лицевая сторона стены (там синяя полоска акцента)
-          // Все дверные элементы (петля, полотно, дуга) привязаны к faceY.
-          // +y = ВНУТРЬ (в комнату), −y = НАРУЖУ (в сторону лица стены)
-          const faceY = -BAR_H / 2
+          // faceY — лицевая сторона стены (совпадает с синей полоской акцента снизу)
+          const faceY = BAR_H / 2
 
           let arcPath: string
-          let leafEndX: number, leafEndY: number
           let hingeX: number
+          let openEndY: number  // конец вертикальной линии открытой двери
 
           if (isLeft && isIn) {
-            arcPath = `M ${r} ${faceY} A ${r} ${r} 0 0 1 0 ${faceY + r}`
-            leafEndX = 0; leafEndY = faceY + r; hingeX = 0
+            arcPath = `M ${L} ${faceY} A ${L} ${L} 0 0 1 0 ${faceY + L}`
+            hingeX = 0; openEndY = faceY + L
           } else if (isLeft && !isIn) {
-            arcPath = `M ${r} ${faceY} A ${r} ${r} 0 0 0 0 ${faceY - r}`
-            leafEndX = 0; leafEndY = faceY - r; hingeX = 0
+            arcPath = `M ${L} ${faceY} A ${L} ${L} 0 0 0 0 ${faceY - L}`
+            hingeX = 0; openEndY = faceY - L
           } else if (!isLeft && isIn) {
-            arcPath = `M ${seg.pxLen - r} ${faceY} A ${r} ${r} 0 0 0 ${seg.pxLen} ${faceY + r}`
-            leafEndX = seg.pxLen; leafEndY = faceY + r; hingeX = seg.pxLen
+            arcPath = `M 0 ${faceY} A ${L} ${L} 0 0 0 ${L} ${faceY + L}`
+            hingeX = L; openEndY = faceY + L
           } else {
-            arcPath = `M ${seg.pxLen - r} ${faceY} A ${r} ${r} 0 0 1 ${seg.pxLen} ${faceY - r}`
-            leafEndX = seg.pxLen; leafEndY = faceY - r; hingeX = seg.pxLen
+            arcPath = `M 0 ${faceY} A ${L} ${L} 0 0 1 ${L} ${faceY - L}`
+            hingeX = L; openEndY = faceY - L
           }
 
           // ── Доборы: размерные линии + узлы (без отрисовки панелей) ──────────────
@@ -398,19 +394,23 @@ export default function WallScheme({ walls, doors, panels, itemOrder }: Props) {
               <line x1={0} y1={BAR_H / 2 - 1} x2={seg.pxLen} y2={BAR_H / 2 - 1}
                 stroke="#64748b" strokeWidth="2" />
 
-              {/* Полотно двери */}
-              <line x1={hingeX} y1={faceY} x2={leafEndX} y2={leafEndY}
+              {/* Полотно двери — полная ширина проёма (закрытое положение) */}
+              <line x1={0} y1={faceY} x2={seg.pxLen} y2={faceY}
                 stroke="#16a34a" strokeWidth="1.5" strokeDasharray="5 3" />
 
               {/* Дуга хода двери */}
               <path d={arcPath} fill="none" stroke="#16a34a" strokeWidth="1.5" />
 
+              {/* Линия открытой двери — вертикаль от петли */}
+              <line x1={hingeX} y1={faceY} x2={hingeX} y2={openEndY}
+                stroke="#16a34a" strokeWidth="1.5" strokeDasharray="5 3" />
+
               {/* Точка петли */}
               <circle cx={hingeX} cy={faceY} r={3.5} fill="#16a34a" />
 
               {/* Направление */}
-              <text x={isLeft ? r * 0.4 : seg.pxLen - r * 0.4}
-                y={faceY + (isIn ? 1 : -1) * r * 0.4}
+              <text x={isLeft ? L * 0.4 : seg.pxLen - L * 0.4}
+                y={faceY + (isIn ? 1 : -1) * L * 0.4}
                 textAnchor="middle" dominantBaseline="central"
                 fontSize="8" fill="#15803d" opacity={0.9}>
                 {isIn ? '↙В' : '↖Н'}
@@ -419,7 +419,7 @@ export default function WallScheme({ walls, doors, panels, itemOrder }: Props) {
               {/* Название + размеры */}
               {(() => {
                 const labelOff = !isIn
-                  ? Math.max(r + 46, BAR_H / 2 + 50)
+                  ? L + 46
                   : BAR_H / 2 + 50
                 const ly = Math.cos(a * Math.PI / 180) >= 0 ? -labelOff : labelOff
                 const dy = ly < 0 ? 14 : -14
@@ -440,7 +440,7 @@ export default function WallScheme({ walls, doors, panels, itemOrder }: Props) {
                 const trimOff = showTopTrim
                   ? BAR_H / 2 + TRIM_GAP + 46
                   : BAR_H / 2 + 18
-                const mountOff = isIn ? Math.max(r + 18, trimOff) : trimOff
+                const mountOff = isIn ? Math.max(L + BAR_H / 2 + 18, trimOff + 16) : trimOff
                 return (
                   <HText lx={seg.pxLen / 2} ly={mountOff} angle={a}
                     textAnchor="middle" fontSize="8" fill="#94a3b8">
