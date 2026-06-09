@@ -352,7 +352,7 @@ function calcWall(w: WallSeg) {
   const wlbp = w.wallLength + lOff + rOff - connAdj
   const topOff = NODE_MAP.get(w.topEdge)?.heightOffset ?? 0
   const botOff = NODE_MAP.get(w.bottomEdge)?.heightOffset ?? 0
-  const ph = w.wallHeight + topOff + botOff
+  const ph = w.wallHeight + topOff + botOff - 12
   const pw = Math.round((wlbp / w.numPanels) * 2) / 2
   return { wallLengthByPanels: Math.round(wlbp * 10) / 10, panelHeight: ph, panelWidth: pw, valid: true }
 }
@@ -1541,7 +1541,7 @@ export default function Configurator() {
       )}
       <div className="page">
         <div className="container">
-          <h1 className="page-title">Конфигуратор стеновых панелей</h1>
+          <h1 className="page-title no-print">Конфигуратор стеновых панелей</h1>
 
           <StepNav step={activeStep} onStep={setActiveStep} />
 
@@ -1681,6 +1681,13 @@ export default function Configurator() {
             <div className="print-only" style={{ marginBottom: 16, fontSize: '1.1rem', fontWeight: 700 }}>
               СПЕЦИФИКАЦИЯ СТЕНОВЫХ ПАНЕЛЕЙ NUOVO 60
             </div>
+
+            {spec.panels.length > 0 && (
+              <div className="print-only" style={{ marginBottom: 24 }}>
+                <div style={{ fontWeight: 600, marginBottom: 8 }}>Схема раскладки</div>
+                <WallScheme walls={walls} doors={doors} panels={spec.panels} itemOrder={itemOrder} />
+              </div>
+            )}
 
             {spec.panels.length === 0 ? (
               <div className="alert alert-info">

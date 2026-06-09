@@ -308,7 +308,7 @@ export default function WallScheme({ walls, doors, panels, itemOrder }: Props) {
           const d = doors.find(d => d.id === seg.id)
           if (!d) return null
 
-          const isIn   = d.openingDir === 'ВНУТРЬ'
+          const isIn   = d.openingDir === 'НАРУЖУ'
           const isLeft = d.hingeDir !== 'СПРАВА'
           const L      = seg.pxLen  // радиус дуги = полная ширина проёма
 
