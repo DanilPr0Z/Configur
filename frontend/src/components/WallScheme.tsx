@@ -2,7 +2,10 @@
 // Текстовые подписи (название, размеры) всегда горизонтальные (counter-rotate).
 // Размеры панелей перенесены внутрь полосы, чтобы не выходить за пределы.
 
+import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { ReactNode } from 'react'
+import type { JointType } from '../api'
 
 // ── Типы ────────────────────────────────────────────────────────────────────
 
@@ -41,6 +44,7 @@ interface Props {
   doors: D[]
   panels: P[]
   itemOrder: OrderItem[]
+  jointTypes?: JointType[]
 }
 
 // ── Углы, вызывающие поворот ─────────────────────────────────────────────────
@@ -60,27 +64,38 @@ function nodeColor(code: string): string {
   return '#64748b'
 }
 
-function Badge({ x, y, code, angle = 0 }: { x: number; y: number; code: string; angle?: number }) {
-  const fill = nodeColor(code)
-  const r  = code.length > 2 ? 13 : 10
-  const fs = code.length > 2 ? 7  : 9
-  return (
-    <g>
-      <circle cx={x} cy={y} r={r} fill={fill} opacity={0.92} />
-      {/* Counter-rotate текст внутри бейджа — всегда читаемый */}
-      <text x={x} y={y + 0.5} textAnchor="middle" dominantBaseline="central"
-        fontSize={fs} fontWeight="700" fill="#fff" fontFamily="monospace"
-        transform={`rotate(${-angle}, ${x}, ${y + 0.5})`}>
-        {code}
-      </text>
-    </g>
-  )
-}
-
 // ── Компонент ────────────────────────────────────────────────────────────────
 
-export default function WallScheme({ walls, doors, panels, itemOrder }: Props) {
+interface HoverState { code: string; jt: JointType | null; x: number; y: number }
+
+export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes = [] }: Props) {
   if (walls.length === 0) return null
+
+  // Карта код → узел справочника (для превью фото при наведении)
+  const jtByCode = new Map(jointTypes.map(j => [j.code, j]))
+  const [hover, setHover] = useState<HoverState | null>(null)
+
+  // Бейдж узла — кликабельный, при наведении показывает превью фото.
+  // Определён внутри компонента: замыкает jtByCode и setHover, поэтому
+  // места вызова <Badge .../> остаются без изменений.
+  function Badge({ x, y, code, angle = 0 }: { x: number; y: number; code: string; angle?: number }) {
+    const fill = nodeColor(code)
+    const r  = code.length > 2 ? 13 : 10
+    const fs = code.length > 2 ? 7  : 9
+    return (
+      <g style={{ cursor: 'pointer' }}
+        onMouseEnter={e => setHover({ code, jt: jtByCode.get(code) ?? null, x: e.clientX, y: e.clientY })}
+        onMouseLeave={() => setHover(null)}>
+        <circle cx={x} cy={y} r={r} fill={fill} opacity={0.92} />
+        {/* Counter-rotate текст внутри бейджа — всегда читаемый */}
+        <text x={x} y={y + 0.5} textAnchor="middle" dominantBaseline="central"
+          fontSize={fs} fontWeight="700" fill="#fff" fontFamily="monospace"
+          transform={`rotate(${-angle}, ${x}, ${y + 0.5})`}>
+          {code}
+        </text>
+      </g>
+    )
+  }
 
   const PAD      = 70    // отступ вокруг схемы
   const ITEM_GAP = 52    // px между элементами — достаточно чтобы значки не касались
@@ -308,9 +323,12 @@ export default function WallScheme({ walls, doors, panels, itemOrder }: Props) {
           const d = doors.find(d => d.id === seg.id)
           if (!d) return null
 
-          const isIn   = d.openingDir === 'НАРУЖУ'
-          const isLeft = d.hingeDir !== 'СПРАВА'
-          const L      = seg.pxLen  // радиус дуги = полная ширина проёма
+          // opensOut — открывание НАРУЖУ (к лицевой стороне, дуга вниз).
+          // openingDir хранит ВНУТРЬ/НАРУЖУ; mountType (В ПРОЕМ/В ПОТОЛОК) — это
+          // монтаж коробки по высоте и к направлению открывания отношения не имеет.
+          const opensOut = d.openingDir === 'НАРУЖУ'
+          const isLeft   = d.hingeDir !== 'СПРАВА'
+          const L        = seg.pxLen  // радиус дуги = полная ширина проёма
 
           // faceY — лицевая сторона стены (совпадает с синей полоской акцента снизу)
           const faceY = BAR_H / 2
@@ -319,13 +337,13 @@ export default function WallScheme({ walls, doors, panels, itemOrder }: Props) {
           let hingeX: number
           let openEndY: number  // конец вертикальной линии открытой двери
 
-          if (isLeft && isIn) {
+          if (isLeft && opensOut) {
             arcPath = `M ${L} ${faceY} A ${L} ${L} 0 0 1 0 ${faceY + L}`
             hingeX = 0; openEndY = faceY + L
-          } else if (isLeft && !isIn) {
+          } else if (isLeft && !opensOut) {
             arcPath = `M ${L} ${faceY} A ${L} ${L} 0 0 0 0 ${faceY - L}`
             hingeX = 0; openEndY = faceY - L
-          } else if (!isLeft && isIn) {
+          } else if (!isLeft && opensOut) {
             arcPath = `M 0 ${faceY} A ${L} ${L} 0 0 0 ${L} ${faceY + L}`
             hingeX = L; openEndY = faceY + L
           } else {
@@ -368,20 +386,21 @@ export default function WallScheme({ walls, doors, panels, itemOrder }: Props) {
                 <Badge x={seg.pxLen + 12} y={0} code={'O'} angle={a} />
               </>}
 
-              {/* ── Верхний добор (только В ПРОЕМ): штриховая линия + метка + узлы краёв */}
+              {/* ── Верхний добор (только В ПРОЕМ): СВЕРХУ проёма — штриховая линия + метка + узлы краёв.
+                  Панель над дверью физически выше проёма, поэтому узлы рисуем над полосой. */}
               {showTopTrim && (
                 <g>
-                  <line x1={0} y1={BAR_H / 2 + TRIM_GAP} x2={seg.pxLen} y2={BAR_H / 2 + TRIM_GAP}
+                  <line x1={0} y1={-(BAR_H / 2 + TRIM_GAP)} x2={seg.pxLen} y2={-(BAR_H / 2 + TRIM_GAP)}
                     stroke="#94a3b8" strokeWidth="1" strokeDasharray="4 3" />
-                  <HText lx={seg.pxLen / 2} ly={BAR_H / 2 + TRIM_GAP + 13} angle={a}
+                  <HText lx={seg.pxLen / 2} ly={-(BAR_H / 2 + TRIM_GAP + 13)} angle={a}
                     textAnchor="middle" fontSize="7" fill="#64748b">
                     верх {d.trimTopH || d.wallDepth || 200}мм
                   </HText>
                   {d.trimTopLeftNode && (
-                    <Badge x={-12} y={BAR_H / 2 + TRIM_GAP + 28} code={d.trimTopLeftNode} angle={a} />
+                    <Badge x={-12} y={-(BAR_H / 2 + TRIM_GAP + 28)} code={d.trimTopLeftNode} angle={a} />
                   )}
                   {d.trimTopRightNode && (
-                    <Badge x={seg.pxLen + 12} y={BAR_H / 2 + TRIM_GAP + 28} code={d.trimTopRightNode} angle={a} />
+                    <Badge x={seg.pxLen + 12} y={-(BAR_H / 2 + TRIM_GAP + 28)} code={d.trimTopRightNode} angle={a} />
                   )}
                 </g>
               )}
@@ -408,19 +427,19 @@ export default function WallScheme({ walls, doors, panels, itemOrder }: Props) {
               {/* Точка петли */}
               <circle cx={hingeX} cy={faceY} r={3.5} fill="#16a34a" />
 
-              {/* Направление */}
+              {/* Направление открывания: Н — наружу (дуга вниз), В — внутрь (вверх) */}
               <text x={isLeft ? L * 0.4 : seg.pxLen - L * 0.4}
-                y={faceY + (isIn ? 1 : -1) * L * 0.4}
+                y={faceY + (opensOut ? 1 : -1) * L * 0.4}
                 textAnchor="middle" dominantBaseline="central"
                 fontSize="8" fill="#15803d" opacity={0.9}>
-                {isIn ? '↙В' : '↖Н'}
+                {opensOut ? '↓ Н' : '↑ В'}
               </text>
 
               {/* Название + размеры */}
               {(() => {
-                const labelOff = !isIn
+                const labelOff = !opensOut
                   ? L + 46
-                  : BAR_H / 2 + 50
+                  : (showTopTrim ? BAR_H / 2 + TRIM_GAP + 28 + 40 : BAR_H / 2 + 50)
                 const ly = Math.cos(a * Math.PI / 180) >= 0 ? -labelOff : labelOff
                 const dy = ly < 0 ? 14 : -14
                 return (
@@ -435,27 +454,91 @@ export default function WallScheme({ walls, doors, panels, itemOrder }: Props) {
                 )
               })()}
 
-              {/* Монтаж — тыльная сторона, ниже верхнего добора */}
+              {/* Монтаж коробки + направление открывания — две строки.
+                  Монтаж (В ПРОЕМ/В ПОТОЛОК) и открывание (внутрь/наружу + петля)
+                  разнесены, чтобы «в проём» не читалось как направление. */}
               {(() => {
                 const trimOff = showTopTrim
                   ? BAR_H / 2 + TRIM_GAP + 46
                   : BAR_H / 2 + 18
-                const mountOff = isIn ? Math.max(L + BAR_H / 2 + 18, trimOff + 16) : trimOff
+                const mountOff = opensOut ? Math.max(L + BAR_H / 2 + 18, trimOff + 16) : trimOff
+                const cx = seg.pxLen / 2
                 return (
-                  <HText lx={seg.pxLen / 2} ly={mountOff} angle={a}
+                  <HText lx={cx} ly={mountOff} angle={a}
                     textAnchor="middle" fontSize="8" fill="#94a3b8">
-                    {d.mountType} · {d.hingeDir}
+                    <tspan x={cx}>Монтаж {d.mountType.toLowerCase()}</tspan>
+                    <tspan x={cx} dy={11}>
+                      Открывание {d.openingDir.toLowerCase()} {d.hingeDir.toLowerCase()}
+                    </tspan>
                   </HText>
                 )
               })()}
 
-              {/* Значки основных узлов — за краями доборов */}
-              <Badge x={-(leftTrimPx + 14)}            y={0} code={d.leftNode}  angle={a} />
-              <Badge x={seg.pxLen + rightTrimPx + 14}  y={0} code={d.rightNode} angle={a} />
+              {/* Узлы двери (leftNode/rightNode). В ПРОЕМ — на нижних углах проёма
+                  (бывшее место верхнего добора); иначе — по бокам за доборами. */}
+              {showTopTrim ? (
+                <>
+                  <Badge x={-12}            y={BAR_H / 2 + TRIM_GAP + 28} code={d.leftNode}  angle={a} />
+                  <Badge x={seg.pxLen + 12} y={BAR_H / 2 + TRIM_GAP + 28} code={d.rightNode} angle={a} />
+                </>
+              ) : (
+                <>
+                  <Badge x={-(leftTrimPx + 14)}            y={0} code={d.leftNode}  angle={a} />
+                  <Badge x={seg.pxLen + rightTrimPx + 14}  y={0} code={d.rightNode} angle={a} />
+                </>
+              )}
             </g>
           )
         })}
       </svg>
+
+      {/* Превью узла при наведении — портал к body, рядом с курсором */}
+      {hover && createPortal(
+        <div style={{
+          position: 'fixed',
+          top: Math.min(hover.y + 16, window.innerHeight - 232),
+          left: Math.min(hover.x + 16, window.innerWidth - 248),
+          zIndex: 99999,
+          pointerEvents: 'none',
+          background: '#fff',
+          border: '1.5px solid #d0d7e3',
+          borderRadius: 12,
+          overflow: 'hidden',
+          boxShadow: '0 8px 32px rgba(0,0,0,.16)',
+          width: 230,
+        }}>
+          {hover.jt?.image_url ? (
+            <img src={hover.jt.image_url} alt={hover.code}
+              style={{ display: 'block', width: 230, height: 172, objectFit: 'contain' }} />
+          ) : (
+            <div style={{
+              width: 230, height: 172,
+              background: 'linear-gradient(135deg, #e8f0fe 0%, #d0dcf5 100%)',
+              display: 'flex', flexDirection: 'column',
+              alignItems: 'center', justifyContent: 'center', gap: 8,
+            }}>
+              <span style={{ fontSize: 48, fontWeight: 900, color: '#1a4d8a', opacity: .25, lineHeight: 1 }}>
+                {hover.code}
+              </span>
+              <span style={{ fontSize: 11, color: '#888' }}>фото не загружено</span>
+            </div>
+          )}
+          <div style={{
+            padding: '8px 12px', background: '#f4f8ff',
+            borderTop: '1px solid #e0e8f5',
+            display: 'flex', alignItems: 'baseline', gap: 8,
+          }}>
+            <span style={{ fontWeight: 800, fontSize: 14, color: '#1a4d8a' }}>{hover.code}</span>
+            {hover.jt?.name && <span style={{ fontSize: 12, color: '#666' }}>{hover.jt.name}</span>}
+            {hover.jt && hover.jt.offset_mm !== 0 && (
+              <span style={{ fontSize: 11, color: '#999', marginLeft: 'auto' }}>
+                {hover.jt.offset_mm > 0 ? '+' : ''}{hover.jt.offset_mm} мм
+              </span>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }

@@ -1591,7 +1591,7 @@ export default function Configurator() {
               {spec.panels.length > 0 && (
                 <div className="card" style={{ marginTop: 24 }}>
                   <h2 style={{ margin: '0 0 16px' }}>Схема раскладки</h2>
-                  <WallScheme walls={walls} doors={doors} panels={spec.panels} itemOrder={itemOrder} />
+                  <WallScheme walls={walls} doors={doors} panels={spec.panels} itemOrder={itemOrder} jointTypes={jointTypes} />
                 </div>
               )}
             </>
@@ -1685,7 +1685,7 @@ export default function Configurator() {
             {spec.panels.length > 0 && (
               <div className="print-only" style={{ marginBottom: 24 }}>
                 <div style={{ fontWeight: 600, marginBottom: 8 }}>Схема раскладки</div>
-                <WallScheme walls={walls} doors={doors} panels={spec.panels} itemOrder={itemOrder} />
+                <WallScheme walls={walls} doors={doors} panels={spec.panels} itemOrder={itemOrder} jointTypes={jointTypes} />
               </div>
             )}
 
