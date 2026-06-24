@@ -1,4 +1,5 @@
 import type { Panel, JointType, FinishGroup, ProfileColor } from '../api'
+import { visibleFinishGroups } from '../api'
 import JointSelect from './JointSelect'
 
 interface Props {
@@ -57,7 +58,7 @@ export default function PanelRow({ panel, label, jointTypes, finishGroups, profi
           onChange({ ...panel, finish_group: fg, finish: null })
         }}>
           <option value="">—</option>
-          {finishGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+          {visibleFinishGroups(finishGroups).map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
         </select>
       </td>
       <td>

@@ -1,4 +1,5 @@
 import type { DoorPanel, JointType, FinishGroup } from '../api'
+import { visibleFinishGroups } from '../api'
 import JointSelect from './JointSelect'
 
 interface Props {
@@ -114,7 +115,7 @@ export default function DoorPanelRow({ panel, label, jointTypes, finishGroups, o
           onChange({ ...panel, finish_group: fg, finish: null })
         }}>
           <option value="">—</option>
-          {finishGroups.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
+          {visibleFinishGroups(finishGroups).map(g => <option key={g.id} value={g.id}>{g.name}</option>)}
         </select>
       </td>
       <td>

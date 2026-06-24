@@ -27,6 +27,17 @@ export interface FinishGroup {
   finishes: Finish[]
 }
 
+// Группы-варианты по толщине (ШПОН 5 ММ, ШПОН 2,5 ММ, LACATO 2,5 ММ и т.п.)
+// не показываются в выборе группы — толщина выбирается в «Декор 3D».
+export function isThicknessVariantGroup(name: string): boolean {
+  const n = name.toUpperCase().replace(',', '.').replace(/\s+/g, ' ').trim()
+  return /^(ШПОН|LACATO)\s*\d+(\.\d+)?\s*ММ$/.test(n)
+}
+
+export function visibleFinishGroups(groups: FinishGroup[]): FinishGroup[] {
+  return groups.filter(g => !isThicknessVariantGroup(g.name))
+}
+
 export interface ProfileColor {
   id: number
   name: string

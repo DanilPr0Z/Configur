@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { fetchAluminumProfiles, fetchProfileColors, fetchJointTypes, fetchFinishGroups, fetchOrder, createOrder, updateOrder, createPanel, deletePanel } from '../api'
 import type { AluminumProfile, ProfileColor, JointType, FinishGroup, Finish, Order } from '../api'
+import { visibleFinishGroups } from '../api'
 import { JointSelectCode, StringSelect } from '../components/JointSelect'
 import WallScheme from '../components/WallScheme'
 
@@ -175,8 +176,14 @@ const DECORS_WOOD: string[] = ['4691 (WOOD)','4653 (WOOD)','4583 (WOOD)']
 
 // Извлекает базовое имя декора без суффикса толщины ("Breeze Oak 1,5 мм" → "Breeze Oak")
 function getDecorBaseName(decor: string): string {
-  return decor.replace(/ (?:1[,.]5|2[,.]5|5) (?:мм|mm)$/i, '').trim()
+  return decor.replace(/ ?(?:1[,.]5|2[,.]5|5) ?(?:мм|mm)$/i, '').trim()
 }
+
+// Уникальные базовые названия шпоновых декоров ("Breeze Oak", "American walnut", …)
+// — это и есть список «Отделка» для группы ШПОН.
+const SHPON_BASE_NAMES: string[] = [...new Set(
+  [...DECORS_SHPON_15, ...DECORS_SHPON_25, ...DECORS_SHPON_5].map(getDecorBaseName)
+)]
 
 // Возвращает варианты декора для КОНКРЕТНОЙ отделки (не для группы)
 function getDecorOptions(finishName: string, groupName: string): { group: string; items: string[] }[] {
@@ -188,7 +195,8 @@ function getDecorOptions(finishName: string, groupName: string): { group: string
       { group: 'ШПОН 2,5 мм', src: DECORS_SHPON_25 },
       { group: 'ШПОН 5 мм',   src: DECORS_SHPON_5  },
     ]
-    // Конкретная отделка выбрана — фильтруем только её декоры
+    // Отделка (базовое имя, напр. «Breeze Oak») выбрана — показываем только её
+    // варианты по толщине: Breeze Oak 1,5 / 2,5 / 5 мм.
     if (finishName) {
       const result: { group: string; items: string[] }[] = []
       for (const { group, src } of byThickness) {
@@ -197,11 +205,8 @@ function getDecorOptions(finishName: string, groupName: string): { group: string
       }
       return result
     }
-    // Отделка не выбрана — показываем все декоры конкретной толщины или все
-    if (g === 'ШПОН 1,5 ММ') return [{ group: 'ШПОН 1,5 мм', items: DECORS_SHPON_15 }]
-    if (g === 'ШПОН 2,5 ММ' || g === 'ШПОН 2.5ММ') return [{ group: 'ШПОН 2,5 мм', items: DECORS_SHPON_25 }]
-    if (g === 'ШПОН 5 ММ'   || g === 'ШПОН 5ММ')   return [{ group: 'ШПОН 5 мм',   items: DECORS_SHPON_5  }]
-    return []
+    // Отделка ещё не выбрана — показываем все декоры всех толщин.
+    return byThickness.map(({ group, src }) => ({ group, items: src }))
   }
 
   if (g === 'LACATO' || g === 'LACATO 2,5 ММ') {
@@ -545,7 +550,23 @@ function getJointPrice(jointTypes: JointType[], code: string): number {
   return jointTypes.find(j => j.code === code)?.price_per_meter ?? 0
 }
 
-function getFinishPrice(finishGroups: FinishGroup[], groupName: string, finishName: string): number {
+// Нормализует имя декора для сопоставления с прайсом в БД
+// ("Breeze Oak 1,5 мм" / "Noce Ondulato 1,5мм" → "breeze oak 1.5мм")
+function normDecor(s: string): string {
+  return s.toLowerCase().replace('ё', 'е').replace(',', '.').replace(/\s*(мм|mm)/, 'мм').replace(/\s+/g, ' ').trim()
+}
+
+function getFinishPrice(finishGroups: FinishGroup[], groupName: string, finishName: string, decor3d?: string): number {
+  // Шпон: цена зависит от выбранного декора с толщиной (напр. «Breeze Oak 5 мм»),
+  // который лежит в группах ШПОН 1,5/2,5/5 ММ.
+  if (isVeneerGroup(groupName) && decor3d) {
+    const target = normDecor(decor3d)
+    for (const g of finishGroups) {
+      const f = (g.finishes as Finish[]).find(f => normDecor(f.name) === target)
+      if (f) return f.price_sqm
+    }
+    return 0
+  }
   const g = finishGroups.find(g => g.name === groupName)
   if (!g) return 0
   return (g.finishes as Finish[]).find(f => f.name === finishName)?.price_sqm ?? 0
@@ -564,7 +585,7 @@ function calcPanelCosts(
   const sideCost = (lp + rp) * p.height * 0.001 * p.quantity
   const topBotCost = (tp + bp) * p.width * 0.001 * p.quantity
   const areaSqm = Math.max(p.height * p.width / 1_000_000, 0.5) * p.quantity
-  const finishPrice = getFinishPrice(finishGroups, p.finishGroup, p.finishName)
+  const finishPrice = getFinishPrice(finishGroups, p.finishGroup, p.finishName, p.decor3d)
   const finishCost = finishPrice * areaSqm * (1 + p.markup / 100)
   const alVertPieces = p.aluminumVertical * Math.ceil(p.height / 2995)
   const alHorizPieces = p.aluminumHorizontal * Math.ceil(p.width / 2995)
@@ -631,6 +652,8 @@ function WallCard({ wall, jointTypes, finishGroups, profileColors, onChange, onR
   const selectedGroup = finishGroups.find(g => g.name === wall.finishGroup)
   const finishes: Finish[] = (selectedGroup?.finishes as Finish[]) ?? []
   const isVeneer = isVeneerGroup(wall.finishGroup)
+  // Для шпона «Отделка» — это базовые названия декоров (Breeze Oak, …)
+  const finishOptions = isVeneer ? SHPON_BASE_NAMES : finishes.map(f => f.name)
   const decorOptions = getDecorOptions(wall.finishName, wall.finishGroup)
   const hasDecors = decorOptions.length > 0
 
@@ -722,17 +745,17 @@ function WallCard({ wall, jointTypes, finishGroups, profileColors, onChange, onR
           <label>Группа отделки</label>
           <StringSelect
             value={wall.finishGroup}
-            options={finishGroups.map(g => g.name)}
+            options={visibleFinishGroups(finishGroups).map(g => g.name)}
             onChange={v => onChange({ finishGroup: v, finishName: '', veneerDirection: '', decor3d: '' })}
             placeholder="— выберите —"
           />
         </div>
         <div className="field">
           <label>Отделка</label>
-          {finishes.length > 0 ? (
+          {finishOptions.length > 0 ? (
             <StringSelect
               value={wall.finishName}
-              options={finishes.map(f => f.name)}
+              options={finishOptions}
               onChange={v => onChange({ finishName: v, decor3d: '' })}
               placeholder="— выберите —"
             />
@@ -846,6 +869,8 @@ function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove, phase }:
   const selectedGroup = finishGroups.find(g => g.name === door.finishGroup)
   const finishes: Finish[] = (selectedGroup?.finishes as Finish[]) ?? []
   const isVeneer = isVeneerGroup(door.finishGroup)
+  // Для шпона «Отделка» — это базовые названия декоров (Breeze Oak, …)
+  const finishOptions = isVeneer ? SHPON_BASE_NAMES : finishes.map(f => f.name)
   const decorOptions = getDecorOptions(door.finishName, door.finishGroup)
   const hasDecors = decorOptions.length > 0
   const inOpening = door.mountType === 'В ПРОЕМ'
@@ -1073,17 +1098,17 @@ function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove, phase }:
           <label>Группа отделки</label>
           <StringSelect
             value={door.finishGroup}
-            options={finishGroups.map(g => g.name)}
+            options={visibleFinishGroups(finishGroups).map(g => g.name)}
             onChange={v => onChange({ finishGroup: v, finishName: '', veneerDirection: '', decor3d: '' })}
             placeholder="— выберите —"
           />
         </div>
         <div className="field">
           <label>Отделка</label>
-          {finishes.length > 0 ? (
+          {finishOptions.length > 0 ? (
             <StringSelect
               value={door.finishName}
-              options={finishes.map(f => f.name)}
+              options={finishOptions}
               onChange={v => onChange({ finishName: v, decor3d: '' })}
               placeholder="— выберите —"
             />
