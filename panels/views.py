@@ -1,20 +1,30 @@
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.views import APIView
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from collections import Counter
 import openpyxl
 from io import BytesIO
 from datetime import datetime, date
 
+from .cascate import (
+    CascateClient, CascateError, CascateAuthError, CascateTokenError,
+    build_panel_payload, build_door_panel_payload,
+)
 from .models import (
     JointType, FinishGroup, Finish, ProfileColor,
     AluminumProfile, Order, DoorPanel, Panel,
+    FramingModel, FramingColor, FramingProfilePrice,
+    FramingDoborGroup, FramingDobor, FramingLead,
 )
 from .serializers import (
     JointTypeSerializer, FinishGroupSerializer, ProfileColorSerializer,
     AluminumProfileSerializer, OrderListSerializer, OrderDetailSerializer,
     PanelSerializer, DoorPanelSerializer,
+    FramingModelSerializer, FramingColorSerializer, FramingDoborSerializer,
+    FramingDoborGroupSerializer, FramingLeadSerializer,
 )
 
 
@@ -22,6 +32,13 @@ class JointTypeViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                        mixins.UpdateModelMixin, viewsets.GenericViewSet):
     queryset = JointType.objects.all()
     serializer_class = JointTypeSerializer
+
+    def get_queryset(self):
+        qs = JointType.objects.all()
+        series = self.request.query_params.get('series')
+        if series:
+            qs = qs.filter(series=series)
+        return qs
 
     def get_serializer_context(self):
         ctx = super().get_serializer_context()
@@ -52,6 +69,13 @@ class FinishGroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = FinishGroup.objects.prefetch_related('finishes').all()
     serializer_class = FinishGroupSerializer
 
+    def get_queryset(self):
+        qs = FinishGroup.objects.prefetch_related('finishes').all()
+        series = self.request.query_params.get('series')
+        if series:
+            qs = qs.filter(series=series)
+        return qs
+
 
 class ProfileColorViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = ProfileColor.objects.all()
@@ -65,6 +89,13 @@ class AluminumProfileViewSet(viewsets.ReadOnlyModelViewSet):
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
+
+    def get_queryset(self):
+        qs = Order.objects.all()
+        series = self.request.query_params.get('series')
+        if series:
+            qs = qs.filter(series=series)
+        return qs
 
     def get_serializer_class(self):
         if self.action in ('retrieve', 'create', 'update', 'partial_update'):
@@ -254,6 +285,96 @@ class OrderViewSet(viewsets.ModelViewSet):
 
         return Response({'panels_imported': created, 'order_updated': bool(order_fields)})
 
+    @action(detail=True, methods=['post'], url_path='export_cascate')
+    def export_cascate(self, request, pk=None):
+        """
+        Выгрузка панелей заказа во внешний API cascate.ru.
+
+        POST body: id_person (опц.) ИЛИ login + password, force (опц.)
+
+        Если пользователь уже вошёл в Cascate (в сайдбаре), фронт присылает
+        готовый id_person — повторный логин не нужен, выгрузка идёт по клику.
+        Логин/пароль (если пришли) не сохраняются — только меняются на id_person.
+        Уже выгруженные панели пропускаются: неизвестно, дедуплицирует ли
+        addPanel на своей стороне, поэтому повтор не должен плодить дубли.
+        Чтобы отправить заново — force=true.
+        """
+        order = get_object_or_404(Order, pk=pk)
+        id_person = (request.data.get('id_person') or '').strip()
+        login = (request.data.get('login') or '').strip()
+        password = request.data.get('password') or ''
+        force = str(request.data.get('force', '')).lower() in ('1', 'true', 'yes')
+
+        try:
+            client = CascateClient()
+        except CascateError as exc:
+            return Response({'error': str(exc)}, status=500)
+
+        # id_person от уже залогиненного пользователя — идём сразу к addPanel.
+        # Иначе меняем логин/пароль на id_person здесь.
+        if not id_person:
+            if not login or not password:
+                return Response(
+                    {'error': 'Войдите в Cascate или укажите логин и пароль'},
+                    status=400,
+                )
+            try:
+                id_person = client.login(login, password)
+            except CascateTokenError as exc:
+                return Response({'error': str(exc)}, status=500)
+            except CascateAuthError as exc:
+                return Response({'error': f'Не удалось войти: {exc}'}, status=401)
+            except CascateError as exc:
+                return Response({'error': str(exc)}, status=502)
+
+        wall_panels = order.panels.select_related(
+            'joint_left', 'joint_right', 'joint_top', 'joint_bottom',
+            'finish', 'finish_group', 'aluminum_color',
+        ).all()
+        door_panels = order.door_panels.select_related(
+            'joint_top_left', 'joint_top_right', 'joint_bottom',
+            'edge_left', 'edge_right', 'edge_top', 'edge_bottom',
+            'finish', 'finish_group',
+        ).all()
+
+        items = (
+            [(p, build_panel_payload, 'wall') for p in wall_panels]
+            + [(p, build_door_panel_payload, 'door') for p in door_panels]
+        )
+
+        sent, skipped, errors = 0, 0, []
+        now = timezone.now()
+
+        for panel, build, kind in items:
+            label = f'{"Панель" if kind == "wall" else "Дверная панель"} #{panel.position}'
+            # Признак выгрузки — отметка времени, а не cascate_id: внешний API
+            # может не вернуть id, но панель при этом уже создана.
+            if panel.cascate_synced_at and not force:
+                skipped += 1
+                continue
+            try:
+                external_id = client.add_panel(id_person, build(order, panel))
+            except CascateError as exc:
+                errors.append({'panel': label, 'error': str(exc)})
+                continue
+            panel.cascate_id = external_id
+            panel.cascate_synced_at = now
+            panel.save(update_fields=['cascate_id', 'cascate_synced_at'])
+            sent += 1
+
+        if sent:
+            order.cascate_id_person = id_person
+            order.cascate_synced_at = now
+            order.save(update_fields=['cascate_id_person', 'cascate_synced_at'])
+
+        return Response({
+            'id_person': id_person,
+            'sent': sent,
+            'skipped': skipped,
+            'failed': len(errors),
+            'errors': errors,
+        })
+
     @action(detail=False, methods=['post'])
     def calculate_wall(self, request):
         """
@@ -266,13 +387,14 @@ class OrderViewSet(viewsets.ModelViewSet):
         joint_left_code = request.data.get('joint_left_code', '')
         joint_right_code = request.data.get('joint_right_code', '')
         connection_code = request.data.get('connection_type_code', 'B')
+        series = request.data.get('series') or '60'
 
         try:
-            jl = JointType.objects.get(code=joint_left_code)
+            jl = JointType.objects.get(code=joint_left_code, series=series)
         except JointType.DoesNotExist:
             return Response({'error': f'Узел {joint_left_code!r} не найден'}, status=400)
         try:
-            jr = JointType.objects.get(code=joint_right_code)
+            jr = JointType.objects.get(code=joint_right_code, series=series)
         except JointType.DoesNotExist:
             return Response({'error': f'Узел {joint_right_code!r} не найден'}, status=400)
 
@@ -321,3 +443,51 @@ class DoorPanelViewSet(viewsets.ModelViewSet):
         if order_id:
             qs = qs.filter(order_id=order_id)
         return qs
+
+
+# ─── Обрамление проёма ────────────────────────────────────────────────────────
+
+class FramingConfigView(APIView):
+    """Полный справочник обрамления одним ответом (модели, цвета, цены, отделки)."""
+
+    def get(self, request):
+        prices = {p.category: p.price_per_3000 for p in FramingProfilePrice.objects.all()}
+        return Response({
+            'models': FramingModelSerializer(FramingModel.objects.all(), many=True).data,
+            'colors': FramingColorSerializer(FramingColor.objects.all(), many=True).data,
+            'profile_prices': prices,
+            'dobor_groups': FramingDoborGroupSerializer(
+                FramingDoborGroup.objects.all(), many=True).data,
+            'dobors': FramingDoborSerializer(
+                FramingDobor.objects.select_related('group').all(), many=True).data,
+        })
+
+
+class FramingLeadViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
+                         mixins.RetrieveModelMixin, viewsets.GenericViewSet):
+    """Заявки из калькулятора обрамления. Создание — из калькулятора, список — в ЛК."""
+    queryset = FramingLead.objects.all()
+    serializer_class = FramingLeadSerializer
+
+
+class CascateLoginView(APIView):
+    """Вход через API cascate.ru. Логин/пароль не сохраняются — меняются на id_person."""
+
+    def post(self, request):
+        login = (request.data.get('login') or '').strip()
+        password = request.data.get('password') or ''
+        if not login or not password:
+            return Response({'error': 'Укажите почту и пароль'}, status=400)
+        try:
+            client = CascateClient()
+        except CascateError as exc:
+            return Response({'error': str(exc)}, status=500)
+        try:
+            id_person = client.login(login, password)
+        except CascateTokenError as exc:
+            return Response({'error': str(exc)}, status=500)
+        except CascateAuthError:
+            return Response({'error': 'Неверная почта или пароль'}, status=401)
+        except CascateError as exc:
+            return Response({'error': str(exc)}, status=502)
+        return Response({'id_person': id_person, 'login': login})

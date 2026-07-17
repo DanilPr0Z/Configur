@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react'
 import { fetchJointTypes, uploadJointImage, deleteJointImage, updateJointType } from '../api'
 import type { JointType } from '../api'
 
-const PASSWORD = 'VkHdd@Wc2'
+const PASSWORD = '&fSZB^Q2DV&h@1NL'
 const SESSION_KEY = 'joint_images_auth'
 
 export default function JointImages() {

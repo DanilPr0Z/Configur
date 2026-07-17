@@ -91,6 +91,11 @@ MEDIA_ROOT = BASE_DIR / 'media'
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',') if not DEBUG else []
 
+# ── Внешний API cascate.ru ────────────────────────────────────────────────────
+CASCATE_BASE_URL = os.environ.get('CASCATE_BASE_URL', 'https://cascate.ru/Api')
+CASCATE_TOKEN = os.environ.get('CASCATE_TOKEN', '')
+CASCATE_TIMEOUT = float(os.environ.get('CASCATE_TIMEOUT', '20'))
+
 # ── DRF ───────────────────────────────────────────────────────────────────────
 REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [

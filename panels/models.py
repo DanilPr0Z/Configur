@@ -1,9 +1,15 @@
 from django.db import models
 
+# Серия панелей: NUOVO 50 / NUOVO 60. Формулы расчёта идентичны, отличаются
+# справочники (поправки узлов, каталог отделок).
+SERIES_CHOICES = [('50', 'NUOVO 50'), ('60', 'NUOVO 60')]
+
 
 class JointType(models.Model):
     """Тип узла (A, B, C, D, DG, DH, G, H, E, FL, FR, P, R, I, O, S, T)"""
-    code = models.CharField(max_length=10, unique=True, verbose_name='Код узла')
+    series = models.CharField(max_length=2, choices=SERIES_CHOICES, default='60',
+                              verbose_name='Серия')
+    code = models.CharField(max_length=10, verbose_name='Код узла')
     name = models.CharField(max_length=200, blank=True, verbose_name='Название')
     offset_mm = models.FloatField(default=0, verbose_name='Поправка к ширине, мм')
     price_per_meter = models.FloatField(default=0, verbose_name='Цена обработки руб/пм')
@@ -14,7 +20,8 @@ class JointType(models.Model):
     class Meta:
         verbose_name = 'Тип узла'
         verbose_name_plural = 'Типы узлов'
-        ordering = ['code']
+        ordering = ['series', 'code']
+        unique_together = [('code', 'series')]
 
     def __str__(self):
         return f'{self.code} — {self.name}' if self.name else self.code
@@ -22,13 +29,16 @@ class JointType(models.Model):
 
 class FinishGroup(models.Model):
     """Группа отделки: ШПОН, STONE, LACATO, FONDO, GLOSS, FRASSINO, ШПОН 5ММ, ШПОН 2.5ММ"""
-    name = models.CharField(max_length=100, unique=True, verbose_name='Название группы')
+    series = models.CharField(max_length=2, choices=SERIES_CHOICES, default='60',
+                              verbose_name='Серия')
+    name = models.CharField(max_length=100, verbose_name='Название группы')
     sort_order = models.IntegerField(default=0)
 
     class Meta:
         verbose_name = 'Группа отделки'
         verbose_name_plural = 'Группы отделок'
         ordering = ['sort_order', 'name']
+        unique_together = [('name', 'series')]
 
     def __str__(self):
         return self.name
@@ -86,12 +96,158 @@ class AluminumProfile(models.Model):
         return f'{self.article} — {self.name}'
 
 
+# ─── Обрамление проёма (Cascate Porte) ───────────────────────────────────────
+
+class FramingProfilePrice(models.Model):
+    """Цена профиля наличника за 3000 мм по категории модели.
+    Цена зависит только от категории (mini/passo/triangle/default), не от цвета."""
+    CATEGORY_CHOICES = [
+        ('mini', 'MINI'), ('passo', 'PASSO'),
+        ('triangle', 'TRIANGLE'), ('default', 'Стандарт'),
+    ]
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, unique=True,
+                                verbose_name='Категория профиля')
+    price_per_3000 = models.FloatField(verbose_name='Цена за 3000 мм, руб')
+
+    class Meta:
+        verbose_name = 'Обрамление: цена профиля'
+        verbose_name_plural = 'Обрамление: цены профилей'
+
+    def __str__(self):
+        return f'{self.get_category_display()} — {self.price_per_3000} ₽'
+
+
+class FramingModel(models.Model):
+    """Модель наличника обрамления (Luna, Dune, PORTALE и т.д.)"""
+    DEPTH_MODES = [
+        ('luna', 'Luna (C + 10/5)'),
+        ('cas', 'Cascade (= C)'),
+        ('fixed', 'Фикс. поправка (C + delta)'),
+    ]
+    name = models.CharField(max_length=100, unique=True, verbose_name='Название')
+    subtitle = models.CharField(max_length=100, blank=True, verbose_name='Подпись')
+    nH = models.FloatField(default=0, verbose_name='Поправка высоты наличника')
+    nL = models.FloatField(default=0, verbose_name='Поправка ширины наличника')
+    dH = models.FloatField(default=0, verbose_name='Поправка высоты добора')
+    dL = models.FloatField(default=0, verbose_name='Поправка ширины добора')
+    depth_mode = models.CharField(max_length=10, choices=DEPTH_MODES, default='fixed',
+                                  verbose_name='Расчёт глубины добора')
+    depth_delta = models.FloatField(default=0, verbose_name='Поправка глубины (для fixed)')
+    profile_count = models.IntegerField(default=4, verbose_name='Кол-во профилей')
+    has_glass = models.BooleanField(default=False, verbose_name='Со вставкой (стекло/зеркало)')
+    price_category = models.CharField(max_length=20, default='default',
+                                      choices=FramingProfilePrice.CATEGORY_CHOICES,
+                                      verbose_name='Категория цены профиля')
+    sort_order = models.IntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Обрамление: модель'
+        verbose_name_plural = 'Обрамление: модели'
+        ordering = ['sort_order', 'name']
+
+    def __str__(self):
+        return self.name
+
+
+class FramingColor(models.Model):
+    """Цвет профиля наличника обрамления"""
+    name = models.CharField(max_length=200, unique=True, verbose_name='Название цвета')
+    sort_order = models.IntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Обрамление: цвет профиля'
+        verbose_name_plural = 'Обрамление: цвета профилей'
+        ordering = ['sort_order', 'name']
+
+    def __str__(self):
+        return self.name
+
+
+class FramingDoborGroup(models.Model):
+    """Группа отделок добора / вставки обрамления (ШПОН, LACATO, СТЕКЛО и т.д.)"""
+    name = models.CharField(max_length=100, unique=True, verbose_name='Название группы')
+    is_dobor = models.BooleanField(default=True, verbose_name='Доступна как добор')
+    is_glass = models.BooleanField(default=False, verbose_name='Доступна как вставка')
+    glass_price_per_m = models.FloatField(default=620, verbose_name='Цена вставки, руб/м')
+    sort_order = models.IntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Обрамление: группа отделок'
+        verbose_name_plural = 'Обрамление: группы отделок'
+        ordering = ['sort_order', 'name']
+
+    def __str__(self):
+        return self.name
+
+
+class FramingDobor(models.Model):
+    """Отделка добора / вставки обрамления с ценой за кв.м"""
+    group = models.ForeignKey(FramingDoborGroup, on_delete=models.CASCADE,
+                              related_name='dobors', verbose_name='Группа')
+    name = models.CharField(max_length=200, verbose_name='Название')
+    price = models.FloatField(default=0, verbose_name='Цена, руб/кв.м')
+    sort_order = models.IntegerField(default=0)
+
+    class Meta:
+        verbose_name = 'Обрамление: отделка добора'
+        verbose_name_plural = 'Обрамление: отделки добора'
+        ordering = ['group', 'sort_order', 'id']
+
+    def __str__(self):
+        return f'{self.group.name} / {self.name}'
+
+
+class FramingLead(models.Model):
+    """Заявка (лид) из калькулятора обрамления проёма"""
+    STATUS_CHOICES = [('new', 'Новая'), ('in_work', 'В работе'), ('done', 'Завершена')]
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='new',
+                              verbose_name='Статус')
+
+    # Контакт
+    name = models.CharField(max_length=300, verbose_name='Имя')
+    phone = models.CharField(max_length=100, verbose_name='Телефон')
+    email = models.CharField(max_length=200, blank=True, verbose_name='Email')
+    comment = models.TextField(blank=True, verbose_name='Комментарий')
+
+    # Шапка спецификации
+    invoice_number = models.CharField(max_length=100, blank=True, verbose_name='Номер счёта')
+    buyer = models.CharField(max_length=300, blank=True, verbose_name='Покупатель')
+    note = models.TextField(blank=True, verbose_name='Примечание к спецификации')
+
+    # Конфигурация
+    model_name = models.CharField(max_length=100, blank=True, verbose_name='Модель')
+    install = models.CharField(max_length=50, blank=True, verbose_name='Установка')
+    kit = models.CharField(max_length=20, blank=True, verbose_name='Комплектация')
+    opening_height = models.FloatField(default=0, verbose_name='Высота проёма')
+    opening_width = models.FloatField(default=0, verbose_name='Ширина проёма')
+    wall_depth = models.FloatField(default=0, verbose_name='Глубина стены')
+    color_name = models.CharField(max_length=200, blank=True, verbose_name='Цвет наличника')
+    dobor_name = models.CharField(max_length=200, blank=True, verbose_name='Отделка добора')
+    glass = models.CharField(max_length=300, blank=True, verbose_name='Вставка')
+
+    spec = models.JSONField(null=True, blank=True, verbose_name='Спецификация (строки)')
+    total = models.FloatField(default=0, verbose_name='Итого, руб')
+
+    class Meta:
+        verbose_name = 'Обрамление: заявка'
+        verbose_name_plural = 'Обрамление: заявки'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'Заявка обрамления #{self.pk} — {self.name} ({self.total} ₽)'
+
+
 # ─── Заказ ───────────────────────────────────────────────────────────────────
 
 class Order(models.Model):
     """Заказ стеновых панелей"""
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    series = models.CharField(max_length=2, choices=SERIES_CHOICES, default='60',
+                              verbose_name='Серия')
 
     customer_name = models.CharField(max_length=300, blank=True, verbose_name='ФИО заказчика')
     agent_name = models.CharField(max_length=300, blank=True, verbose_name='ФИО агента')
@@ -102,6 +258,11 @@ class Order(models.Model):
     city = models.CharField(max_length=200, blank=True, verbose_name='Город')
     notes = models.TextField(blank=True, verbose_name='Примечания')
     configurator_state = models.JSONField(null=True, blank=True, verbose_name='Состояние конфигуратора')
+
+    cascate_id_person = models.CharField(max_length=64, blank=True,
+                                         verbose_name='id_person в cascate.ru')
+    cascate_synced_at = models.DateTimeField(null=True, blank=True,
+                                             verbose_name='Выгружен в cascate.ru')
 
     class Meta:
         verbose_name = 'Заказ'
@@ -165,6 +326,10 @@ class DoorPanel(models.Model):
     decor_name = models.CharField(max_length=300, blank=True, verbose_name='Наименование декора 3D')
     markup_percent = models.FloatField(default=0, verbose_name='Наценка, %')
     notes = models.TextField(blank=True)
+
+    cascate_id = models.CharField(max_length=64, blank=True, verbose_name='id в cascate.ru')
+    cascate_synced_at = models.DateTimeField(null=True, blank=True,
+                                             verbose_name='Выгружена в cascate.ru')
 
     class Meta:
         verbose_name = 'Панель над дверью'
@@ -243,6 +408,10 @@ class Panel(models.Model):
 
     markup_percent = models.FloatField(default=0, verbose_name='Наценка, %')
     notes = models.TextField(blank=True)
+
+    cascate_id = models.CharField(max_length=64, blank=True, verbose_name='id в cascate.ru')
+    cascate_synced_at = models.DateTimeField(null=True, blank=True,
+                                             verbose_name='Выгружена в cascate.ru')
 
     class Meta:
         verbose_name = 'Стеновая панель'

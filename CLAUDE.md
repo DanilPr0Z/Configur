@@ -53,18 +53,22 @@ PythonProject9/
 │   ├── settings.py          # настройки Django (MEDIA, CORS, DRF)
 │   ├── urls.py              # главный urls + media serving
 │   └── wsgi.py
+├── docs/
+│   └── CASCATE.md           # интеграция с внешним API cascate.ru
 ├── panels/
 │   ├── models.py            # ВСЕ модели (см. ниже)
 │   ├── views.py             # ViewSets + custom actions
 │   ├── serializers.py       # сериализаторы
+│   ├── cascate.py           # клиент внешнего API cascate.ru
 │   ├── urls.py              # DefaultRouter
 │   ├── admin.py
 │   └── migrations/
-│       └── 0008_jointtype_image.py  # последняя миграция
+│       └── 0010_...cascate...py     # последняя миграция
 ├── frontend/
 │   └── src/
 │       ├── api.ts                   # ВСЕ типы TypeScript и API-вызовы
-│       ├── App.tsx                  # роутинг (/, /orders, /orders/:id, /joint-images)
+│       ├── App.tsx                  # роутинг (/, /orders, /orders/:id, /joint-images*)
+│       │                            # * /joint-images скрыт из навигации
 │       ├── pages/
 │       │   ├── Configurator.tsx
 │       │   ├── OrdersList.tsx
@@ -121,6 +125,7 @@ Base URL: `http://localhost:8000/api/`
 | GET/PATCH/DELETE | `orders/{id}/` | Заказ (detail включает panels + door_panels) |
 | GET | `orders/{id}/summary/` | Итоговая спецификация с алюм. профилями |
 | POST | `orders/{id}/import_excel/` | Импорт панелей из xlsx (field: `file`) |
+| POST | `orders/{id}/export_cascate/` | Выгрузка панелей в cascate.ru (`login`, `password`, `force?`) — см. `docs/CASCATE.md` |
 | POST | `orders/calculate_wall/` | Калькулятор раскладки панелей |
 | GET/POST/PATCH/DELETE | `panels/` | CRUD панелей (фильтр: ?order=ID) |
 | GET/POST/PATCH/DELETE | `door-panels/` | CRUD дверных панелей (фильтр: ?order=ID) |

@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор обрамления проёма — Cascate Porte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --ink:#000000;--paper:#ffffff;--cream:#efefef;
+  --border:#dddddd;--muted:#666666;
+  --accent:#c9002b;--accent-dk:#a80024;
+  --red:#c9002b;--white:#ffffff;
+  --dark:#000000;
+}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:'PT Sans',Arial,sans-serif;font-size:14px;min-height:100vh}
+
+/* ── SITE HEADER ── */
+.site-header{
+  background:var(--white);color:var(--ink);
+  padding:0 2rem;height:64px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;border-bottom:1px solid var(--border);
+}
+.logo-wrap{display:flex;align-items:center;gap:0;text-decoration:none}
+.logo-wrap img{height:36px;display:block}
+.site-nav{display:flex;gap:1.75rem;align-items:center}
+.site-nav a{
+  font-size:12px;letter-spacing:.07em;text-transform:uppercase;
+  color:var(--muted);text-decoration:none;transition:color .15s;
+}
+.site-nav a:hover{color:var(--ink)}
+.site-nav a.active{color:var(--accent);border-bottom:2px solid var(--accent);padding-bottom:2px}
+
+/* ── HERO ── */
+.hero{
+  background:var(--white);color:var(--ink);
+  padding:2.5rem 2rem 2rem;
+  border-bottom:1px solid var(--border);
+}
+.hero-inner{max-width:900px;margin:0 auto}
+.hero-eyebrow{
+  font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--accent);margin-bottom:.6rem;display:flex;align-items:center;gap:.75rem;
+}
+.hero-eyebrow::after{content:'';height:1px;width:40px;background:var(--accent);opacity:.5}
+.hero-title{font-family:'PT Sans',Arial,sans-serif;font-size:32px;font-weight:700;line-height:1.2;color:var(--ink)}
+.hero-title em{font-style:normal;color:var(--accent)}
+
+/* ── STEP BAR ── */
+.step-bar{
+  background:var(--white);border-bottom:1px solid var(--border);
+  display:flex;position:sticky;top:64px;z-index:90;
+}
+.stp{
+  flex:1;padding:.9rem 1rem;font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);cursor:pointer;border-right:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;gap:.5rem;transition:all .15s;
+}
+.stp:last-child{border-right:none}
+.stp:hover{background:var(--cream)}
+.stp.on{background:var(--ink);color:var(--white)}
+.stp .n{
+  width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,.1);
+  display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;
+}
+.stp.on .n{background:var(--accent)}
+.stp.locked{opacity:.35;cursor:not-allowed;pointer-events:none}
+
+/* ── MAIN ── */
+.main{max-width:900px;margin:0 auto;padding:2.5rem 2rem 5rem}
+
+.panel{display:none}
+.panel.on{display:block;animation:up .22s ease}
+@keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── LABELS ── */
+.sec-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--muted);margin-bottom:1.25rem}
+
+/* ── MODEL GRID ── */
+.model-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.6rem;margin-bottom:2rem}
+@media(max-width:640px){.model-grid{grid-template-columns:repeat(2,1fr)}}
+.mc{
+  border:1px solid var(--border);background:var(--white);
+  padding:1rem .75rem;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  transition:all .15s;
+}
+.mc:hover{border-color:var(--accent)}
+.mc.on{border:2px solid var(--accent);background:var(--cream)}
+.mc .mn{font-family:'PT Sans',Arial,sans-serif;font-size:13px;font-weight:700;color:var(--ink);letter-spacing:.05em;text-transform:uppercase;text-align:center}
+.mc .mt{display:none}
+.mc.on .mn{color:var(--accent)}
+
+/* ── SCHEME BOX ── */
+.scheme-box{border:1px solid var(--border);background:var(--white);margin-bottom:1.75rem}
+.scheme-top{
+  padding:.65rem 1rem;border-bottom:1px solid var(--border);
+  font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);display:flex;align-items:center;gap:8px;
+}
+.sdot{width:6px;height:6px;border-radius:50%;background:var(--accent);flex-shrink:0}
+.scheme-body{padding:1rem;display:flex;align-items:stretch;justify-content:center;gap:.75rem;min-height:340px;background:#fafafa;flex-wrap:wrap}
+.scheme-img{flex:1;min-width:260px;max-width:50%;display:flex;align-items:center;justify-content:center;background:#fff;border:1px solid #eee;padding:.5rem}
+.scheme-img img{width:100%;height:100%;object-fit:contain;display:block;filter:grayscale(100%);min-height:280px;max-height:380px}
+@media(max-width:540px){.scheme-img{max-width:100%;min-width:100%}}
+
+/* ── FIELDS ── */
+.fg{margin-bottom:1.25rem}
+.fl{display:block;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:.4rem}
+.fl em{color:var(--accent);font-style:normal}
+
+select,input[type=number],input[type=text],textarea{
+  width:100%;padding:.65rem .9rem;
+  border:1px solid var(--border);background:var(--white);
+  font-family:'PT Sans',Arial,sans-serif;font-size:13px;color:var(--ink);
+  outline:none;transition:border-color .15s;
+  -webkit-appearance:none;appearance:none;border-radius:0;
+}
+select{
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23c9002b'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right .9rem center;padding-right:2.2rem;cursor:pointer;
+}
+select:focus,input:focus,textarea:focus{border-color:var(--accent)}
+input[type=number]{-moz-appearance:textfield}
+input[type=number]::-webkit-inner-spin-button{display:none}
+textarea{resize:vertical;min-height:90px}
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:.75rem}
+@media(max-width:600px){.g2,.g3{grid-template-columns:1fr}}
+
+.itabs{display:flex;border:1px solid var(--border);overflow:hidden}
+.itab{flex:1;padding:.65rem;font-size:12px;text-align:center;cursor:pointer;background:var(--white);border-right:1px solid var(--border);color:var(--muted);transition:all .15s}
+.itab:last-child{border-right:none}
+.itab.on{background:var(--ink);color:var(--white)}
+.itab:hover:not(.on){background:var(--cream)}
+
+/* ── ЖИВАЯ СХЕМА ЗАМЕРА (картинка + числа поверх) ── */
+.izmer{position:relative;max-width:820px;margin:0 auto 1.75rem}
+.izmer img{width:100%;display:block}
+.iz{position:absolute;transform:translate(-50%,-50%);
+  font:700 13px 'PT Sans',Arial,sans-serif;color:var(--accent);
+  white-space:nowrap;pointer-events:none;
+  text-shadow:0 0 3px #fff,0 0 2px #fff,0 0 2px #fff,0 0 1px #fff}
+.iz.iz-v{transform:translate(-50%,-50%) rotate(-90deg)}
+@media(max-width:640px){.iz{font-size:10px}}
+.izmer-cap{text-align:center;font-size:11px;color:var(--muted);margin:-1rem 0 1.75rem;line-height:1.5}
+
+/* ── DIMS ── */
+.dims{display:flex;gap:.6rem;margin-bottom:1.5rem;flex-wrap:wrap}
+.dim{flex:1;min-width:120px;background:var(--white);border:1px solid var(--border);padding:1rem .9rem}
+.dim-v{font-family:'PT Sans',Arial,sans-serif;font-size:28px;font-weight:700;color:var(--ink)}
+.dim-l{font-size:10px;color:var(--muted);margin-top:3px;letter-spacing:.05em}
+
+/* ── SPEC TABLE ── */
+.spec-t{width:100%;border-collapse:collapse;margin-bottom:1.5rem;table-layout:fixed}
+.spec-t th{
+  text-align:left;padding:.5rem .75rem;
+  font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);border-bottom:2px solid var(--ink);font-weight:400;
+}
+.spec-t td{padding:.75rem;border-bottom:1px solid var(--border);vertical-align:middle;word-break:break-word}
+.spec-t tr:last-child td{border-bottom:none}
+.spec-t .nm{font-size:13px;line-height:1.45}
+.spec-t .dm{font-size:12px;color:var(--muted)}
+.spec-t .qt{text-align:center;color:var(--muted)}
+.spec-t .pr{text-align:right;font-weight:700;white-space:nowrap}
+.glass-r td{background:#f5f5f5}
+.sur-r td{color:var(--accent);font-size:12px}
+
+/* ── TOTAL ── */
+.total{
+  display:flex;align-items:center;justify-content:space-between;
+  background:var(--dark);color:var(--white);
+  padding:1.25rem 1.5rem;margin-bottom:1.75rem;
+}
+.total-l{font-size:10px;letter-spacing:.15em;text-transform:uppercase;opacity:.5}
+.total-v{font-family:'PT Sans',Arial,sans-serif;font-size:36px;font-weight:700}
+.total-v sup{font-size:16px;opacity:.55;margin-right:4px;vertical-align:super}
+
+/* ── WARN ── */
+.warn{background:#fff0f0;border-left:3px solid var(--accent);padding:.75rem 1rem;font-size:12px;color:#800020;margin-bottom:1rem;display:none}
+
+/* ── BTNS ── */
+.btns{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.75rem}
+.btn{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.8rem 2rem;font-family:'PT Sans',Arial,sans-serif;font-size:12px;
+  letter-spacing:.08em;text-transform:uppercase;cursor:pointer;border:none;
+  transition:all .15s;text-decoration:none;font-weight:700;
+}
+.btn-ink{background:var(--ink);color:var(--white)}
+.btn-ink:hover{background:#333}
+.btn-out{background:transparent;color:var(--ink);border:1px solid var(--border)}
+.btn-out:hover{border-color:var(--ink)}
+.btn-gold{background:var(--accent);color:var(--white)}
+.btn-gold:hover{background:var(--accent-dk)}
+.btn-print{background:transparent;color:var(--muted);border:1px solid var(--border);font-size:11px;font-weight:400}
+.btn-print:hover{color:var(--ink);border-color:var(--ink)}
+
+/* ── ORDER SUMMARY ── */
+.osum{background:var(--cream);border-left:3px solid var(--accent);padding:1rem 1.25rem;font-size:13px;line-height:2;margin-bottom:1.5rem}
+
+/* ── SUCCESS ── */
+.success{text-align:center;padding:4rem 2rem;display:none}
+.success-icon{width:64px;height:64px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;font-size:26px;color:var(--white)}
+.success-title{font-family:'PT Sans',Arial,sans-serif;font-size:28px;font-weight:700;color:var(--ink);margin-bottom:.5rem}
+.success-sub{font-size:13px;color:var(--muted);margin-bottom:2rem}
+
+/* ── FOOTER ── */
+.site-footer{background:var(--dark);color:rgba(255,255,255,.4);padding:2rem;text-align:center;font-size:12px;letter-spacing:.05em}
+.site-footer a{color:rgba(255,255,255,.4);text-decoration:none}
+.site-footer a:hover{color:rgba(255,255,255,.7)}
+
+/* ── PRINT ── */
+@media print{
+  .site-header,.step-bar,.btns,.hero-tags,.site-footer{display:none!important}
+  .hero{padding:1rem 0;background:none!important;color:var(--ink)!important;border:none!important}
+  .hero-title{color:var(--ink)!important;font-size:24px}
+  .hero-title em{color:var(--accent)!important}
+  .hero-eyebrow{color:var(--accent)!important}
+  .panel{display:block!important}
+  .step-bar{display:none!important}
+  .total{background:#efefef!important;color:var(--ink)!important;border:1px solid var(--border)}
+  .total-l{opacity:.6!important;color:var(--ink)!important}
+  .total-v{color:var(--ink)!important}
+  /* схемы в печати */
+  .scheme-box{border:1px solid var(--border)!important;margin-top:1.5rem;page-break-inside:avoid}
+  .scheme-body{background:#fff!important;padding:.75rem!important}
+  .scheme-img{max-width:48%!important}
+  .scheme-img img{max-height:200px!important;filter:grayscale(100%)!important}
+}
+
+/* ── MOBILE ── */
+@media(max-width:760px){
+  .hero-title{font-size:26px}
+  .site-nav .hide-mob{display:none}
+  .stp .label{display:none}
+  .spec-t th:nth-child(2),.spec-t td:nth-child(2){display:none}
+  .main{padding:1.5rem 1rem 4rem}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="site-header">
+  <a class="logo-wrap" href="https://cascate.ru/">
+    <img src="https://cascate.ru/images/logo_cascate.jpg" alt="Cascate Porte">
+  </a>
+  <nav class="site-nav">
+    <a href="https://cascate.ru/" class="hide-mob">Главная</a>
+    <a href="https://cascate.ru/products/" class="hide-mob">Продукция</a>
+    <a href="#" class="active">Калькулятор</a>
+    <a href="https://cascate.ru/contacts/" class="hide-mob">Контакты</a>
+  </nav>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Онлайн-калькулятор</div>
+    <div class="hero-title">Расчёт <em>обрамления проёма</em></div>
+  </div>
+</div>
+
+<!-- STEP BAR -->
+<div class="step-bar">
+  <div class="stp on" onclick="go(1)" id="stp1"><span class="n">1</span><span class="label">Модель</span></div>
+  <div class="stp locked" onclick="go(2)" id="stp2"><span class="n">2</span><span class="label">Параметры</span></div>
+  <div class="stp locked" onclick="go(3)" id="stp3"><span class="n">3</span><span class="label">Спецификация</span></div>
+  <div class="stp locked" onclick="go(4)" id="stp4"><span class="n">4</span><span class="label">Заявка</span></div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- P1: MODEL -->
+  <div class="panel on" id="p1">
+    <div class="sec-label">Выберите модель наличника</div>
+    <div class="model-grid" id="mgrid"></div>
+    <div class="scheme-box">
+      <div class="scheme-top"><div class="sdot"></div>Схема сборки — <span id="sname">выберите модель</span></div>
+      <div class="scheme-body" id="sbody"><span style="font-size:12px;color:var(--muted)">Выберите модель выше</span></div>
+    </div>
+    <div class="btns">
+      <button class="btn btn-ink" onclick="go(2)">Далее →</button>
+      <button class="btn btn-print" onclick="downloadScheme()">⬇ Скачать схему PDF</button>
+    </div>
+  </div>
+
+  <!-- P2: PARAMS -->
+  <div class="panel" id="p2">
+    <div class="sec-label">Размеры проёма</div>
+    <div class="g3" style="margin-bottom:1.5rem">
+      <div class="fg" style="margin:0">
+        <label class="fl">Высота H <em>*</em></label>
+        <input type="number" id="iH" value="2000" min="500" max="3000" oninput="recalc()">
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">мм · 500–3000</div>
+      </div>
+      <div class="fg" style="margin:0">
+        <label class="fl">Ширина L <em>*</em></label>
+        <input type="number" id="iL" value="900" min="400" max="1500" oninput="recalc()">
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">мм · 400–1500</div>
+      </div>
+      <div class="fg" style="margin:0">
+        <label class="fl">Глубина C <em>*</em></label>
+        <input type="number" id="iC" value="200" min="50" max="750" oninput="recalc()">
+        <div style="font-size:10px;color:var(--muted);margin-top:3px">мм · 50–750</div>
+      </div>
+    </div>
+    <div class="izmer" id="izmer">
+      <img src="schemes/izmer.jpg" alt="Схема замера обрамления проёма">
+      <span class="iz" id="izLp" style="left:20%;top:25.5%"></span>
+      <span class="iz iz-v" id="izHp" style="left:8%;top:45%"></span>
+      <span class="iz" id="izCp" style="left:19.5%;top:59%"></span>
+      <span class="iz" id="izLn" style="left:77%;top:22.5%"></span>
+      <span class="iz" id="izLs" style="left:76.5%;top:29%"></span>
+      <span class="iz iz-v" id="izHs" style="left:63.5%;top:47%"></span>
+      <span class="iz iz-v" id="izHn" style="left:94%;top:48%"></span>
+    </div>
+    <div class="izmer-cap" id="izmerCap"></div>
+    <div class="fg">
+      <label class="fl">Что рассчитать</label>
+      <div class="itabs">
+        <div class="itab on" onclick="setKit('both',this)">Наличник + добор</div>
+        <div class="itab" onclick="setKit('nal',this)">Только наличник</div>
+        <div class="itab" onclick="setKit('dob',this)">Только добор</div>
+      </div>
+    </div>
+    <div class="fg" id="fgInst">
+      <label class="fl">Установка наличника</label>
+      <div class="itabs">
+        <div class="itab on" onclick="setInst('с двух сторон',this)">С двух сторон</div>
+        <div class="itab" onclick="setInst('с одной стороны',this)">С одной стороны</div>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="fg" id="fgCol"><label class="fl">Цвет профиля наличника <em>*</em></label><select id="sCol"></select></div>
+      <div class="fg" id="fgDobGroup"><label class="fl">Группа добора <em>*</em></label><select id="sDobGroup" onchange="onDobGroup()"></select></div>
+      <div class="fg" id="fgDob"><label class="fl">Отделка добора <em>*</em></label><select id="sDob" onchange="st.di=+this.value"></select></div>
+    </div>
+    <div id="glassWrap" style="display:none">
+      <div class="g2">
+        <div class="fg"><label class="fl">Группа вставки</label>
+          <select id="sGlassGroup" onchange="onGlassGroup()"></select>
+        </div>
+        <div class="fg" id="insRow"><label class="fl">Отделка вставки</label>
+          <select id="sIns"></select>
+        </div>
+      </div>
+      <div class="fg" id="glassColorRow" style="display:none">
+        <label class="fl">Цвет стекла / зеркала <em>*</em></label>
+        <input type="text" id="iGlassColor" placeholder="">
+      </div>
+    </div>
+    <div class="warn" id="warnBox"></div>
+    <div class="btns">
+      <button class="btn btn-out" onclick="go(1)">← Назад</button>
+      <button class="btn btn-ink" onclick="go(3)">Рассчитать →</button>
+    </div>
+  </div>
+
+  <!-- P3: SPEC -->
+  <div class="panel" id="p3">
+    <div class="g2" style="margin-bottom:1.5rem">
+      <div class="fg" style="margin:0">
+        <label class="fl">Номер счёта</label>
+        <input type="text" id="iInvoice" placeholder="Например: СЧ-2024-001">
+      </div>
+      <div class="fg" style="margin:0">
+        <label class="fl">Покупатель</label>
+        <input type="text" id="iBuyer" placeholder="ФИО или название организации">
+      </div>
+    </div>
+    <div class="dims" id="dimsRow"></div>
+    <table class="spec-t">
+      <thead>
+        <tr>
+          <th style="width:44%">Наименование</th>
+          <th style="width:22%">Размер</th>
+          <th style="width:8%;text-align:center">Шт.</th>
+          <th style="width:18%;text-align:right">Сумма, ₽</th>
+        </tr>
+      </thead>
+      <tbody id="specBody"></tbody>
+    </table>
+    <div class="total">
+      <div class="total-l">Итого к заказу</div>
+      <div class="total-v"><sup>₽</sup><span id="totVal">0</span></div>
+    </div>
+    <div class="fg" style="margin-bottom:1.75rem">
+      <label class="fl">Примечание</label>
+      <textarea id="iNote" placeholder="Дополнительные условия, пожелания, особенности монтажа..."></textarea>
+    </div>
+    <div class="scheme-box">
+      <div class="scheme-top"><div class="sdot"></div>Схема сборки — <span id="sname2"></span></div>
+      <div class="scheme-body" id="sbody2"></div>
+    </div>
+    <div class="btns">
+      <button class="btn btn-out" onclick="go(2)">← Изменить</button>
+      <button class="btn btn-print" onclick="downloadPDF()">⬇ Скачать PDF</button>
+      <button class="btn btn-gold" onclick="go(4)">Оформить заявку →</button>
+    </div>
+  </div>
+
+  <!-- P4: FORM -->
+  <div class="panel" id="p4">
+    <div class="osum" id="osum"></div>
+    <div id="formWrap">
+      <div class="sec-label" style="margin-bottom:1.25rem">Ваши контактные данные</div>
+      <div class="g2" style="margin-bottom:.75rem">
+        <div class="fg" style="margin:0"><label class="fl">Имя <em>*</em></label><input type="text" id="fN" placeholder="Ваше имя"></div>
+        <div class="fg" style="margin:0"><label class="fl">Телефон <em>*</em></label><input type="text" id="fP" placeholder="+7 (___) ___-__-__"></div>
+      </div>
+      <div class="fg"><label class="fl">Email</label><input type="text" id="fE" placeholder="email@example.com"></div>
+      <div class="fg"><label class="fl">Комментарий</label><textarea id="fC" placeholder="Дополнительные пожелания, вопросы по проекту..."></textarea></div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:1.5rem">
+        Нажимая кнопку, вы соглашаетесь с <a href="https://cascate.ru/" style="color:var(--muted)">политикой конфиденциальности</a>
+      </div>
+      <div class="btns">
+        <button class="btn btn-out" onclick="go(3)">← Назад</button>
+        <button class="btn btn-gold" onclick="send()">Отправить заявку</button>
+      </div>
+    </div>
+    <div class="success" id="successBox">
+      <div class="success-icon">✓</div>
+      <div class="success-title">Заявка отправлена</div>
+      <div class="success-sub">Менеджер свяжется с вами в течение рабочего дня<br>тел. <a href="tel:+78002340173" style="color:var(--gold)">+7 800 234 01 73</a></div>
+      <a href="https://cascate.ru/" class="btn btn-out">← Вернуться на сайт</a>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<footer class="site-footer">
+  <div>© Cascate Porte e mobile · г. Москва, проспект Маршала Жукова д.59 · <a href="tel:+78002340173">+7 800 234 01 73</a> · <a href="/cdn-cgi/l/email-protection#e497908b9681a487859787859081ca9691"><span class="__cf_email__" data-cfemail="1566617a677055767466767461703b6760">[email&#160;protected]</span></a></div>
+</footer>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+const MODELS=[
+  {n:'Luna',t:'Классика',nH:45,nL:90,dH:-22,dL:-25,dC:'luna',pc:4,glass:false},
+  {n:'Luna-Glass',t:'Со стеклом',nH:45,nL:90,dH:-22,dL:-25,dC:'luna',pc:4,glass:true},
+  {n:'Dune',t:'Широкий',nH:105,nL:210,dH:-22,dL:-25,dC:'cas',pc:4,glass:false},
+  {n:'Cascade',t:'Широкий',nH:105,nL:210,dH:-22,dL:-25,dC:'cas',pc:4,glass:false},
+  {n:'MINI',t:'Компактный',nH:12,nL:24,dH:-17,dL:-15,dC:10,pc:1,glass:false},
+  {n:'TRIANGLE',t:'Треугольный',nH:6,nL:12,dH:-17,dL:-15,dC:-3,pc:3,glass:false},
+  {n:'PASSO',t:'Широкий',nH:105,nL:210,dH:-22,dL:-25,dC:0,pc:2,glass:false},
+  {n:'PORTALE',t:'Портальный',nH:-5,nL:-10,dH:-34,dL:-48,dC:-25,pc:4,glass:false},
+  {n:'TERZO',t:'Трёхуровневый',nH:45,nL:90,dH:-21.5,dL:-23,dC:23,pc:4,glass:false},
+  {n:'WAVE',t:'Волна',nH:45,nL:46,dH:-22,dL:-23,dC:53,pc:4,glass:false},
+  {n:'DORA',t:'Широкий профиль',nH:66,nL:132,dH:-21.5,dL:-23,dC:26,pc:4,glass:false},
+  {n:'BAMBOO',t:'Тонкий',nH:45,nL:90,dH:-22,dL:-25,dC:10,pc:4,glass:false},
+];
+
+const COLORS=[
+  {n:'Chrome Matt 1К',p:[865,2760,1090,2760]},
+  {n:'White Matt Colour 2К',p:[865,2760,1090,2760]},
+  {n:'Black Matt Colour 2K',p:[865,2760,1090,2760]},
+  {n:'Titanium Matt Colour 2К',p:[865,2760,1090,2760]},
+  {n:'Gold Matt Colour 2К',p:[865,2760,1090,2760]},
+  {n:'Champagne Colour 2К',p:[865,2760,1090,2760]},
+  {n:'Champagne Bright 4К',p:[865,2760,1090,2760]},
+  {n:'Champagne Matt 3К',p:[865,2760,1090,2760]},
+  {n:'Bronze Matt Colour 3K',p:[865,2760,1090,2760]},
+  {n:'Dark Brown Colour 2К',p:[865,2760,1090,2760]},
+  {n:'Pearl Matt Colour 2К',p:[865,2760,1090,2760]},
+  {n:'White Sand 1К',p:[865,2760,1090,2760]},
+  {n:'Black Sand 1K',p:[865,2760,1090,2760]},
+  {n:'Bonded 001 colour 2K',p:[865,2760,1090,2760]},
+  {n:'Grafit 7016 colour 2K',p:[865,2760,1090,2760]},
+  {n:'Gold 005 colour 2K',p:[865,2760,1090,2760]},
+  {n:'Cave colour',p:[865,2760,1090,2760]},
+  {n:'Nomad colour',p:[865,2760,1090,2760]},
+  {n:'Paladium colour',p:[865,2760,1090,2760]},
+  {n:'Marone Colour',p:[865,2760,1090,2760]},
+  {n:'Avorio Colour',p:[865,2760,1090,2760]},
+  {n:'Grafite Colour',p:[865,2760,1090,2760]},
+  {n:'Corda Colour',p:[865,2760,1090,2760]},
+  {n:'Ombra Colour',p:[865,2760,1090,2760]},
+  {n:'Nikel Colour',p:[865,2760,1090,2760]},
+  {n:'Copper Colour',p:[865,2760,1090,2760]},
+  {n:'Chrome Matt Colour 2К',p:[865,2760,1090,2760]},
+  {n:'Gold Matt 3К',p:[865,2760,1090,2760]},
+  {n:'Gold 012 colour',p:[865,2760,1090,2760]},
+];
+
+const DOBS_GROUPS={
+  'ШПОН':[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],
+  'КОМПОЗИТ':[32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72],
+  'LACATO':[73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93],
+  'FRASSINO':[94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114],
+  'FONDO':[115],
+  'ПОД_АЛЮМИНИЙ':[116,117,118,119,120,121,122,123,124,125,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142],
+  'КОЖА':[143,144,145,146,147],
+};
+const DOBS=[
+  {n:'Faggio',p:10713},
+  {n:'Noce Americano',p:10713},
+  {n:'Noce Europeo',p:10713},
+  {n:'Rovere Country',p:10713},
+  {n:'American Walnut',p:10713},
+  {n:'Breeze Oak',p:10713},
+  {n:'Dark Grey Oak',p:10713},
+  {n:'Vienna Oak Flamed',p:10713},
+  {n:'Noce Canaletto',p:10713},
+  {n:'Rovere Canuto',p:10713},
+  {n:'Rovere Tetro',p:10713},
+  {n:'Rovere Chiaro',p:10713},
+  {n:'Vienna Oak Striped',p:10713},
+  {n:'Eucalipto Canuto',p:10713},
+  {n:'Eucalipto Perla',p:10713},
+  {n:'Makassar',p:10713},
+  {n:'Rovere Fume',p:10713},
+  {n:'Noce Ondulato',p:10713},
+  {n:'Walnut Flamed',p:10713},
+  {n:'Walnut Striped',p:10713},
+  {n:'Rovere Europeo',p:10713},
+  {n:'Rovere Whisky',p:10713},
+  {n:'Ebano',p:10713},
+  {n:'Rovere Grigio',p:10713},
+  {n:'Rovere Cioccolato',p:10713},
+  {n:'Rovere Moca',p:10713},
+  {n:'Rovere Retro',p:10713},
+  {n:'Noce Europeo RAD',p:10713},
+  {n:'Oak Thermo',p:10713},
+  {n:'Oak Moka',p:10713},
+  {n:'Teak',p:10713},
+  {n:'Chok ebano',p:10713},
+  {n:'STONE 3324',p:12860},
+  {n:'STONE 3329',p:12860},
+  {n:'STONE 3347',p:12860},
+  {n:'STONE 3349',p:12860},
+  {n:'STONE 3355',p:12860},
+  {n:'STONE 3382',p:12860},
+  {n:'STONE 3416',p:12860},
+  {n:'STONE 3446',p:12860},
+  {n:'STONE 3447',p:12860},
+  {n:'STONE 5695',p:12860},
+  {n:'STONE 5730',p:12860},
+  {n:'STONE 5646',p:12860},
+  {n:'STONE 3299 (PELLE)',p:12860},
+  {n:'STONE 3153(PELLE)',p:12860},
+  {n:'STONE 3156(PELLE)',p:12860},
+  {n:'STONE 3240(PELLE)',p:12860},
+  {n:'STONE 5679',p:12860},
+  {n:'Marmo Antracite',p:12860},
+  {n:'Rame FB 43',p:12860},
+  {n:'Ciliegia avollo_4604',p:12860},
+  {n:'Penelope Cappucino',p:12860},
+  {n:'Linen grigio 3318',p:12860},
+  {n:'Skin Late',p:12860},
+  {n:'Pietra Calce',p:12860},
+  {n:'Bronzo 3412',p:12860},
+  {n:'STONE 5785',p:12860},
+  {n:'STONE 5684',p:12860},
+  {n:'STONE 5644',p:12860},
+  {n:'STONE 5813',p:12860},
+  {n:'STONE 5742',p:12860},
+  {n:'STONE 5769',p:12860},
+  {n:'STONE 5427',p:12860},
+  {n:'STONE 5734',p:12860},
+  {n:'STONE 5657',p:12860},
+  {n:'STONE 5741',p:12860},
+  {n:'STONE 5666',p:12860},
+  {n:'STONE 5680',p:12860},
+  {n:'STONE 5743',p:12860},
+  {n:'STONE 4691 (WOOD)',p:12860},
+  {n:'STONE 4653 (WOOD)',p:12860},
+  {n:'STONE 4583 (WOOD)',p:12860},
+  {n:'Nero LACATO',p:8790},
+  {n:'Bianco LACATO',p:8790},
+  {n:'Bianco Night LACATO',p:8790},
+  {n:'Grigio LACATO',p:8790},
+  {n:'Grigio Chiaro LACATO',p:8790},
+  {n:'Cioccolato LACATO',p:8790},
+  {n:'Cappuccino LACATO',p:8790},
+  {n:'Avorio LACATO',p:8790},
+  {n:'Rose LACATO',p:8790},
+  {n:'Rocca LACATO',p:8790},
+  {n:'Sabbia LACATO',p:8790},
+  {n:'Viola LACATO',p:8790},
+  {n:'Grigio Seta LACATO',p:8790},
+  {n:'Silver LACATO',p:8790},
+  {n:'Ombra LACATO',p:8790},
+  {n:'Grigio Fume LACATO',p:8790},
+  {n:'Grafite LACATO',p:8790},
+  {n:'Pesco LACATO',p:8790},
+  {n:'Tortora LACATO',p:8790},
+  {n:'Corda LACATO',p:8790},
+  {n:'Bruno LACATO',p:8790},
+  {n:'Nero FRASSINO',p:13437.5},
+  {n:'Bianco FRASSINO',p:13437.5},
+  {n:'Bianco Night FRASSINO',p:13437.5},
+  {n:'Grigio FRASSINO',p:13437.5},
+  {n:'Grigio Chiaro FRASSINO',p:13437.5},
+  {n:'Cioccolato FRASSINO',p:13437.5},
+  {n:'Cappuccino FRASSINO',p:13437.5},
+  {n:'Avorio FRASSINO',p:13437.5},
+  {n:'Rose FRASSINO',p:13437.5},
+  {n:'Rocca FRASSINO',p:13437.5},
+  {n:'Sabbia FRASSINO',p:13437.5},
+  {n:'Viola FRASSINO',p:13437.5},
+  {n:'Grigio Seta FRASSINO',p:13437.5},
+  {n:'Silver FRASSINO',p:13437.5},
+  {n:'Ombra FRASSINO',p:13437.5},
+  {n:'Grigio Fume FRASSINO',p:13437.5},
+  {n:'Grafite FRASSINO',p:13437.5},
+  {n:'Pesco FRASSINO',p:13437.5},
+  {n:'Tortora FRASSINO',p:13437.5},
+  {n:'Corda FRASSINO',p:13437.5},
+  {n:'Bruno FRASSINO',p:13437.5},
+  {n:'FONDO',p:7200},
+  {n:'Black Matt Colour 2K',p:13437.5},
+  {n:'Black Sand 1K',p:13437.5},
+  {n:'Bronze Matt Colour 3K',p:13437.5},
+  {n:'Champagne Matt 3К',p:13437.5},
+  {n:'Champagne Colour 2К',p:13437.5},
+  {n:'Chrome Matt 1К',p:13437.5},
+  {n:'Dark Brown Colour 2К',p:13437.5},
+  {n:'Gold Matt 3К',p:13437.5},
+  {n:'Gold Matt Colour 2К',p:13437.5},
+  {n:'Pearl Matt Colour 2К',p:13437.5},
+  {n:'Titanium Matt Colour 2К',p:13437.5},
+  {n:'White Matt Colour 2К',p:13437.5},
+  {n:'White Sand 1К',p:13437.5},
+  {n:'Bonded 001 colour 2K',p:13437.5},
+  {n:'Grafit 7016 colour 2K',p:13437.5},
+  {n:'Gold 005 colour 2K',p:13437.5},
+  {n:'Cave colour',p:13437.5},
+  {n:'Nomad colour',p:13437.5},
+  {n:'Paladium Colour',p:13437.5},
+  {n:'Marone Colour',p:13437.5},
+  {n:'Gold 012 colour',p:13437.5},
+  {n:'Avorio Colour',p:13437.5},
+  {n:'Grafite Colour',p:13437.5},
+  {n:'Corda Colour',p:13437.5},
+  {n:'Ombra Colour',p:13437.5},
+  {n:'Nikel Colour',p:13437.5},
+  {n:'Copper Colour',p:13437.5},
+  {n:'Pele Fumoso',p:17200},
+  {n:'Pele Marone',p:17200},
+  {n:'Pele Grigio',p:17200},
+  {n:'Pele Salar',p:17200},
+  {n:'Pele Black',p:17200},
+];
+
+
+let st={mi:0,H:2000,L:900,C:200,inst:'с двух сторон',ci:0,di:0,kit:'both'};
+
+function init(){
+  const g=document.getElementById('mgrid');
+  MODELS.forEach((m,i)=>{
+    const d=document.createElement('div');d.className='mc';d.onclick=()=>pick(i);
+    d.innerHTML=`<span class="mn">${m.n}</span>`;
+    g.appendChild(d);
+  });
+  const sc=document.getElementById('sCol');
+  COLORS.forEach((c,i)=>{const o=new Option(c.n,i);sc.add(o);});
+  const sg=document.getElementById('sDobGroup');
+  Object.keys(DOBS_GROUPS).forEach(g=>{sg.add(new Option(g,g));});
+  sc.onchange=()=>{st.ci=+sc.value;};
+  onDobGroup();
+  initGlassGroup();
+  pick(0);
+}
+
+function pick(i){
+  st.mi=i;
+  document.querySelectorAll('.mc').forEach((c,j)=>c.classList.toggle('on',i===j));
+  document.getElementById('sname').textContent=MODELS[i].n;
+  var hasGlass=MODELS[i].glass;
+  if(hasGlass)initGlassGroup();
+  applyKitUI();
+  drawScheme('sbody',i);recalc();
+}
+
+function setInst(v,el){
+  st.inst=v;
+  el.parentNode.querySelectorAll('.itab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  renderCalc();
+}
+
+function setKit(v,el){
+  st.kit=v;
+  el.parentNode.querySelectorAll('.itab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  applyKitUI();
+  renderCalc();
+}
+
+// Показ полей под выбранную комплектацию: наличник — цвет+вставка, добор — группа+отделка
+function applyKitUI(){
+  var showNal=st.kit!=='dob', showDob=st.kit!=='nal';
+  document.getElementById('fgInst').style.display=showNal?'':'none';
+  document.getElementById('fgCol').style.display=showNal?'':'none';
+  document.getElementById('fgDobGroup').style.display=showDob?'':'none';
+  document.getElementById('fgDob').style.display=showDob?'':'none';
+  document.getElementById('glassWrap').style.display=(MODELS[st.mi].glass&&showNal)?'block':'none';
+}
+
+function validate(n){
+  // Проверяем шаг n перед переходом на n+1
+  if(n>=2){
+    var H=+document.getElementById('iH').value;
+    var L=+document.getElementById('iL').value;
+    var C=+document.getElementById('iC').value;
+    if(!H||!L||!C){
+      alert('Укажите размеры проёма (высота, ширина, глубина)');return false;
+    }
+    if(H<500||H>3000){alert('Высота должна быть от 500 до 3000 мм');return false;}
+    if(L<400||L>1500){alert('Ширина должна быть от 400 до 1500 мм');return false;}
+    if(C<50||C>750){alert('Глубина должна быть от 50 до 750 мм');return false;}
+    if(st.kit!=='nal'&&!document.getElementById('sDobGroup').value){
+      alert('Выберите группу отделки добора');return false;
+    }
+  }
+  return true;
+}
+
+function unlockStep(n){
+  var el=document.getElementById('stp'+n);
+  if(el)el.classList.remove('locked');
+}
+
+function go(n){
+  var current=1;
+  document.querySelectorAll('.stp').forEach(function(s,i){if(s.classList.contains('on'))current=i+1;});
+  // Вперёд — проверяем; назад — всегда можно
+  if(n>current&&!validate(n))return;
+  // Разблокируем шаг к которому идём
+  unlockStep(n);
+  document.querySelectorAll('.stp').forEach((s,i)=>s.classList.toggle('on',i+1===n));
+  document.querySelectorAll('.panel').forEach((p,i)=>p.classList.toggle('on',i+1===n));
+  if(n===3)buildSpec();
+  if(n===4)buildSum();
+  window.scrollTo({top:64,behavior:'smooth'});
+}
+
+function getDepth(m){
+  if(m.dC==='luna')return st.inst==='с двух сторон'?st.C+10:st.C+5;
+  if(m.dC==='cas')return st.C;
+  return st.C+m.dC;
+}
+
+function getPpu(m){
+  const p=COLORS[st.ci].p;
+  if(m.n==='MINI')return p[0];
+  if(m.n==='PASSO')return p[1];
+  if(m.n==='TRIANGLE')return p[2];
+  return p[3];
+}
+
+function recalc(){
+  st.H=+document.getElementById('iH').value||2000;
+  st.L=+document.getElementById('iL').value||900;
+  st.C=+document.getElementById('iC').value||200;
+  const m=MODELS[st.mi];const dep=getDepth(m);
+  const wb=document.getElementById('warnBox');
+  if(dep>750||st.H+m.dH>3000||st.L+m.dL>3000){
+    wb.style.display='block';
+    wb.textContent='⚠ Невозможные размеры добора — проверьте параметры проёма.';
+  }else{wb.style.display='none';}
+  renderCalc();
+}
+
+// Живая схема замера: числа поверх картинки image1 (формулы — из Excel «Схемы», источник правды)
+// Свет: H свет = H − 25, L свет = L − 50. Налич: H+nH, L+nL. Проём: H, L, C — как введено.
+function renderCalc(){
+  var m=MODELS[st.mi];
+  function set(id,val){var e=document.getElementById(id);if(e)e.textContent=val+' мм';}
+  set('izLp',st.L);                       // L проёма
+  set('izHp',st.H);                       // H проёма
+  set('izCp',st.C);                       // C проёма
+  set('izLn',Math.round(st.L+m.nL));      // L налич.
+  set('izLs',st.L-50);                    // L свет.
+  set('izHs',st.H-25);                    // H свет.
+  set('izHn',Math.round(st.H+m.nH));      // H налич.
+  var cap=document.getElementById('izmerCap');
+  if(cap)cap.textContent='Наличник '+MODELS[st.mi].n+' · размеры пересчитываются автоматически при вводе';
+}
+
+function buildSpec(){
+  const m=MODELS[st.mi];
+  const H=st.H,L=st.L,C=st.C;
+  const qv=st.inst==='с двух сторон'?4:2,qh=st.inst==='с двух сторон'?2:1;
+  const nV=Math.round(H+m.nH),nH2=Math.round(L+m.nL);
+  const dV=Math.round(H+m.dH),dH2=Math.round(L+m.dL);
+  const dep=getDepth(m);
+  const showNal=st.kit!=='dob',showDob=st.kit!=='nal';
+  const pN=getPpu(m),pD=DOBS[st.di].p;
+  const rNV=showNal?Math.round(pN*nV/1000*qv):0;
+  const rNH=showNal?Math.round(pN*nH2/1000*qh):0;
+  const rDV=showDob?Math.round(pD*dV*dep/1e6*2):0;
+  const rDH=showDob?Math.round(pD*dH2*dep/1e6):0;
+  const sur=(showDob&&dep>500)?Math.round((rDV+rDH)*.15):0;
+  const hasGlass=m.glass&&showNal;
+  const gV=hasGlass?Math.round(H+43):0,gH2=hasGlass?Math.round(L-46):0;
+  // Цена вставки: 360 ₽/м для «без вставки»/ШПОН, иначе 620 ₽/м (источник правды — business/products/pricing.md)
+  const glassGrp=hasGlass?(document.getElementById('sGlassGroup').value||''):'';
+  const pG=(glassGrp===''||glassGrp==='ШПОН')?360:620;
+  const rGV=hasGlass?Math.round(pG*gV/1000*qv):0;
+  const rGH=hasGlass?Math.round(pG*gH2/1000*qh):0;
+  const total=rNV+rNH+rDV+rDH+sur+rGV+rGH;
+
+  document.getElementById('sname2').textContent=m.n;
+  drawScheme('sbody2',st.mi);
+
+  document.getElementById('dimsRow').innerHTML=[
+    {l:'Высота проёма',v:`${H} мм`},
+    {l:'Ширина проёма',v:`${L} мм`},
+    {l:'Глубина стены',v:`${C} мм`},
+  ].map(d=>`<div class="dim"><div class="dim-v">${d.v}</div><div class="dim-l">${d.l}</div></div>`).join('');
+
+  const cN=COLORS[st.ci].n,dN=DOBS[st.di].n;
+  const dobGrp=document.getElementById('sDobGroup').value;
+  const dLabel=dobGrp?dobGrp+' · '+dN:dN;
+  const rows=[
+    ...(showNal?[
+      {nm:`Наличник вертикальный, ${m.n} · ${cN}`,dm:`${nV} мм`,qt:qv,pr:rNV,cl:''},
+      {nm:`Наличник горизонтальный, ${m.n} · ${cN}`,dm:`${nH2} мм`,qt:qh,pr:rNH,cl:''},
+    ]:[]),
+    ...(hasGlass?(()=>{
+      var grp=document.getElementById('sGlassGroup').value||'—';
+      var ins=document.getElementById('sIns').value||'—';
+      var col=document.getElementById('iGlassColor').value.trim();
+      var glassName=grp+' · '+ins+(col?' · '+col:'');
+      return[
+        {nm:`Вставка наличника верт., ${glassName}`,dm:`${gV} мм`,qt:qv,pr:rGV,cl:'glass-r'},
+        {nm:`Вставка наличника гориз., ${glassName}`,dm:`${gH2} мм`,qt:qh,pr:rGH,cl:'glass-r'},
+      ];
+    })():[]),
+    ...(showDob?[
+      {nm:`Добор вертикальный, ${dLabel}`,dm:`${dV}×${Math.round(dep)} мм`,qt:2,pr:rDV,cl:''},
+      {nm:`Добор горизонтальный, ${dLabel}`,dm:`${dH2}×${Math.round(dep)} мм`,qt:1,pr:rDH,cl:''},
+    ]:[]),
+    ...(sur>0?[{nm:'Надбавка: нестандартная ширина добора +15%',dm:'—',qt:'—',pr:sur,cl:'sur-r'}]:[]),
+  ];
+
+  document.getElementById('specBody').innerHTML=rows.map(r=>`
+    <tr class="${r.cl}">
+      <td class="nm">${r.nm}</td>
+      <td class="dm">${r.dm}</td>
+      <td class="qt">${r.qt}</td>
+      <td class="pr">${r.pr.toLocaleString('ru-RU')} ₽</td>
+    </tr>`).join('');
+  document.getElementById('totVal').textContent=total.toLocaleString('ru-RU');
+}
+
+function buildSum(){
+  const m=MODELS[st.mi];
+  const showNal=st.kit!=='dob',showDob=st.kit!=='nal';
+  const parts=[];
+  if(showNal)parts.push(`<strong>Наличник:</strong> ${COLORS[st.ci].n}`);
+  if(showDob)parts.push(`<strong>Добор:</strong> ${DOBS[st.di].n}`);
+  document.getElementById('osum').innerHTML=
+    `<strong>Модель:</strong> ${m.n} &nbsp;·&nbsp; <strong>Установка:</strong> ${st.inst}<br>
+     <strong>Размеры проёма:</strong> ${st.H} × ${st.L} × ${st.C} мм<br>
+     ${parts.join(' &nbsp;·&nbsp; ')}<br>
+     <strong>Итого:</strong> ${document.getElementById('totVal').textContent} ₽`;
+}
+
+function send(){
+  const n=document.getElementById('fN').value.trim();
+  const p=document.getElementById('fP').value.trim();
+  if(!n||!p){alert('Пожалуйста, укажите имя и телефон');return;}
+  document.getElementById('formWrap').style.display='none';
+  document.getElementById('successBox').style.display='block';
+  // Здесь можно добавить fetch() для отправки на сервер / email / Telegram
+}
+
+/* ── SCHEMES ── */
+const SCHEMES={
+  'Luna':['schemes/Luna-1.jpg','schemes/Luna-2.jpg'],
+  'Luna-Glass':['schemes/Luna-Glass-1.jpg','schemes/Luna-Glass-2.jpg'],
+  'Dune':['schemes/Dune-1.jpg','schemes/Dune-2.jpg'],
+  'Cascade':['schemes/Cascade-1.jpg','schemes/Cascade-2.jpg'],
+  'MINI':['schemes/MINI-1.jpg','schemes/MINI-2.jpg'],
+  'TRIANGLE':['schemes/TRIANGLE-1.jpg','schemes/TRIANGLE-2.jpg'],
+  'PASSO':['schemes/PASSO-1.jpg','schemes/PASSO-2.jpg'],
+  'PORTALE':['schemes/PORTALE-1.jpg','schemes/PORTALE-2.jpg'],
+  'TERZO':['schemes/TERZO-1.jpg','schemes/TERZO-2.jpg'],
+  'WAVE':['schemes/WAVE-1.jpg','schemes/WAVE-2.jpg'],
+  'DORA':['schemes/DORA-1.jpg','schemes/DORA-2.jpg'],
+  'BAMBOO':['schemes/BAMBOO-1.jpg','schemes/BAMBOO-2.jpg'],
+}
+
+function drawScheme(id,i){
+  var el=document.getElementById(id);
+  if(!el)return;
+  var m=MODELS[i];
+  var imgs=SCHEMES[m.n];
+  if(imgs&&imgs.length){
+    el.innerHTML=imgs.map(function(src){
+      return '<div class="scheme-img">'
+        +'<img src="'+src+'" alt="'+m.n+'">'
+        +'</div>';
+    }).join('');
+  }else{
+    el.innerHTML='<span style="font-size:12px;color:var(--muted)">Схема не найдена</span>';
+  }
+}
+
+function onDobGroup(){
+  var g=document.getElementById('sDobGroup').value;
+  var sd=document.getElementById('sDob');
+  sd.innerHTML='';
+  (DOBS_GROUPS[g]||[]).forEach(function(i){sd.add(new Option(DOBS[i].n,i));});
+  st.di=+(sd.value||0);
+}
+
+// Группы для вставки — те же что у доборов, без ПОД_АЛЮМИНИЙ, плюс стекло и зеркало
+const GLASS_EXTRA={
+  'СТЕКЛО':['Glass Colour','Glass Colour Matt'],
+  'ЗЕРКАЛО':['Mirror','Mirror Bronze','Mirror Grey'],
+};
+const GLASS_GROUP_NAMES=
+  Object.keys(DOBS_GROUPS).filter(function(g){return g!=='ПОД_АЛЮМИНИЙ';})
+  .concat(Object.keys(GLASS_EXTRA));
+
+function initGlassGroup(){
+  var sg=document.getElementById('sGlassGroup');
+  sg.innerHTML='';
+  sg.add(new Option('— без вставки —',''));
+  GLASS_GROUP_NAMES.forEach(function(g){sg.add(new Option(g,g));});
+  onGlassGroup();
+}
+
+function onGlassGroup(){
+  var g=document.getElementById('sGlassGroup').value;
+  var sd=document.getElementById('sIns');
+  var row=document.getElementById('insRow');
+  var colorRow=document.getElementById('glassColorRow');
+  sd.innerHTML='';
+  if(!g){
+    row.style.display='none';
+    colorRow.style.display='none';
+    return;
+  }
+  row.style.display='';
+  if(GLASS_EXTRA[g]){
+    GLASS_EXTRA[g].forEach(function(n){sd.add(new Option(n,n));});
+    colorRow.style.display=g==='СТЕКЛО'?'block':'none';
+    if(g!=='СТЕКЛО')document.getElementById('iGlassColor').value='';
+  }else{
+    if(DOBS_GROUPS[g]){
+      DOBS_GROUPS[g].forEach(function(i){sd.add(new Option(DOBS[i].n,DOBS[i].n));});
+    }
+    colorRow.style.display='none';
+    document.getElementById('iGlassColor').value='';
+  }
+}
+
+function downloadScheme(){
+  var m=MODELS[st.mi];
+  var imgs=SCHEMES[m.n];
+  if(!imgs||!imgs.length){alert('Схема не найдена');return;}
+
+  // Конвертируем картинки в base64 через canvas, чтобы они попали в печать
+  var loaded=0;
+  var canvases=[];
+
+  function openPrint(srcs){
+    var pw=window.open('','_blank','width=1000,height=700');
+    pw.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'+
+      '<title>Схема — '+m.n+'</title>'+
+      '<style>'+
+      '@page{size:A4 landscape;margin:10mm}'+
+      'body{margin:0;padding:16px;font-family:Arial,sans-serif;background:#fff}'+
+      'h1{font-size:16px;font-weight:700;margin:0 0 4px;color:#111}'+
+      '.sub{font-size:11px;color:#999;margin-bottom:16px}'+
+      '.imgs{display:flex;gap:12px;align-items:flex-start}'+
+      '.imgs img{flex:1;width:calc(50% - 6px);height:auto;object-fit:contain;max-height:480px;filter:grayscale(100%);border:1px solid #e0e0e0;padding:8px;box-sizing:border-box}'+
+      '.footer{font-size:10px;color:#bbb;margin-top:14px;border-top:1px solid #eee;padding-top:8px}'+
+      '</style></head><body>'+
+      '<h1>Схема сборки — '+m.n+'</h1>'+
+      '<div class="sub">Cascate Porte · cascate.ru</div>'+
+      '<div class="imgs">'+
+      srcs.map(function(src){return '<img src="'+src+'">';}).join('')+
+      '</div>'+
+      '<div class="footer">Сформировано: '+new Date().toLocaleDateString('ru-RU')+'</div>'+
+      '</body></html>');
+    pw.document.close();
+    setTimeout(function(){pw.focus();pw.print();},600);
+  }
+
+  // Читаем картинки через canvas для корректной печати
+  var results=new Array(imgs.length);
+  var done=0;
+  imgs.forEach(function(src,idx){
+    var img=new Image();
+    img.crossOrigin='anonymous';
+    img.onload=function(){
+      var c=document.createElement('canvas');
+      c.width=img.naturalWidth;c.height=img.naturalHeight;
+      var ctx=c.getContext('2d');
+      ctx.drawImage(img,0,0);
+      results[idx]=c.toDataURL('image/jpeg',0.92);
+      done++;
+      if(done===imgs.length)openPrint(results);
+    };
+    img.onerror=function(){
+      // если canvas заблокирован — используем src напрямую
+      results[idx]=src;
+      done++;
+      if(done===imgs.length)openPrint(results);
+    };
+    img.src=src;
+  });
+}
+
+function downloadPDF(){
+  var m=MODELS[st.mi];
+  var schemeSrcs=SCHEMES[m.n]||[];
+  buildPDF(schemeSrcs);
+}
+
+function buildPDF(schemeSrcs){
+  var m=MODELS[st.mi];
+  var specTable=document.querySelector('.spec-t');
+  var totVal=document.getElementById('totVal')?document.getElementById('totVal').textContent:'—';
+  var showNal=st.kit!=='dob',showDob=st.kit!=='nal';
+  var cN=showNal?COLORS[st.ci].n:'—', dN=showDob?DOBS[st.di].n:'—';
+  var dobGrp=(showDob&&document.getElementById('sDobGroup'))?document.getElementById('sDobGroup').value:'—';
+  var kitLabel=st.kit==='nal'?'Только наличник':st.kit==='dob'?'Только добор':'';
+  var invoice=document.getElementById('iInvoice').value.trim();
+  var buyer=document.getElementById('iBuyer').value.trim();
+  var note=document.getElementById('iNote').value.trim();
+  var fileName='Cascate_'+m.n+(invoice?'_'+invoice:'')+'.pdf';
+
+  var html='<div style="font-family:Arial,sans-serif;font-size:12px;color:#111;padding:0">'+
+
+    // Шапка: логотип + номер счёта
+    '<div style="display:flex;justify-content:space-between;align-items:flex-start;border-bottom:2px solid #111;padding-bottom:10px;margin-bottom:12px">'+
+      '<div style="font-family:Arial,sans-serif;font-size:22px;font-weight:700;letter-spacing:0.5px;line-height:1">Cascate <span style="font-weight:400;font-size:14px;color:#666;letter-spacing:2px">Porte</span></div>'+
+      '<div style="text-align:right">'+
+        (invoice?'<div style="font-size:15px;font-weight:700;color:#c9002b">№ '+invoice+'</div>':'')+
+      '</div>'+
+    '</div>'+
+
+    // Заголовок + покупатель
+    '<div style="margin-bottom:14px">'+
+      '<div style="font-size:16px;font-weight:700;margin-bottom:3px">Спецификация обрамления проёма</div>'+
+      (kitLabel?'<div style="font-size:11px;font-weight:700;color:#c9002b;margin-bottom:2px">'+kitLabel+'</div>':'')+
+      (buyer?'<div style="font-size:12px;color:#444">Покупатель: <strong>'+buyer+'</strong></div>':'')+
+    '</div>'+
+
+    // Параметры
+    '<div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#999;margin-bottom:6px">Параметры</div>'+
+    '<table style="width:100%;border-collapse:collapse;margin-bottom:14px;font-size:11px">'+
+      '<tr><td style="width:40%;color:#888;padding:4px 6px;border-bottom:1px solid #eee">Модель</td><td style="padding:4px 6px;border-bottom:1px solid #eee"><strong>'+m.n+'</strong></td>'+
+          '<td style="width:20%;color:#888;padding:4px 6px;border-bottom:1px solid #eee">Установка</td><td style="padding:4px 6px;border-bottom:1px solid #eee">'+st.inst+'</td></tr>'+
+      '<tr><td style="color:#888;padding:4px 6px;border-bottom:1px solid #eee">Высота</td><td style="padding:4px 6px;border-bottom:1px solid #eee">'+st.H+' мм</td>'+
+          '<td style="color:#888;padding:4px 6px;border-bottom:1px solid #eee">Цвет наличника</td><td style="padding:4px 6px;border-bottom:1px solid #eee">'+cN+'</td></tr>'+
+      '<tr><td style="color:#888;padding:4px 6px;border-bottom:1px solid #eee">Ширина</td><td style="padding:4px 6px;border-bottom:1px solid #eee">'+st.L+' мм</td>'+
+          '<td style="color:#888;padding:4px 6px;border-bottom:1px solid #eee">Группа добора</td><td style="padding:4px 6px;border-bottom:1px solid #eee">'+dobGrp+'</td></tr>'+
+      '<tr><td style="color:#888;padding:4px 6px">Глубина стены</td><td style="padding:4px 6px">'+st.C+' мм</td>'+
+          '<td style="color:#888;padding:4px 6px">Отделка добора</td><td style="padding:4px 6px">'+dN+'</td></tr>'+
+    '</table>'+
+
+    // Спецификация
+    '<div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#999;margin-bottom:6px">Спецификация</div>'+
+    (specTable?specTable.outerHTML:'')+
+
+    // Итого
+    '<div style="background:#111;color:#fff;padding:10px 14px;display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px">'+
+      '<div style="font-size:10px;text-transform:uppercase;letter-spacing:.12em;opacity:.55">Итого к заказу</div>'+
+      '<div style="font-size:24px;font-weight:700">'+totVal+' ₽</div>'+
+    '</div>'+
+
+    // Примечание
+    (note?'<div style="margin-bottom:16px">'+
+      '<div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#999;margin-bottom:4px">Примечание</div>'+
+      '<div style="border:1px solid #ddd;padding:8px 12px;font-size:11px;color:#444;min-height:50px;white-space:pre-wrap">'+note+'</div>'+
+    '</div>':
+    '<div style="margin-bottom:16px">'+
+      '<div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#999;margin-bottom:4px">Примечание</div>'+
+      '<div style="border:1px solid #ddd;padding:8px 12px;min-height:50px"></div>'+
+    '</div>')+
+
+    // Схемы сборки
+    (schemeSrcs.length?
+      '<div style="margin-bottom:16px;page-break-inside:avoid">'+
+        '<div style="font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#999;margin-bottom:8px">Схема сборки — '+m.n+'</div>'+
+        '<div style="display:flex;gap:10px">'+
+          schemeSrcs.map(function(src){
+            return '<div style="flex:1;border:1px solid #eee;padding:6px;text-align:center">'+
+              '<img src="'+src+'" style="width:100%;height:auto;max-height:220px;object-fit:contain;filter:grayscale(100%)">'+
+            '</div>';
+          }).join('')+
+        '</div>'+
+      '</div>':'')+
+
+    // Блок согласования
+    '<table style="width:100%;border-collapse:collapse;font-size:11px">'+
+      '<tr>'+
+        '<td style="width:18%;font-size:13px;font-weight:700;border:1px solid #bbb;padding:8px 10px;vertical-align:middle">СОГЛАСОВАНО</td>'+
+        '<td style="border:1px solid #bbb;padding:4px 8px;vertical-align:top"><div style="font-size:9px;color:#aaa;margin-bottom:20px">Покупатель</div></td>'+
+        '<td style="border:1px solid #bbb;padding:4px 8px;vertical-align:top"><div style="font-size:9px;color:#aaa;margin-bottom:20px">Подпись</div></td>'+
+        '<td style="border:1px solid #bbb;padding:4px 8px;vertical-align:top"><div style="font-size:9px;color:#aaa;margin-bottom:20px">Дата</div></td>'+
+      '</tr>'+
+    '</table>'+
+
+  '</div>';
+
+  var pw=window.open('','_blank','width=900,height=700');
+  pw.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8">'+
+    '<title>'+fileName+'</title>'+
+    '<style>'+
+    '*{margin:0;padding:0;box-sizing:border-box}'+
+    'body{font-family:Arial,sans-serif;font-size:12px;color:#111;padding:20px 30px;background:#fff}'+
+    'table{width:100%;border-collapse:collapse;margin-bottom:14px}'+
+    'td,th{padding:5px 7px;font-size:11px;border-bottom:1px solid #eee;vertical-align:middle}'+
+    'th{border-bottom:2px solid #111;color:#888;text-transform:uppercase;font-size:10px;font-weight:400;letter-spacing:.08em}'+
+    '.pr{text-align:right;font-weight:700;white-space:nowrap}'+
+    '.qt{text-align:center;color:#888}'+
+    '.dm{color:#888;font-size:10px}'+
+    '.glass-r td{background:#f5f5f5}'+
+    '.sur-r td{color:#c9002b;font-size:10px}'+
+    '@page{size:A4;margin:15mm}'+
+    '@media print{body{padding:0}}'+
+    '</style></head><body>'+html+'</body></html>');
+  pw.document.close();
+  setTimeout(function(){pw.focus();pw.print();},400);
+}
+window.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

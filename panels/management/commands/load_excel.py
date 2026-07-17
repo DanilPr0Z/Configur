@@ -78,22 +78,33 @@ def detect_group_by_name(name: str):
 
 
 class Command(BaseCommand):
-    help = 'Загружает данные из Excel-файла NUOVO 60 в базу данных'
+    help = 'Загружает данные из Excel-файла NUOVO 60/50 в базу данных'
+
+    def add_arguments(self, parser):
+        parser.add_argument('--series', default='60', choices=['50', '60'],
+                            help='Серия (по умолчанию 60)')
+        parser.add_argument('--file', default=EXCEL_PATH,
+                            help='Путь к Excel-файлу')
+        parser.add_argument('--skip-shared', action='store_true',
+                            help='Не грузить общие справочники (цвета, алюминий)')
 
     def handle(self, *args, **options):
-        if not os.path.exists(EXCEL_PATH):
-            self.stderr.write(f'Файл не найден: {EXCEL_PATH}')
+        self.series = options['series']
+        path = options['file']
+        if not os.path.exists(path):
+            self.stderr.write(f'Файл не найден: {path}')
             return
 
-        self.stdout.write('Открываю Excel...')
-        wb = openpyxl.load_workbook(EXCEL_PATH, data_only=True)
+        self.stdout.write(f'Открываю Excel (серия {self.series}): {path}')
+        wb = openpyxl.load_workbook(path, data_only=True)
 
         self._load_joint_types(wb)
-        self._load_profile_colors(wb)
         self._load_finishes(wb)
-        self._load_aluminum_profiles(wb)
+        if not options['skip_shared']:
+            self._load_profile_colors(wb)
+            self._load_aluminum_profiles(wb)
 
-        self.stdout.write(self.style.SUCCESS('\n✓ Загрузка завершена!'))
+        self.stdout.write(self.style.SUCCESS(f'\n✓ Загрузка серии {self.series} завершена!'))
 
     # ──────────────────────────────────────────────────────────────────────────
     # 1. Типы узлов — лист DATA
@@ -154,6 +165,7 @@ class Command(BaseCommand):
         for code, (offset, count, article, price) in joint_map.items():
             obj, is_new = JointType.objects.update_or_create(
                 code=code,
+                series=self.series,
                 defaults=dict(
                     name=labels.get(code, ''),
                     offset_mm=offset,
@@ -252,11 +264,12 @@ class Command(BaseCommand):
                 group_sort += 1
                 FinishGroup.objects.get_or_create(
                     name=current_group_name,
+                    series=self.series,
                     defaults={'sort_order': group_sort},
                 )
                 group_counts[current_group_name] = 0
 
-            group = FinishGroup.objects.get(name=current_group_name)
+            group = FinishGroup.objects.get(name=current_group_name, series=self.series)
             _, is_new = Finish.objects.update_or_create(
                 group=group,
                 name=name,

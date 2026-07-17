@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { fetchAluminumProfiles, fetchProfileColors, fetchJointTypes, fetchFinishGroups, fetchOrder, createOrder, updateOrder, createPanel, deletePanel } from '../api'
-import type { AluminumProfile, ProfileColor, JointType, FinishGroup, Finish, Order } from '../api'
+import type { AluminumProfile, ProfileColor, JointType, FinishGroup, Finish, Order, Series } from '../api'
 import { visibleFinishGroups } from '../api'
 import { JointSelectCode, StringSelect } from '../components/JointSelect'
 import WallScheme from '../components/WallScheme'
+import FinishBreakdown, { groupByFinish } from '../components/FinishBreakdown'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -576,7 +577,6 @@ function calcPanelCosts(
   p: PanelSpec,
   jointTypes: JointType[],
   finishGroups: FinishGroup[],
-  priceMap: Record<string, number> = {},
 ) {
   const lp = getJointPrice(jointTypes, p.leftNode)
   const rp = getJointPrice(jointTypes, p.rightNode)
@@ -587,11 +587,10 @@ function calcPanelCosts(
   const areaSqm = Math.max(p.height * p.width / 1_000_000, 0.5) * p.quantity
   const finishPrice = getFinishPrice(finishGroups, p.finishGroup, p.finishName, p.decor3d)
   const finishCost = finishPrice * areaSqm * (1 + p.markup / 100)
-  const alVertPieces = p.aluminumVertical * Math.ceil(p.height / 2995)
-  const alHorizPieces = p.aluminumHorizontal * Math.ceil(p.width / 2995)
-  const alCost = (alVertPieces + alHorizPieces) * (priceMap['П 6x6'] ?? 0) * p.quantity
-  const total = sideCost + topBotCost + finishCost + alCost
-  return { sideCost, topBotCost, areaSqm, finishCost, alCost, total }
+  // Алюминиевый декор П 6×6 в стоимость панели не входит — он идёт отдельной
+  // строкой в спецификации профилей (как T145 и L198 в Excel-шаблоне).
+  const total = sideCost + topBotCost + finishCost
+  return { sideCost, topBotCost, areaSqm, finishCost, total }
 }
 
 const fmt = (n: number) => n > 0 ? n.toLocaleString('ru-RU', { maximumFractionDigits: 0 }) : '—'
@@ -994,13 +993,13 @@ function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove, phase }:
             Добор обрамления
           </span>
           <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 13, color: '#374151' }}>
-            <input type="checkbox" checked={door.hasTrim !== false}
+            <input type="checkbox" checked={door.hasTrim === true}
               onChange={e => onChange({ hasTrim: e.target.checked })} />
             нужен
           </label>
         </div>
 
-        {door.hasTrim !== false && <>
+        {door.hasTrim === true && <>
         <div className="field" style={{ maxWidth: 180, marginBottom: 10 }}>
           <label>Глубина стены, мм</label>
           <input type="number" value={door.wallDepth ?? 200} min={0}
@@ -1226,13 +1225,14 @@ interface SaveOrderModalProps {
   finishGroups: FinishGroup[]
   profileColors: ProfileColor[]
   editOrder: Order | null
+  series: Series
   onClose: () => void
   onSaved: (orderId: number) => void
 }
 
 function SaveOrderModal({
   panels, panelCosts, profiles, walls, doors, itemOrder, wallSeq, doorSeq,
-  jointTypes, finishGroups, profileColors, editOrder, onClose, onSaved,
+  jointTypes, finishGroups, profileColors, editOrder, series, onClose, onSaved,
 }: SaveOrderModalProps) {
   const today = new Date().toISOString().slice(0, 10)
   const [form, setForm] = useState({
@@ -1326,7 +1326,7 @@ function SaveOrderModal({
       } else {
         // Режим создания
         setProgress('Создание заказа...')
-        const order = await createOrder({ ...form, configurator_state })
+        const order = await createOrder({ ...form, series, configurator_state })
         await savePanels(order.id!)
         onSaved(order.id!)
       }
@@ -1433,7 +1433,7 @@ function SaveOrderModal({
 
 // ─── Configurator ─────────────────────────────────────────────────────────────
 
-export default function Configurator() {
+export default function Configurator({ series = '60' }: { series?: Series }) {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const editOrderId = searchParams.get('order')
@@ -1455,11 +1455,11 @@ export default function Configurator() {
   const [profileColors, setProfileColors] = useState<ProfileColor[]>([])
 
   useEffect(() => {
-    fetchJointTypes().then(setJointTypes).catch(() => {})
-    fetchFinishGroups().then(setFinishGroups).catch(() => {})
+    fetchJointTypes(series).then(setJointTypes).catch(() => {})
+    fetchFinishGroups(series).then(setFinishGroups).catch(() => {})
     fetchAluminumProfiles().then(setAluminumProfiles).catch(() => {})
     fetchProfileColors().then(setProfileColors).catch(() => {})
-  }, [])
+  }, [series])
 
   // Загружаем заказ для редактирования при ?order=ID
   useEffect(() => {
@@ -1503,8 +1503,13 @@ export default function Configurator() {
   )
 
   const panelCosts = useMemo(
-    () => spec.panels.map(p => calcPanelCosts(p, jointTypes, finishGroups, priceMap)),
-    [spec.panels, jointTypes, finishGroups, priceMap],
+    () => spec.panels.map(p => calcPanelCosts(p, jointTypes, finishGroups)),
+    [spec.panels, jointTypes, finishGroups],
+  )
+
+  const panelsWithCosts = useMemo(
+    () => spec.panels.map((p, i) => ({ ...p, ...panelCosts[i] })),
+    [spec.panels, panelCosts],
   )
 
   const grandTotal = panelCosts.reduce((s, c) => s + c.total, 0)
@@ -1535,12 +1540,20 @@ export default function Configurator() {
   const updateDoor = (id: string, u: Partial<DoorSeg>) => setDoors(prev => prev.map(d => d.id === id ? { ...d, ...u } : d))
 
   const copySpec = () => {
-    let text = 'СПЕЦИФИКАЦИЯ СТЕНОВЫХ ПАНЕЛЕЙ NUOVO 60\n\n'
+    let text = `СПЕЦИФИКАЦИЯ СТЕНОВЫХ ПАНЕЛЕЙ NUOVO ${series}\n\n`
     text += '№\tНаименование\tВыс, мм\tУзел лев.\tШир, мм\tУзел пр.\tКол-во\tСт-ть узлов выс.\tУзел верх\tУзел низ\tСт-ть узлов в/н\tГруппа\tОтделка\tНапр. шпона\tДекор 3D\tАл↕\tАл↔\tЦвет ал.\tКв.м\tНаценка\tИтог\tПримечание\n'
     spec.panels.forEach((p, i) => {
       const c = panelCosts[i]
       text += `${p.panelLabel}\t${p.wallName}\t${p.height}\t${p.leftNode}\t${p.width}\t${p.rightNode}\t${p.quantity}\t${Math.round(c.sideCost)}\t${p.topEdge || '—'}\t${p.bottomEdge || '—'}\t${Math.round(c.topBotCost)}\t${p.finishGroup}\t${p.finishName || '—'}\t${p.veneerDirection || '—'}\t${p.decor3d || '—'}\t${p.aluminumVertical || '—'}\t${p.aluminumHorizontal || '—'}\t${p.aluminumColor || '—'}\t${c.areaSqm.toFixed(2)}\t${p.markup}%\t${Math.round(c.total)}\t${p.notes || '—'}\n`
     })
+    const byFinish = groupByFinish(panelsWithCosts)
+    if (byFinish.length > 1) {
+      text += '\nРАЗБИВКА ПО ОТДЕЛКАМ\n'
+      text += 'Группа\tОтделка\tДекор 3D\tКол-во, шт\tКв.м\tСумма\n'
+      for (const g of byFinish) {
+        text += `${g.finishGroup || '—'}\t${g.finishName || '—'}\t${g.decor3d || '—'}\t${g.quantity}\t${g.areaSqm.toFixed(2)}\t${Math.round(g.total)}\n`
+      }
+    }
     navigator.clipboard.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 2500) })
   }
 
@@ -1560,13 +1573,14 @@ export default function Configurator() {
           finishGroups={finishGroups}
           profileColors={profileColors}
           editOrder={editOrder}
+          series={series}
           onClose={() => setShowSaveModal(false)}
           onSaved={id => navigate(`/orders/${id}`)}
         />
       )}
       <div className="page">
         <div className="container">
-          <h1 className="page-title no-print">Конфигуратор стеновых панелей</h1>
+          <h1 className="page-title no-print">Конфигуратор стеновых панелей — NUOVO {series}</h1>
 
           <StepNav step={activeStep} onStep={setActiveStep} />
 
@@ -1704,7 +1718,7 @@ export default function Configurator() {
             </div>
 
             <div className="print-only" style={{ marginBottom: 16, fontSize: '1.1rem', fontWeight: 700 }}>
-              СПЕЦИФИКАЦИЯ СТЕНОВЫХ ПАНЕЛЕЙ NUOVO 60
+              СПЕЦИФИКАЦИЯ СТЕНОВЫХ ПАНЕЛЕЙ NUOVO {series}
             </div>
 
             {spec.panels.length > 0 && (
@@ -1814,6 +1828,9 @@ export default function Configurator() {
                   </table>
                 </div>
 
+                {/* Разбивка по отделкам */}
+                <FinishBreakdown panels={panelsWithCosts} />
+
                 {/* Профили */}
                 {spec.profiles.length > 0 && (
                   <>
@@ -1858,7 +1875,7 @@ export default function Configurator() {
 
                 {(grandTotal + profilesTotal) > 0 && (
                   <div style={{ textAlign: 'right', marginTop: 16, fontSize: '1.1rem', fontWeight: 700, color: '#1a4d8a', borderTop: '2px solid #e2e8f0', paddingTop: 12 }}>
-                    ИТОГО ВСЕГО: <span className="price">{(grandTotal + profilesTotal).toLocaleString('ru-RU')} ₽</span>
+                    ИТОГО ВСЕГО: <span className="price">{(grandTotal + profilesTotal).toLocaleString('ru-RU', { maximumFractionDigits: 0 })} ₽</span>
                   </div>
                 )}
               </>

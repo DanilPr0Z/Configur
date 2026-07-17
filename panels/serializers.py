@@ -2,7 +2,52 @@ from rest_framework import serializers
 from .models import (
     JointType, FinishGroup, Finish, ProfileColor,
     AluminumProfile, Order, DoorPanel, Panel,
+    FramingModel, FramingColor, FramingProfilePrice,
+    FramingDoborGroup, FramingDobor, FramingLead,
 )
+
+
+class FramingModelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FramingModel
+        fields = ['name', 'subtitle', 'nH', 'nL', 'dH', 'dL',
+                  'depth_mode', 'depth_delta', 'profile_count',
+                  'has_glass', 'price_category']
+
+
+class FramingColorSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FramingColor
+        fields = ['name']
+
+
+class FramingDoborSerializer(serializers.ModelSerializer):
+    group = serializers.CharField(source='group.name')
+
+    class Meta:
+        model = FramingDobor
+        fields = ['group', 'name', 'price']
+
+
+class FramingDoborGroupSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FramingDoborGroup
+        fields = ['name', 'is_dobor', 'is_glass', 'glass_price_per_m']
+
+
+class FramingLeadSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FramingLead
+        fields = [
+            'id', 'created_at', 'status',
+            'name', 'phone', 'email', 'comment',
+            'invoice_number', 'buyer', 'note',
+            'model_name', 'install', 'kit',
+            'opening_height', 'opening_width', 'wall_depth',
+            'color_name', 'dobor_name', 'glass',
+            'spec', 'total',
+        ]
+        read_only_fields = ['id', 'created_at']
 
 
 class JointTypeSerializer(serializers.ModelSerializer):
@@ -83,7 +128,9 @@ class PanelSerializer(serializers.ModelSerializer):
             'markup_percent', 'notes',
             'area_sqm', 'finish_cost', 'joint_side_cost',
             'joint_top_bottom_cost', 'total_cost',
+            'cascate_id', 'cascate_synced_at',
         ]
+        read_only_fields = ['cascate_id', 'cascate_synced_at']
 
 
 class DoorPanelSerializer(serializers.ModelSerializer):
@@ -110,16 +157,19 @@ class DoorPanelSerializer(serializers.ModelSerializer):
             'markup_percent', 'notes',
             'area_sqm', 'edge_side_cost', 'edge_top_bottom_cost',
             'finish_cost', 'total_cost',
+            'cascate_id', 'cascate_synced_at',
         ]
+        read_only_fields = ['cascate_id', 'cascate_synced_at']
 
 
 class OrderListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = [
-            'id', 'created_at', 'updated_at',
+            'id', 'series', 'created_at', 'updated_at',
             'customer_name', 'agent_name', 'counterparty',
             'order_number', 'invoice_number', 'order_date', 'city',
+            'cascate_synced_at',
         ]
 
 
@@ -133,13 +183,15 @@ class OrderDetailSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = [
-            'id', 'created_at', 'updated_at',
+            'id', 'series', 'created_at', 'updated_at',
             'customer_name', 'agent_name', 'counterparty',
             'order_number', 'invoice_number', 'order_date', 'city', 'notes',
             'configurator_state',
             'panels', 'door_panels',
             'total_panels_cost', 'total_door_panels_cost', 'total_cost',
+            'cascate_id_person', 'cascate_synced_at',
         ]
+        read_only_fields = ['cascate_id_person', 'cascate_synced_at']
 
     def get_total_panels_cost(self, obj):
         return sum(p.total_cost for p in obj.panels.all())

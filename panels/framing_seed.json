@@ -1,0 +1,1168 @@
+{
+ "MODELS": [
+  {
+   "n": "Luna",
+   "t": "Классика",
+   "nH": 45,
+   "nL": 90,
+   "dH": -22,
+   "dL": -25,
+   "dC": "luna",
+   "pc": 4,
+   "glass": false
+  },
+  {
+   "n": "Luna-Glass",
+   "t": "Со стеклом",
+   "nH": 45,
+   "nL": 90,
+   "dH": -22,
+   "dL": -25,
+   "dC": "luna",
+   "pc": 4,
+   "glass": true
+  },
+  {
+   "n": "Dune",
+   "t": "Широкий",
+   "nH": 105,
+   "nL": 210,
+   "dH": -22,
+   "dL": -25,
+   "dC": "cas",
+   "pc": 4,
+   "glass": false
+  },
+  {
+   "n": "Cascade",
+   "t": "Широкий",
+   "nH": 105,
+   "nL": 210,
+   "dH": -22,
+   "dL": -25,
+   "dC": "cas",
+   "pc": 4,
+   "glass": false
+  },
+  {
+   "n": "MINI",
+   "t": "Компактный",
+   "nH": 12,
+   "nL": 24,
+   "dH": -17,
+   "dL": -15,
+   "dC": 10,
+   "pc": 1,
+   "glass": false
+  },
+  {
+   "n": "TRIANGLE",
+   "t": "Треугольный",
+   "nH": 6,
+   "nL": 12,
+   "dH": -17,
+   "dL": -15,
+   "dC": -3,
+   "pc": 3,
+   "glass": false
+  },
+  {
+   "n": "PASSO",
+   "t": "Широкий",
+   "nH": 105,
+   "nL": 210,
+   "dH": -22,
+   "dL": -25,
+   "dC": 0,
+   "pc": 2,
+   "glass": false
+  },
+  {
+   "n": "PORTALE",
+   "t": "Портальный",
+   "nH": -5,
+   "nL": -10,
+   "dH": -34,
+   "dL": -48,
+   "dC": -25,
+   "pc": 4,
+   "glass": false
+  },
+  {
+   "n": "TERZO",
+   "t": "Трёхуровневый",
+   "nH": 45,
+   "nL": 90,
+   "dH": -21.5,
+   "dL": -23,
+   "dC": 23,
+   "pc": 4,
+   "glass": false
+  },
+  {
+   "n": "WAVE",
+   "t": "Волна",
+   "nH": 45,
+   "nL": 46,
+   "dH": -22,
+   "dL": -23,
+   "dC": 53,
+   "pc": 4,
+   "glass": false
+  },
+  {
+   "n": "DORA",
+   "t": "Широкий профиль",
+   "nH": 66,
+   "nL": 132,
+   "dH": -21.5,
+   "dL": -23,
+   "dC": 26,
+   "pc": 4,
+   "glass": false
+  },
+  {
+   "n": "BAMBOO",
+   "t": "Тонкий",
+   "nH": 45,
+   "nL": 90,
+   "dH": -22,
+   "dL": -25,
+   "dC": 10,
+   "pc": 4,
+   "glass": false
+  }
+ ],
+ "COLORS": [
+  {
+   "n": "Chrome Matt 1К",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "White Matt Colour 2К",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Black Matt Colour 2K",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Titanium Matt Colour 2К",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Gold Matt Colour 2К",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Champagne Colour 2К",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Champagne Bright 4К",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Champagne Matt 3К",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Bronze Matt Colour 3K",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Dark Brown Colour 2К",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Pearl Matt Colour 2К",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "White Sand 1К",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Black Sand 1K",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Bonded 001 colour 2K",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Grafit 7016 colour 2K",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Gold 005 colour 2K",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Cave colour",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Nomad colour",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Paladium colour",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Marone Colour",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Avorio Colour",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Grafite Colour",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Corda Colour",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Ombra Colour",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Nikel Colour",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Copper Colour",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Chrome Matt Colour 2К",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Gold Matt 3К",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  },
+  {
+   "n": "Gold 012 colour",
+   "p": [
+    865,
+    2760,
+    1090,
+    2760
+   ]
+  }
+ ],
+ "DOBS_GROUPS": {
+  "ШПОН": [
+   0,
+   1,
+   2,
+   3,
+   4,
+   5,
+   6,
+   7,
+   8,
+   9,
+   10,
+   11,
+   12,
+   13,
+   14,
+   15,
+   16,
+   17,
+   18,
+   19,
+   20,
+   21,
+   22,
+   23,
+   24,
+   25,
+   26,
+   27,
+   28,
+   29,
+   30,
+   31
+  ],
+  "КОМПОЗИТ": [
+   32,
+   33,
+   34,
+   35,
+   36,
+   37,
+   38,
+   39,
+   40,
+   41,
+   42,
+   43,
+   44,
+   45,
+   46,
+   47,
+   48,
+   49,
+   50,
+   51,
+   52,
+   53,
+   54,
+   55,
+   56,
+   57,
+   58,
+   59,
+   60,
+   61,
+   62,
+   63,
+   64,
+   65,
+   66,
+   67,
+   68,
+   69,
+   70,
+   71,
+   72
+  ],
+  "LACATO": [
+   73,
+   74,
+   75,
+   76,
+   77,
+   78,
+   79,
+   80,
+   81,
+   82,
+   83,
+   84,
+   85,
+   86,
+   87,
+   88,
+   89,
+   90,
+   91,
+   92,
+   93
+  ],
+  "FRASSINO": [
+   94,
+   95,
+   96,
+   97,
+   98,
+   99,
+   100,
+   101,
+   102,
+   103,
+   104,
+   105,
+   106,
+   107,
+   108,
+   109,
+   110,
+   111,
+   112,
+   113,
+   114
+  ],
+  "FONDO": [
+   115
+  ],
+  "ПОД_АЛЮМИНИЙ": [
+   116,
+   117,
+   118,
+   119,
+   120,
+   121,
+   122,
+   123,
+   124,
+   125,
+   126,
+   127,
+   128,
+   129,
+   130,
+   131,
+   132,
+   133,
+   134,
+   135,
+   136,
+   137,
+   138,
+   139,
+   140,
+   141,
+   142
+  ],
+  "КОЖА": [
+   143,
+   144,
+   145,
+   146,
+   147
+  ]
+ },
+ "DOBS": [
+  {
+   "n": "Faggio",
+   "p": 10713
+  },
+  {
+   "n": "Noce Americano",
+   "p": 10713
+  },
+  {
+   "n": "Noce Europeo",
+   "p": 10713
+  },
+  {
+   "n": "Rovere Country",
+   "p": 10713
+  },
+  {
+   "n": "American Walnut",
+   "p": 10713
+  },
+  {
+   "n": "Breeze Oak",
+   "p": 10713
+  },
+  {
+   "n": "Dark Grey Oak",
+   "p": 10713
+  },
+  {
+   "n": "Vienna Oak Flamed",
+   "p": 10713
+  },
+  {
+   "n": "Noce Canaletto",
+   "p": 10713
+  },
+  {
+   "n": "Rovere Canuto",
+   "p": 10713
+  },
+  {
+   "n": "Rovere Tetro",
+   "p": 10713
+  },
+  {
+   "n": "Rovere Chiaro",
+   "p": 10713
+  },
+  {
+   "n": "Vienna Oak Striped",
+   "p": 10713
+  },
+  {
+   "n": "Eucalipto Canuto",
+   "p": 10713
+  },
+  {
+   "n": "Eucalipto Perla",
+   "p": 10713
+  },
+  {
+   "n": "Makassar",
+   "p": 10713
+  },
+  {
+   "n": "Rovere Fume",
+   "p": 10713
+  },
+  {
+   "n": "Noce Ondulato",
+   "p": 10713
+  },
+  {
+   "n": "Walnut Flamed",
+   "p": 10713
+  },
+  {
+   "n": "Walnut Striped",
+   "p": 10713
+  },
+  {
+   "n": "Rovere Europeo",
+   "p": 10713
+  },
+  {
+   "n": "Rovere Whisky",
+   "p": 10713
+  },
+  {
+   "n": "Ebano",
+   "p": 10713
+  },
+  {
+   "n": "Rovere Grigio",
+   "p": 10713
+  },
+  {
+   "n": "Rovere Cioccolato",
+   "p": 10713
+  },
+  {
+   "n": "Rovere Moca",
+   "p": 10713
+  },
+  {
+   "n": "Rovere Retro",
+   "p": 10713
+  },
+  {
+   "n": "Noce Europeo RAD",
+   "p": 10713
+  },
+  {
+   "n": "Oak Thermo",
+   "p": 10713
+  },
+  {
+   "n": "Oak Moka",
+   "p": 10713
+  },
+  {
+   "n": "Teak",
+   "p": 10713
+  },
+  {
+   "n": "Chok ebano",
+   "p": 10713
+  },
+  {
+   "n": "STONE 3324",
+   "p": 12860
+  },
+  {
+   "n": "STONE 3329",
+   "p": 12860
+  },
+  {
+   "n": "STONE 3347",
+   "p": 12860
+  },
+  {
+   "n": "STONE 3349",
+   "p": 12860
+  },
+  {
+   "n": "STONE 3355",
+   "p": 12860
+  },
+  {
+   "n": "STONE 3382",
+   "p": 12860
+  },
+  {
+   "n": "STONE 3416",
+   "p": 12860
+  },
+  {
+   "n": "STONE 3446",
+   "p": 12860
+  },
+  {
+   "n": "STONE 3447",
+   "p": 12860
+  },
+  {
+   "n": "STONE 5695",
+   "p": 12860
+  },
+  {
+   "n": "STONE 5730",
+   "p": 12860
+  },
+  {
+   "n": "STONE 5646",
+   "p": 12860
+  },
+  {
+   "n": "STONE 3299 (PELLE)",
+   "p": 12860
+  },
+  {
+   "n": "STONE 3153(PELLE)",
+   "p": 12860
+  },
+  {
+   "n": "STONE 3156(PELLE)",
+   "p": 12860
+  },
+  {
+   "n": "STONE 3240(PELLE)",
+   "p": 12860
+  },
+  {
+   "n": "STONE 5679",
+   "p": 12860
+  },
+  {
+   "n": "Marmo Antracite",
+   "p": 12860
+  },
+  {
+   "n": "Rame FB 43",
+   "p": 12860
+  },
+  {
+   "n": "Ciliegia avollo_4604",
+   "p": 12860
+  },
+  {
+   "n": "Penelope Cappucino",
+   "p": 12860
+  },
+  {
+   "n": "Linen grigio 3318",
+   "p": 12860
+  },
+  {
+   "n": "Skin Late",
+   "p": 12860
+  },
+  {
+   "n": "Pietra Calce",
+   "p": 12860
+  },
+  {
+   "n": "Bronzo 3412",
+   "p": 12860
+  },
+  {
+   "n": "STONE 5785",
+   "p": 12860
+  },
+  {
+   "n": "STONE 5684",
+   "p": 12860
+  },
+  {
+   "n": "STONE 5644",
+   "p": 12860
+  },
+  {
+   "n": "STONE 5813",
+   "p": 12860
+  },
+  {
+   "n": "STONE 5742",
+   "p": 12860
+  },
+  {
+   "n": "STONE 5769",
+   "p": 12860
+  },
+  {
+   "n": "STONE 5427",
+   "p": 12860
+  },
+  {
+   "n": "STONE 5734",
+   "p": 12860
+  },
+  {
+   "n": "STONE 5657",
+   "p": 12860
+  },
+  {
+   "n": "STONE 5741",
+   "p": 12860
+  },
+  {
+   "n": "STONE 5666",
+   "p": 12860
+  },
+  {
+   "n": "STONE 5680",
+   "p": 12860
+  },
+  {
+   "n": "STONE 5743",
+   "p": 12860
+  },
+  {
+   "n": "STONE 4691 (WOOD)",
+   "p": 12860
+  },
+  {
+   "n": "STONE 4653 (WOOD)",
+   "p": 12860
+  },
+  {
+   "n": "STONE 4583 (WOOD)",
+   "p": 12860
+  },
+  {
+   "n": "Nero LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Bianco LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Bianco Night LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Grigio LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Grigio Chiaro LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Cioccolato LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Cappuccino LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Avorio LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Rose LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Rocca LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Sabbia LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Viola LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Grigio Seta LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Silver LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Ombra LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Grigio Fume LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Grafite LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Pesco LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Tortora LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Corda LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Bruno LACATO",
+   "p": 8790
+  },
+  {
+   "n": "Nero FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "Bianco FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "Bianco Night FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "Grigio FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "Grigio Chiaro FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "Cioccolato FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "Cappuccino FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "Avorio FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "Rose FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "Rocca FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "Sabbia FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "Viola FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "Grigio Seta FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "Silver FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "Ombra FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "Grigio Fume FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "Grafite FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "Pesco FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "Tortora FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "Corda FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "Bruno FRASSINO",
+   "p": 13437.5
+  },
+  {
+   "n": "FONDO",
+   "p": 7200
+  },
+  {
+   "n": "Black Matt Colour 2K",
+   "p": 13437.5
+  },
+  {
+   "n": "Black Sand 1K",
+   "p": 13437.5
+  },
+  {
+   "n": "Bronze Matt Colour 3K",
+   "p": 13437.5
+  },
+  {
+   "n": "Champagne Matt 3К",
+   "p": 13437.5
+  },
+  {
+   "n": "Champagne Colour 2К",
+   "p": 13437.5
+  },
+  {
+   "n": "Chrome Matt 1К",
+   "p": 13437.5
+  },
+  {
+   "n": "Dark Brown Colour 2К",
+   "p": 13437.5
+  },
+  {
+   "n": "Gold Matt 3К",
+   "p": 13437.5
+  },
+  {
+   "n": "Gold Matt Colour 2К",
+   "p": 13437.5
+  },
+  {
+   "n": "Pearl Matt Colour 2К",
+   "p": 13437.5
+  },
+  {
+   "n": "Titanium Matt Colour 2К",
+   "p": 13437.5
+  },
+  {
+   "n": "White Matt Colour 2К",
+   "p": 13437.5
+  },
+  {
+   "n": "White Sand 1К",
+   "p": 13437.5
+  },
+  {
+   "n": "Bonded 001 colour 2K",
+   "p": 13437.5
+  },
+  {
+   "n": "Grafit 7016 colour 2K",
+   "p": 13437.5
+  },
+  {
+   "n": "Gold 005 colour 2K",
+   "p": 13437.5
+  },
+  {
+   "n": "Cave colour",
+   "p": 13437.5
+  },
+  {
+   "n": "Nomad colour",
+   "p": 13437.5
+  },
+  {
+   "n": "Paladium Colour",
+   "p": 13437.5
+  },
+  {
+   "n": "Marone Colour",
+   "p": 13437.5
+  },
+  {
+   "n": "Gold 012 colour",
+   "p": 13437.5
+  },
+  {
+   "n": "Avorio Colour",
+   "p": 13437.5
+  },
+  {
+   "n": "Grafite Colour",
+   "p": 13437.5
+  },
+  {
+   "n": "Corda Colour",
+   "p": 13437.5
+  },
+  {
+   "n": "Ombra Colour",
+   "p": 13437.5
+  },
+  {
+   "n": "Nikel Colour",
+   "p": 13437.5
+  },
+  {
+   "n": "Copper Colour",
+   "p": 13437.5
+  },
+  {
+   "n": "Pele Fumoso",
+   "p": 17200
+  },
+  {
+   "n": "Pele Marone",
+   "p": 17200
+  },
+  {
+   "n": "Pele Grigio",
+   "p": 17200
+  },
+  {
+   "n": "Pele Salar",
+   "p": 17200
+  },
+  {
+   "n": "Pele Black",
+   "p": 17200
+  }
+ ],
+ "GLASS_EXTRA": {
+  "СТЕКЛО": [
+   "Glass Colour",
+   "Glass Colour Matt"
+  ],
+  "ЗЕРКАЛО": [
+   "Mirror",
+   "Mirror Bronze",
+   "Mirror Grey"
+  ]
+ }
+}

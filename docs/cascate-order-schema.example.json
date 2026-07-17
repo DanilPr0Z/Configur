@@ -1,0 +1,564 @@
+{
+  "source": "nuovo60",
+  "order": {
+    "id": 4,
+    "series": "60",
+    "order_number": "6476157675676716716576176716716",
+    "invoice_number": "34567897654636789087564",
+    "order_date": "2026-04-29",
+    "customer_name": "123456789",
+    "agent_name": "12345",
+    "counterparty": "23456",
+    "city": "Ижевск",
+    "notes": null
+  },
+  "panels": [
+    {
+      "external_id": "panel-77",
+      "type": "wall",
+      "position": 1,
+      "wall_number": "1",
+      "quantity": 1,
+      "size_mm": {
+        "height": 2688.0,
+        "width": 983.5
+      },
+      "area_sqm": 2.644,
+      "joints": {
+        "left": "A",
+        "right": "C",
+        "top": null,
+        "bottom": null
+      },
+      "finish": {
+        "group": null,
+        "name": null,
+        "decor": null
+      },
+      "veneer_direction": null,
+      "aluminum": {
+        "vertical_count": 0,
+        "horizontal_count": 0,
+        "color": null
+      },
+      "markup_percent": 0.0,
+      "cost": 2284.8,
+      "notes": null
+    },
+    {
+      "external_id": "panel-80",
+      "type": "wall",
+      "position": 1,
+      "wall_number": "2",
+      "quantity": 1,
+      "size_mm": {
+        "height": 2688.0,
+        "width": 999.0
+      },
+      "area_sqm": 2.685,
+      "joints": {
+        "left": "A",
+        "right": "C",
+        "top": null,
+        "bottom": null
+      },
+      "finish": {
+        "group": null,
+        "name": null,
+        "decor": null
+      },
+      "veneer_direction": null,
+      "aluminum": {
+        "vertical_count": 0,
+        "horizontal_count": 0,
+        "color": null
+      },
+      "markup_percent": 0.0,
+      "cost": 2284.8,
+      "notes": null
+    },
+    {
+      "external_id": "panel-83",
+      "type": "wall",
+      "position": 1,
+      "wall_number": "3",
+      "quantity": 1,
+      "size_mm": {
+        "height": 2688.0,
+        "width": 999.0
+      },
+      "area_sqm": 2.685,
+      "joints": {
+        "left": "D",
+        "right": "C",
+        "top": "D",
+        "bottom": "DG"
+      },
+      "finish": {
+        "group": "ШПОН",
+        "name": "Dark Grey Oak",
+        "decor": "Dark Grey Oak 5 мм"
+      },
+      "veneer_direction": "Горизонтальное",
+      "aluminum": {
+        "vertical_count": 0,
+        "horizontal_count": 0,
+        "color": "Dark brown Colour 2K"
+      },
+      "markup_percent": 10.0,
+      "cost": 11393.46,
+      "notes": null
+    },
+    {
+      "external_id": "panel-86",
+      "type": "wall",
+      "position": 1,
+      "wall_number": "4",
+      "quantity": 1,
+      "size_mm": {
+        "height": 2688.0,
+        "width": 999.0
+      },
+      "area_sqm": 2.685,
+      "joints": {
+        "left": "A",
+        "right": "C",
+        "top": null,
+        "bottom": null
+      },
+      "finish": {
+        "group": null,
+        "name": null,
+        "decor": null
+      },
+      "veneer_direction": null,
+      "aluminum": {
+        "vertical_count": 0,
+        "horizontal_count": 0,
+        "color": null
+      },
+      "markup_percent": 0.0,
+      "cost": 2284.8,
+      "notes": null
+    },
+    {
+      "external_id": "panel-89",
+      "type": "wall",
+      "position": 1,
+      "wall_number": "5",
+      "quantity": 1,
+      "size_mm": {
+        "height": 2688.0,
+        "width": 999.0
+      },
+      "area_sqm": 2.685,
+      "joints": {
+        "left": "D",
+        "right": "C",
+        "top": null,
+        "bottom": null
+      },
+      "finish": {
+        "group": null,
+        "name": null,
+        "decor": null
+      },
+      "veneer_direction": null,
+      "aluminum": {
+        "vertical_count": 0,
+        "horizontal_count": 0,
+        "color": null
+      },
+      "markup_percent": 0.0,
+      "cost": 3225.6,
+      "notes": null
+    },
+    {
+      "external_id": "panel-92",
+      "type": "wall",
+      "position": 1,
+      "wall_number": "6",
+      "quantity": 1,
+      "size_mm": {
+        "height": 651.5,
+        "width": 774.5
+      },
+      "area_sqm": 0.505,
+      "joints": {
+        "left": "DG",
+        "right": "DH",
+        "top": "DG",
+        "bottom": "H"
+      },
+      "finish": {
+        "group": "ШПОН",
+        "name": "American walnut",
+        "decor": null
+      },
+      "veneer_direction": "Горизонтальное",
+      "aluminum": {
+        "vertical_count": 0,
+        "horizontal_count": 0,
+        "color": null
+      },
+      "markup_percent": 0.0,
+      "cost": 3166.05,
+      "notes": "test"
+    },
+    {
+      "external_id": "panel-93",
+      "type": "wall",
+      "position": 1,
+      "wall_number": "7",
+      "quantity": 1,
+      "size_mm": {
+        "height": 643.0,
+        "width": 791.5
+      },
+      "area_sqm": 0.509,
+      "joints": {
+        "left": "G",
+        "right": "G",
+        "top": "DG",
+        "bottom": "G"
+      },
+      "finish": {
+        "group": null,
+        "name": null,
+        "decor": null
+      },
+      "veneer_direction": null,
+      "aluminum": {
+        "vertical_count": 0,
+        "horizontal_count": 0,
+        "color": null
+      },
+      "markup_percent": 0.0,
+      "cost": 2216.05,
+      "notes": null
+    },
+    {
+      "external_id": "panel-78",
+      "type": "wall",
+      "position": 2,
+      "wall_number": "1",
+      "quantity": 1,
+      "size_mm": {
+        "height": 2688.0,
+        "width": 983.5
+      },
+      "area_sqm": 2.644,
+      "joints": {
+        "left": "C",
+        "right": "C",
+        "top": null,
+        "bottom": null
+      },
+      "finish": {
+        "group": null,
+        "name": null,
+        "decor": null
+      },
+      "veneer_direction": null,
+      "aluminum": {
+        "vertical_count": 0,
+        "horizontal_count": 0,
+        "color": null
+      },
+      "markup_percent": 0.0,
+      "cost": 2688.0,
+      "notes": null
+    },
+    {
+      "external_id": "panel-81",
+      "type": "wall",
+      "position": 2,
+      "wall_number": "2",
+      "quantity": 1,
+      "size_mm": {
+        "height": 2688.0,
+        "width": 999.0
+      },
+      "area_sqm": 2.685,
+      "joints": {
+        "left": "C",
+        "right": "C",
+        "top": null,
+        "bottom": null
+      },
+      "finish": {
+        "group": null,
+        "name": null,
+        "decor": null
+      },
+      "veneer_direction": null,
+      "aluminum": {
+        "vertical_count": 0,
+        "horizontal_count": 0,
+        "color": null
+      },
+      "markup_percent": 0.0,
+      "cost": 2688.0,
+      "notes": null
+    },
+    {
+      "external_id": "panel-84",
+      "type": "wall",
+      "position": 2,
+      "wall_number": "3",
+      "quantity": 1,
+      "size_mm": {
+        "height": 2688.0,
+        "width": 999.0
+      },
+      "area_sqm": 2.685,
+      "joints": {
+        "left": "C",
+        "right": "C",
+        "top": "D",
+        "bottom": "DG"
+      },
+      "finish": {
+        "group": "ШПОН",
+        "name": "Dark Grey Oak",
+        "decor": "Dark Grey Oak 5 мм"
+      },
+      "veneer_direction": "Горизонтальное",
+      "aluminum": {
+        "vertical_count": 0,
+        "horizontal_count": 0,
+        "color": "Dark brown Colour 2K"
+      },
+      "markup_percent": 10.0,
+      "cost": 10855.86,
+      "notes": null
+    },
+    {
+      "external_id": "panel-87",
+      "type": "wall",
+      "position": 2,
+      "wall_number": "4",
+      "quantity": 1,
+      "size_mm": {
+        "height": 2688.0,
+        "width": 999.0
+      },
+      "area_sqm": 2.685,
+      "joints": {
+        "left": "C",
+        "right": "C",
+        "top": null,
+        "bottom": null
+      },
+      "finish": {
+        "group": null,
+        "name": null,
+        "decor": null
+      },
+      "veneer_direction": null,
+      "aluminum": {
+        "vertical_count": 0,
+        "horizontal_count": 0,
+        "color": null
+      },
+      "markup_percent": 0.0,
+      "cost": 2688.0,
+      "notes": null
+    },
+    {
+      "external_id": "panel-90",
+      "type": "wall",
+      "position": 2,
+      "wall_number": "5",
+      "quantity": 1,
+      "size_mm": {
+        "height": 2688.0,
+        "width": 999.0
+      },
+      "area_sqm": 2.685,
+      "joints": {
+        "left": "C",
+        "right": "C",
+        "top": null,
+        "bottom": null
+      },
+      "finish": {
+        "group": null,
+        "name": null,
+        "decor": null
+      },
+      "veneer_direction": null,
+      "aluminum": {
+        "vertical_count": 0,
+        "horizontal_count": 0,
+        "color": null
+      },
+      "markup_percent": 0.0,
+      "cost": 2688.0,
+      "notes": null
+    },
+    {
+      "external_id": "panel-79",
+      "type": "wall",
+      "position": 3,
+      "wall_number": "1",
+      "quantity": 1,
+      "size_mm": {
+        "height": 2688.0,
+        "width": 983.5
+      },
+      "area_sqm": 2.644,
+      "joints": {
+        "left": "C",
+        "right": "FR",
+        "top": null,
+        "bottom": null
+      },
+      "finish": {
+        "group": null,
+        "name": null,
+        "decor": null
+      },
+      "veneer_direction": null,
+      "aluminum": {
+        "vertical_count": 0,
+        "horizontal_count": 0,
+        "color": null
+      },
+      "markup_percent": 0.0,
+      "cost": 1344.0,
+      "notes": null
+    },
+    {
+      "external_id": "panel-82",
+      "type": "wall",
+      "position": 3,
+      "wall_number": "2",
+      "quantity": 1,
+      "size_mm": {
+        "height": 2688.0,
+        "width": 999.0
+      },
+      "area_sqm": 2.685,
+      "joints": {
+        "left": "C",
+        "right": "D",
+        "top": null,
+        "bottom": null
+      },
+      "finish": {
+        "group": null,
+        "name": null,
+        "decor": null
+      },
+      "veneer_direction": null,
+      "aluminum": {
+        "vertical_count": 0,
+        "horizontal_count": 0,
+        "color": null
+      },
+      "markup_percent": 0.0,
+      "cost": 3225.6,
+      "notes": null
+    },
+    {
+      "external_id": "panel-85",
+      "type": "wall",
+      "position": 3,
+      "wall_number": "3",
+      "quantity": 1,
+      "size_mm": {
+        "height": 2688.0,
+        "width": 999.0
+      },
+      "area_sqm": 2.685,
+      "joints": {
+        "left": "C",
+        "right": "A",
+        "top": "D",
+        "bottom": "DG"
+      },
+      "finish": {
+        "group": "ШПОН",
+        "name": "Dark Grey Oak",
+        "decor": "Dark Grey Oak 5 мм"
+      },
+      "veneer_direction": "Горизонтальное",
+      "aluminum": {
+        "vertical_count": 0,
+        "horizontal_count": 0,
+        "color": "Dark brown Colour 2K"
+      },
+      "markup_percent": 10.0,
+      "cost": 10452.66,
+      "notes": null
+    },
+    {
+      "external_id": "panel-88",
+      "type": "wall",
+      "position": 3,
+      "wall_number": "4",
+      "quantity": 1,
+      "size_mm": {
+        "height": 2688.0,
+        "width": 999.0
+      },
+      "area_sqm": 2.685,
+      "joints": {
+        "left": "C",
+        "right": "D",
+        "top": null,
+        "bottom": null
+      },
+      "finish": {
+        "group": null,
+        "name": null,
+        "decor": null
+      },
+      "veneer_direction": null,
+      "aluminum": {
+        "vertical_count": 0,
+        "horizontal_count": 0,
+        "color": null
+      },
+      "markup_percent": 0.0,
+      "cost": 3225.6,
+      "notes": null
+    },
+    {
+      "external_id": "panel-91",
+      "type": "wall",
+      "position": 3,
+      "wall_number": "5",
+      "quantity": 1,
+      "size_mm": {
+        "height": 2688.0,
+        "width": 999.0
+      },
+      "area_sqm": 2.685,
+      "joints": {
+        "left": "C",
+        "right": "A",
+        "top": null,
+        "bottom": null
+      },
+      "finish": {
+        "group": null,
+        "name": null,
+        "decor": null
+      },
+      "veneer_direction": null,
+      "aluminum": {
+        "vertical_count": 0,
+        "horizontal_count": 0,
+        "color": null
+      },
+      "markup_percent": 0.0,
+      "cost": 2284.8,
+      "notes": null
+    }
+  ],
+  "totals": {
+    "panels_count": 17
+  }
+}

@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { fetchOrder, updateOrder } from '../api'
-import type { Order } from '../api'
+import { fetchOrder, updateOrder, exportToCascate } from '../api'
+import type { Order, CascateExportResult } from '../api'
 import WallScheme from '../components/WallScheme'
+import FinishBreakdown from '../components/FinishBreakdown'
+import FinalSpec from '../components/FinalSpec'
+import type { FinalSpecDoor } from '../components/FinalSpec'
 
-type Step = 'info' | 'panels'
+type Step = 'info' | 'panels' | 'final'
 
 export default function OrderDetail() {
   const { id } = useParams<{ id: string }>()
@@ -15,6 +18,7 @@ export default function OrderDetail() {
   const [step, setStep] = useState<Step>('info')
   const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
+  const [exportOpen, setExportOpen] = useState(false)
 
   useEffect(() => {
     fetchOrder(orderId).then(ord => setOrder(ord))
@@ -53,16 +57,30 @@ export default function OrderDetail() {
             <button className="btn btn-ghost btn-sm" onClick={() => navigate('/orders')}>← К заказам</button>
             <h1 className="page-title" style={{ marginTop: 8, marginBottom: 0 }}>
               {order.order_number ? `Заказ № ${order.order_number}` : `Заказ #${orderId}`}
+              <span className={'badge ' + (order.series === '50' ? 'badge-gray' : 'badge-blue')} style={{ marginLeft: 12, verticalAlign: 'middle' }}>NUOVO {order.series || '60'}</span>
               {order.customer_name && <span style={{ fontWeight: 400, fontSize: '1rem', color: '#555', marginLeft: 12 }}>{order.customer_name}</span>}
             </h1>
           </div>
-          <button
-            className="btn btn-primary"
-            onClick={() => navigate(`/?order=${orderId}`)}
-          >
-            Изменить в конфигураторе
-          </button>
+          <div className="flex gap-2">
+            <button className="btn btn-ghost" onClick={() => setExportOpen(true)}>
+              Выгрузить в Cascate
+            </button>
+            <button
+              className="btn btn-primary"
+              onClick={() => navigate(`/wall-${order.series || '60'}?order=${orderId}`)}
+            >
+              Изменить в конфигураторе
+            </button>
+          </div>
         </div>
+
+        {exportOpen && (
+          <CascateExportModal
+            order={order}
+            onClose={() => setExportOpen(false)}
+            onDone={() => fetchOrder(orderId).then(setOrder)}
+          />
+        )}
 
         {/* Шаги */}
         <div className="steps">
@@ -76,6 +94,9 @@ export default function OrderDetail() {
               const doorCount = sp.filter((p: SpecPanel) => p.panelLabel.startsWith('Д')).length
               return `2. Панели (${wallCount} ст. / ${doorCount} дв.)`
             })()}
+          </div>
+          <div className={`step ${step === 'final' ? 'active' : ''}`} onClick={() => setStep('final')}>
+            3. Финишная спецификация
           </div>
         </div>
 
@@ -131,7 +152,174 @@ export default function OrderDetail() {
 
         {/* ── Шаг 2: Панели ── */}
         {step === 'panels' && (
-          <ConfiguratorSpecView order={order} onEdit={() => navigate(`/?order=${orderId}`)} />
+          <ConfiguratorSpecView order={order} onEdit={() => navigate(`/wall-${order.series || '60'}?order=${orderId}`)} />
+        )}
+
+        {/* ── Шаг 3: Финишная спецификация ── */}
+        {step === 'final' && (
+          order.configurator_state ? (
+            <FinalSpec
+              header={{
+                counterparty: order.counterparty,
+                customer_name: order.customer_name,
+                invoice_number: order.invoice_number,
+                agent_name: order.agent_name,
+                city: order.city,
+                order_date: order.order_date,
+                order_number: order.order_number,
+              }}
+              panels={order.configurator_state.spec?.panels ?? []}
+              profiles={order.configurator_state.spec?.profiles ?? []}
+              doors={(order.configurator_state.doors ?? []) as FinalSpecDoor[]}
+            />
+          ) : (
+            <div className="card">
+              <div className="alert alert-info" style={{ marginBottom: 16 }}>
+                Спецификация недоступна — заказ создан не через конфигуратор.
+              </div>
+              <button className="btn btn-primary" onClick={() => navigate(`/wall-${order.series || '60'}?order=${orderId}`)}>
+                Открыть в конфигураторе
+              </button>
+            </div>
+          )
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Выгрузка в cascate.ru ───────────────────────────────────────────────────
+
+// Уже вошедший в Cascate пользователь (сайдбар кладёт сюда id_person).
+function loadCascateUser(): { id_person: string; login: string } | null {
+  try {
+    const raw = localStorage.getItem('cascate_user')
+    return raw ? JSON.parse(raw) : null
+  } catch { return null }
+}
+
+function CascateExportModal({ order, onClose, onDone }: {
+  order: Order
+  onClose: () => void
+  onDone: () => void
+}) {
+  const user = loadCascateUser()
+  const [login, setLogin] = useState('')
+  const [password, setPassword] = useState('')
+  const [force, setForce] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const [result, setResult] = useState<CascateExportResult | null>(null)
+
+  const panels = order.panels ?? []
+  const doorPanels = order.door_panels ?? []
+  const total = panels.length + doorPanels.length
+  const alreadySynced = [...panels, ...doorPanels].filter(p => p.cascate_synced_at).length
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setBusy(true)
+    setError('')
+    setResult(null)
+    try {
+      const creds = user?.id_person
+        ? { id_person: user.id_person, force }
+        : { login, password, force }
+      const res = await exportToCascate(order.id!, creds)
+      setResult(res)
+      setPassword('')
+      onDone()
+    } catch (err: any) {
+      setError(err?.response?.data?.error ?? 'Не удалось связаться с сервером')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: 'fixed', inset: 0, background: 'rgba(15,23,42,.5)', zIndex: 50,
+        display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20,
+      }}
+    >
+      <div
+        className="card"
+        onClick={e => e.stopPropagation()}
+        style={{ maxWidth: 480, width: '100%', margin: 0, maxHeight: '90vh', overflowY: 'auto' }}
+      >
+        <h2 style={{ marginTop: 0 }}>Выгрузка в Cascate</h2>
+
+        {result ? (
+          <>
+            <div className={result.failed ? 'alert alert-info' : 'alert alert-success'} style={{ marginBottom: 14 }}>
+              Отправлено: <strong>{result.sent}</strong>
+              {result.skipped > 0 && <> · пропущено (уже выгружены): <strong>{result.skipped}</strong></>}
+              {result.failed > 0 && <> · с ошибкой: <strong>{result.failed}</strong></>}
+            </div>
+            {result.errors.length > 0 && (
+              <div style={{ marginBottom: 14, fontSize: 13 }}>
+                {result.errors.map((e, i) => (
+                  <div key={i} style={{ color: '#b91c1c', marginBottom: 4 }}>
+                    <strong>{e.panel}</strong>: {e.error}
+                  </div>
+                ))}
+              </div>
+            )}
+            <button className="btn btn-primary" onClick={onClose}>Закрыть</button>
+          </>
+        ) : (
+          <form onSubmit={submit}>
+            <p style={{ color: '#666', fontSize: 13, margin: '0 0 16px' }}>
+              Панелей в заказе: <strong>{total}</strong>
+              {alreadySynced > 0 && <> · уже выгружено: <strong>{alreadySynced}</strong></>}
+            </p>
+
+            {user ? (
+              <p style={{ color: '#666', fontSize: 13, margin: '0 0 16px' }}>
+                Аккаунт Cascate: <strong>{user.login}</strong>
+              </p>
+            ) : (
+              <>
+                <div className="field" style={{ marginBottom: 12 }}>
+                  <label>Логин Cascate</label>
+                  <input value={login} onChange={e => setLogin(e.target.value)} autoFocus required />
+                </div>
+                <div className="field" style={{ marginBottom: 12 }}>
+                  <label>Пароль</label>
+                  <input type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+                </div>
+              </>
+            )}
+
+            {alreadySynced > 0 && (
+              <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, marginBottom: 14 }}>
+                <input type="checkbox" checked={force} onChange={e => setForce(e.target.checked)} />
+                Отправить заново уже выгруженные ({alreadySynced} шт.) — возможны дубли
+              </label>
+            )}
+
+            {error && (
+              <div className="alert" style={{ background: '#fee2e2', color: '#b91c1c', marginBottom: 14, padding: '9px 14px' }}>
+                {error}
+              </div>
+            )}
+
+            <div className="flex gap-2">
+              <button className="btn btn-success" type="submit" disabled={busy || total === 0}>
+                {busy ? <span className="spinner" /> : ''}Выгрузить
+              </button>
+              <button className="btn btn-ghost" type="button" onClick={onClose} disabled={busy}>
+                Отмена
+              </button>
+            </div>
+            {total === 0 && (
+              <p style={{ color: '#999', fontSize: 12, marginTop: 10, marginBottom: 0 }}>
+                В заказе нет панелей — выгружать нечего.
+              </p>
+            )}
+          </form>
         )}
       </div>
     </div>
@@ -298,6 +486,10 @@ function ConfiguratorSpecView({ order, onEdit }: { order: Order; onEdit: () => v
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            <div style={{ marginTop: 24 }}>
+              <FinishBreakdown panels={specPanels} />
             </div>
 
             {specProfiles.length > 0 && (

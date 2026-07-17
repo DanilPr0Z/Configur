@@ -49,11 +49,13 @@ export default function OrdersList() {
                 <thead>
                   <tr>
                     <th>#</th>
+                    <th>Серия</th>
                     <th>Номер заказа</th>
                     <th>Заказчик</th>
                     <th>Агент</th>
                     <th>Город</th>
                     <th>Дата</th>
+                    <th>Статус</th>
                     <th>Действия</th>
                   </tr>
                 </thead>
@@ -61,8 +63,9 @@ export default function OrdersList() {
                   {orders.map(o => (
                     <tr key={o.id}>
                       <td>{o.id}</td>
+                      <td><span className={'badge ' + (o.series === '50' ? 'badge-gray' : 'badge-blue')}>NUOVO {o.series || '60'}</span></td>
                       <td>
-                        <Link to={`/orders/${o.id}`} style={{ color: '#4c6ef5', fontWeight: 600 }}>
+                        <Link to={`/orders/${o.id}`} style={{ color: '#4c6ef5', fontWeight: 600, textDecoration: 'none' }}>
                           {o.order_number || `Заказ #${o.id}`}
                         </Link>
                       </td>
@@ -71,9 +74,18 @@ export default function OrdersList() {
                       <td>{o.city || '—'}</td>
                       <td>{o.order_date || '—'}</td>
                       <td>
+                        {o.cascate_synced_at ? (
+                          <span className="badge badge-green" title={`Выгружен в Cascate ${new Date(o.cascate_synced_at).toLocaleString('ru-RU')}`}>
+                            Отправлен ✓
+                          </span>
+                        ) : (
+                          <span className="badge badge-gray">Не отправлен</span>
+                        )}
+                      </td>
+                      <td>
                         <div className="flex gap-2">
                           <Link to={`/orders/${o.id}`} className="btn btn-ghost btn-sm">Открыть</Link>
-                          <Link to={`/?order=${o.id}`} className="btn btn-primary btn-sm">Изменить</Link>
+                          <Link to={`/wall-${o.series || '60'}?order=${o.id}`} className="btn btn-primary btn-sm">Изменить</Link>
                           <button className="btn btn-danger btn-sm" onClick={() => handleDelete(o.id!)}>
                             Удалить
                           </button>

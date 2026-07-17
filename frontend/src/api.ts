@@ -87,6 +87,8 @@ export interface Panel {
   joint_side_cost?: number
   joint_top_bottom_cost?: number
   total_cost?: number
+  cascate_id?: string
+  cascate_synced_at?: string | null
 }
 
 export interface DoorPanel {
@@ -123,10 +125,13 @@ export interface DoorPanel {
   edge_top_bottom_cost?: number
   finish_cost?: number
   total_cost?: number
+  cascate_id?: string
+  cascate_synced_at?: string | null
 }
 
 export interface Order {
   id?: number
+  series?: '50' | '60'
   customer_name: string
   agent_name: string
   counterparty: string
@@ -141,6 +146,16 @@ export interface Order {
   total_panels_cost?: number
   total_door_panels_cost?: number
   total_cost?: number
+  cascate_id_person?: string
+  cascate_synced_at?: string | null
+}
+
+export interface CascateExportResult {
+  id_person: string
+  sent: number
+  skipped: number
+  failed: number
+  errors: { panel: string; error: string }[]
 }
 
 export interface WallCalcResult {
@@ -174,8 +189,10 @@ export interface OrderSummary {
 
 // ─── API calls ────────────────────────────────────────────────────────────────
 
-export const fetchJointTypes = () =>
-  api.get<JointType[]>('joint-types/').then(r => r.data)
+export type Series = '50' | '60'
+
+export const fetchJointTypes = (series?: Series) =>
+  api.get<JointType[]>('joint-types/', { params: series ? { series } : {} }).then(r => r.data)
 
 export const uploadJointImage = (id: number, file: File) => {
   const form = new FormData()
@@ -191,8 +208,8 @@ export const deleteJointImage = (id: number) =>
 export const updateJointType = (id: number, data: Partial<Pick<JointType, 'offset_mm' | 'price_per_meter' | 'profile_article' | 'profile_count'>>) =>
   api.patch<JointType>(`joint-types/${id}/`, data).then(r => r.data)
 
-export const fetchFinishGroups = () =>
-  api.get<FinishGroup[]>('finish-groups/').then(r => r.data)
+export const fetchFinishGroups = (series?: Series) =>
+  api.get<FinishGroup[]>('finish-groups/', { params: series ? { series } : {} }).then(r => r.data)
 
 export const fetchProfileColors = () =>
   api.get<ProfileColor[]>('profile-colors/').then(r => r.data)
@@ -200,8 +217,8 @@ export const fetchProfileColors = () =>
 export const fetchAluminumProfiles = () =>
   api.get<AluminumProfile[]>('aluminum-profiles/').then(r => r.data)
 
-export const fetchOrders = () =>
-  api.get<Order[]>('orders/').then(r => r.data)
+export const fetchOrders = (series?: Series) =>
+  api.get<Order[]>('orders/', { params: series ? { series } : {} }).then(r => r.data)
 
 export const fetchOrder = (id: number) =>
   api.get<Order>(`orders/${id}/`).then(r => r.data)
@@ -239,10 +256,21 @@ export const calculateWall = (data: {
   joint_left_code: string
   joint_right_code: string
   connection_type_code: string
+  series?: Series
 }) => api.post<WallCalcResult>('orders/calculate_wall/', data).then(r => r.data)
 
 export const fetchOrderSummary = (id: number) =>
   api.get<OrderSummary>(`orders/${id}/summary/`).then(r => r.data)
+
+// Уже вошедший пользователь шлёт готовый id_person — повторный логин не нужен.
+// Иначе логин/пароль cascate.ru уходят на бэкенд и меняются на id_person там.
+// Токен приложения живёт только на сервере, во фронт он не попадает.
+export const exportToCascate = (
+  orderId: number,
+  creds: { id_person?: string; login?: string; password?: string; force?: boolean },
+) =>
+  api.post<CascateExportResult>(`orders/${orderId}/export_cascate/`, creds)
+    .then(r => r.data)
 
 export const importExcel = (orderId: number, file: File) => {
   const form = new FormData()
@@ -253,3 +281,41 @@ export const importExcel = (orderId: number, file: File) => {
     { headers: { 'Content-Type': 'multipart/form-data' } },
   ).then(r => r.data)
 }
+
+// ─── Обрамление проёма ────────────────────────────────────────────────────────
+
+import type { FramingConfig } from './framing/framingData'
+
+export const fetchFramingConfig = () =>
+  api.get<FramingConfig>('framing/config/').then(r => r.data)
+
+export interface FramingLeadPayload {
+  name: string
+  phone: string
+  email?: string
+  comment?: string
+  invoice_number?: string
+  buyer?: string
+  note?: string
+  model_name?: string
+  install?: string
+  kit?: string
+  opening_height?: number
+  opening_width?: number
+  wall_depth?: number
+  color_name?: string
+  dobor_name?: string
+  glass?: string
+  spec?: any
+  total?: number
+}
+
+export const createFramingLead = (data: FramingLeadPayload) =>
+  api.post('framing-leads/', data).then(r => r.data)
+
+// ─── Вход через cascate.ru ────────────────────────────────────────────────────
+
+export interface CascateUser { id_person: string; login: string }
+
+export const cascateLogin = (login: string, password: string) =>
+  api.post<CascateUser>('auth/cascate-login/', { login, password }).then(r => r.data)
