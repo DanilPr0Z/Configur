@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { fetchAluminumProfiles, fetchProfileColors, fetchJointTypes, fetchFinishGroups, fetchOrder, createOrder, updateOrder, createPanel, deletePanel } from '../api'
+import { fetchAluminumProfiles, fetchProfileColors, fetchJointTypes, fetchFinishGroups, fetchOrder, createOrder, updateOrder, createPanel, deletePanel, isCascateLoggedIn, LOGIN_REQUIRED_MSG } from '../api'
 import type { AluminumProfile, ProfileColor, JointType, FinishGroup, Finish, Order, Series } from '../api'
 import { visibleFinishGroups } from '../api'
 import { JointSelectCode, StringSelect } from '../components/JointSelect'
@@ -1305,6 +1305,7 @@ function SaveOrderModal({
   }
 
   const handleSave = async () => {
+    if (!isCascateLoggedIn()) { setError(LOGIN_REQUIRED_MSG); return }
     setSaving(true)
     setError('')
     try {
