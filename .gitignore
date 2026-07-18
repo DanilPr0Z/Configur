@@ -12,6 +12,11 @@ build/
 # Django
 *.log
 local_settings.py
+
+# База данных с заказами — НЕ коммитим (справочники хранятся в panels/fixtures/catalog.json)
+db.sqlite3
+*.sqlite3
+*.sqlite3.bak
 media/*
 !media/joints/
 media/joints/*

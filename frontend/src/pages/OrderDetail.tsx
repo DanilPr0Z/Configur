@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { fetchOrder, updateOrder, exportToCascate } from '../api'
+import { fetchOrder, updateOrder, exportToCascate, isCascateLoggedIn, LOGIN_REQUIRED_MSG } from '../api'
 import type { Order, CascateExportResult } from '../api'
 import WallScheme from '../components/WallScheme'
 import FinishBreakdown from '../components/FinishBreakdown'
@@ -26,6 +26,7 @@ export default function OrderDetail() {
 
   const saveOrder = async () => {
     if (!order) return
+    if (!isCascateLoggedIn()) { alert(LOGIN_REQUIRED_MSG); return }
     setSaving(true)
     await updateOrder(orderId, {
       customer_name: order.customer_name,

@@ -2,6 +2,29 @@ import axios from 'axios'
 
 const api = axios.create({ baseURL: import.meta.env.VITE_API_URL ?? '/api/' })
 
+// ─── Вход в cascate.ru → доступ к записи заказов ──────────────────────────────
+// SidebarAuth после входа кладёт { id_person, login } в localStorage['cascate_user'].
+// Прикрепляем id_person к каждому запросу — по нему бэкенд пускает сохранение.
+const CASCATE_USER_KEY = 'cascate_user'
+export const LOGIN_REQUIRED_MSG =
+  'Войдите через cascate.ru (кнопка «Войти» в меню слева), чтобы сохранять заказы.'
+
+export function isCascateLoggedIn(): boolean {
+  try {
+    const raw = localStorage.getItem(CASCATE_USER_KEY)
+    return !!(raw && JSON.parse(raw)?.id_person)
+  } catch { return false }
+}
+
+api.interceptors.request.use(config => {
+  try {
+    const raw = localStorage.getItem(CASCATE_USER_KEY)
+    const u = raw ? JSON.parse(raw) : null
+    if (u?.id_person) config.headers['X-Cascate-Id'] = u.id_person
+  } catch { /* пустой/битый localStorage — просто без заголовка */ }
+  return config
+})
+
 export interface JointType {
   id: number
   code: string

@@ -1,7 +1,10 @@
 from rest_framework import viewsets, mixins, status
 from rest_framework.decorators import action
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
+
+from .permissions import RequireCascateLogin
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from collections import Counter
@@ -89,6 +92,14 @@ class AluminumProfileViewSet(viewsets.ReadOnlyModelViewSet):
 
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
+    permission_classes = [RequireCascateLogin]
+
+    def get_permissions(self):
+        # Калькулятор раскладки ничего не сохраняет, а выгрузка в cascate имеет
+        # собственную проверку (id_person / логин-пароль в теле) — их не гейтим.
+        if self.action in ('calculate_wall', 'export_cascate'):
+            return [AllowAny()]
+        return super().get_permissions()
 
     def get_queryset(self):
         qs = Order.objects.all()
@@ -419,6 +430,7 @@ class OrderViewSet(viewsets.ModelViewSet):
 
 class PanelViewSet(viewsets.ModelViewSet):
     serializer_class = PanelSerializer
+    permission_classes = [RequireCascateLogin]
 
     def get_queryset(self):
         qs = Panel.objects.select_related(
@@ -433,6 +445,7 @@ class PanelViewSet(viewsets.ModelViewSet):
 
 class DoorPanelViewSet(viewsets.ModelViewSet):
     serializer_class = DoorPanelSerializer
+    permission_classes = [RequireCascateLogin]
 
     def get_queryset(self):
         qs = DoorPanel.objects.select_related(

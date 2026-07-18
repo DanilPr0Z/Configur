@@ -88,8 +88,12 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
+from corsheaders.defaults import default_headers
+
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',') if not DEBUG else []
+# Заголовок входа в cascate.ru, по которому бэкенд пускает запись заказов.
+CORS_ALLOW_HEADERS = (*default_headers, 'x-cascate-id')
 
 # ── Внешний API cascate.ru ────────────────────────────────────────────────────
 CASCATE_BASE_URL = os.environ.get('CASCATE_BASE_URL', 'https://cascate.ru/Api')

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { fetchOrders, deleteOrder, createOrder } from '../api'
+import { fetchOrders, deleteOrder, createOrder, isCascateLoggedIn, LOGIN_REQUIRED_MSG } from '../api'
 import type { Order } from '../api'
 
 export default function OrdersList() {
@@ -13,6 +13,7 @@ export default function OrdersList() {
   }, [])
 
   const handleCreate = async () => {
+    if (!isCascateLoggedIn()) { alert(LOGIN_REQUIRED_MSG); return }
     const order = await createOrder({
       customer_name: '', agent_name: '', counterparty: '',
       order_number: '', invoice_number: '', order_date: null, city: '', notes: '',
@@ -21,6 +22,7 @@ export default function OrdersList() {
   }
 
   const handleDelete = async (id: number) => {
+    if (!isCascateLoggedIn()) { alert(LOGIN_REQUIRED_MSG); return }
     if (!confirm('Удалить заказ?')) return
     await deleteOrder(id)
     setOrders(prev => prev.filter(o => o.id !== id))

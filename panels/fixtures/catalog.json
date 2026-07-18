@@ -1,0 +1,7497 @@
+[
+{
+  "model": "panels.jointtype",
+  "pk": 1,
+  "fields": {
+    "series": "60",
+    "code": "A",
+    "name": "Торцевой финишный профиль",
+    "offset_mm": -15.0,
+    "price_per_meter": 350.0,
+    "profile_article": "104.256",
+    "profile_count": 1.0,
+    "image": "joints/joint_A.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 2,
+  "fields": {
+    "series": "60",
+    "code": "B",
+    "name": "Ламель соединительная",
+    "offset_mm": 0.0,
+    "price_per_meter": 350.0,
+    "profile_article": "ХДФ 3,2 ММ",
+    "profile_count": 0.5,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 3,
+  "fields": {
+    "series": "60",
+    "code": "C",
+    "name": "Соединительный профиль",
+    "offset_mm": -4.0,
+    "price_per_meter": 500.0,
+    "profile_article": "104.259",
+    "profile_count": 0.5,
+    "image": "joints/joint_C.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 4,
+  "fields": {
+    "series": "60",
+    "code": "D",
+    "name": "Угловой профиль (тип D)",
+    "offset_mm": 19.4,
+    "price_per_meter": 700.0,
+    "profile_article": "104.270",
+    "profile_count": 0.5,
+    "image": "joints/joint_D.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 5,
+  "fields": {
+    "series": "60",
+    "code": "E",
+    "name": "Тип E",
+    "offset_mm": 26.0,
+    "price_per_meter": 350.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": "joints/joint_E.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 6,
+  "fields": {
+    "series": "60",
+    "code": "FL",
+    "name": "Торцевой финишный профиль (левый)",
+    "offset_mm": -15.0,
+    "price_per_meter": 0.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": "joints/joint_FL.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 7,
+  "fields": {
+    "series": "60",
+    "code": "FR",
+    "name": "Торцевой финишный профиль (правый)",
+    "offset_mm": -26.0,
+    "price_per_meter": 0.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": "joints/joint_FR.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 8,
+  "fields": {
+    "series": "60",
+    "code": "DG",
+    "name": "Угловой профиль DG",
+    "offset_mm": 51.9,
+    "price_per_meter": 700.0,
+    "profile_article": "104.270",
+    "profile_count": 0.5,
+    "image": "joints/joint_DG.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 9,
+  "fields": {
+    "series": "60",
+    "code": "DH",
+    "name": "Угловой профиль DH",
+    "offset_mm": 43.5,
+    "price_per_meter": 700.0,
+    "profile_article": "104.270",
+    "profile_count": 0.5,
+    "image": "joints/joint_DH.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 10,
+  "fields": {
+    "series": "60",
+    "code": "H",
+    "name": "Стык с коробкой (ВНУТРЬ)",
+    "offset_mm": 58.5,
+    "price_per_meter": 800.0,
+    "profile_article": "ХДФ 3,2 ММ",
+    "profile_count": 0.0,
+    "image": "joints/joint_H.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 11,
+  "fields": {
+    "series": "60",
+    "code": "G",
+    "name": "Стык с коробкой (НАРУЖУ)",
+    "offset_mm": 50.1,
+    "price_per_meter": 800.0,
+    "profile_article": "ХДФ 3,2 ММ",
+    "profile_count": 0.0,
+    "image": "joints/joint_G.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 14,
+  "fields": {
+    "series": "60",
+    "code": "S",
+    "name": "Тип S",
+    "offset_mm": 0.0,
+    "price_per_meter": 600.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": "joints/joint_S.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 15,
+  "fields": {
+    "series": "60",
+    "code": "O",
+    "name": "Тип O",
+    "offset_mm": -27.1,
+    "price_per_meter": 0.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": "joints/joint_O.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 16,
+  "fields": {
+    "series": "60",
+    "code": "T",
+    "name": "Тип T",
+    "offset_mm": 0.0,
+    "price_per_meter": 700.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": "joints/joint_T.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 17,
+  "fields": {
+    "series": "60",
+    "code": "R",
+    "name": "Фрезеровка декора (узел R)",
+    "offset_mm": -6.0,
+    "price_per_meter": 350.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": "joints/joint_R.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 18,
+  "fields": {
+    "series": "60",
+    "code": "I",
+    "name": "Тип I",
+    "offset_mm": -1.2,
+    "price_per_meter": 350.0,
+    "profile_article": "104.256",
+    "profile_count": 0.0,
+    "image": "joints/joint_I.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 19,
+  "fields": {
+    "series": "60",
+    "code": "P",
+    "name": "Декоративная фрезеровка (узел P)",
+    "offset_mm": 0.0,
+    "price_per_meter": 500.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": "joints/joint_P.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 20,
+  "fields": {
+    "series": "60",
+    "code": "J",
+    "name": "Тип J",
+    "offset_mm": 0.0,
+    "price_per_meter": 0.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 21,
+  "fields": {
+    "series": "60",
+    "code": "K",
+    "name": "Тип K",
+    "offset_mm": 0.0,
+    "price_per_meter": 0.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 22,
+  "fields": {
+    "series": "50",
+    "code": "A",
+    "name": "Торцевой (финиш)",
+    "offset_mm": -15.0,
+    "price_per_meter": 350.0,
+    "profile_article": "104.256",
+    "profile_count": 1.0,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 23,
+  "fields": {
+    "series": "50",
+    "code": "B",
+    "name": "Ламель (соединение)",
+    "offset_mm": 0.0,
+    "price_per_meter": 350.0,
+    "profile_article": "ламель",
+    "profile_count": 0.5,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 24,
+  "fields": {
+    "series": "50",
+    "code": "C",
+    "name": "Соединительный",
+    "offset_mm": -4.0,
+    "price_per_meter": 500.0,
+    "profile_article": "104.259",
+    "profile_count": 0.5,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 25,
+  "fields": {
+    "series": "50",
+    "code": "D",
+    "name": "Угол наружный 90°",
+    "offset_mm": 19.4,
+    "price_per_meter": 700.0,
+    "profile_article": "104.270",
+    "profile_count": 0.5,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 26,
+  "fields": {
+    "series": "50",
+    "code": "E",
+    "name": "Торцевой (+26 мм)",
+    "offset_mm": 26.0,
+    "price_per_meter": 350.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 27,
+  "fields": {
+    "series": "50",
+    "code": "FL",
+    "name": "Финишный левый",
+    "offset_mm": -15.0,
+    "price_per_meter": 0.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 28,
+  "fields": {
+    "series": "50",
+    "code": "FR",
+    "name": "Финишный правый",
+    "offset_mm": -26.0,
+    "price_per_meter": 0.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 29,
+  "fields": {
+    "series": "50",
+    "code": "DG",
+    "name": "Угол внутренний G",
+    "offset_mm": 41.8,
+    "price_per_meter": 700.0,
+    "profile_article": "104.270",
+    "profile_count": 0.5,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 30,
+  "fields": {
+    "series": "50",
+    "code": "P",
+    "name": "Декор",
+    "offset_mm": 0.0,
+    "price_per_meter": 500.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 31,
+  "fields": {
+    "series": "50",
+    "code": "DH",
+    "name": "Угол внутренний H",
+    "offset_mm": 38.4,
+    "price_per_meter": 700.0,
+    "profile_article": "104.270",
+    "profile_count": 0.5,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 32,
+  "fields": {
+    "series": "50",
+    "code": "H",
+    "name": "Тип H (дверь, внутрь)",
+    "offset_mm": 53.4,
+    "price_per_meter": 800.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 33,
+  "fields": {
+    "series": "50",
+    "code": "G",
+    "name": "Тип G (дверь, наружу)",
+    "offset_mm": 40.0,
+    "price_per_meter": 800.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 34,
+  "fields": {
+    "series": "50",
+    "code": "K",
+    "name": "Тип K",
+    "offset_mm": 0.0,
+    "price_per_meter": 0.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 35,
+  "fields": {
+    "series": "50",
+    "code": "J",
+    "name": "Тип J",
+    "offset_mm": 0.0,
+    "price_per_meter": 0.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 36,
+  "fields": {
+    "series": "50",
+    "code": "S",
+    "name": "Стык",
+    "offset_mm": 0.0,
+    "price_per_meter": 600.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 37,
+  "fields": {
+    "series": "50",
+    "code": "O",
+    "name": "Без профиля",
+    "offset_mm": -27.1,
+    "price_per_meter": 0.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 38,
+  "fields": {
+    "series": "50",
+    "code": "T",
+    "name": "Тип T",
+    "offset_mm": 0.0,
+    "price_per_meter": 700.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 39,
+  "fields": {
+    "series": "50",
+    "code": "R",
+    "name": "Подрез",
+    "offset_mm": -6.0,
+    "price_per_meter": 350.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 40,
+  "fields": {
+    "series": "50",
+    "code": "I",
+    "name": "Тип I",
+    "offset_mm": -1.2,
+    "price_per_meter": 350.0,
+    "profile_article": "104.256",
+    "profile_count": 0.0,
+    "image": ""
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 1,
+  "fields": {
+    "series": "60",
+    "name": "ШПОН",
+    "sort_order": 1
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 2,
+  "fields": {
+    "series": "60",
+    "name": "ШПОН 5ММ",
+    "sort_order": 2
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 3,
+  "fields": {
+    "series": "60",
+    "name": "ШПОН 2.5ММ",
+    "sort_order": 3
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 4,
+  "fields": {
+    "series": "60",
+    "name": "STONE",
+    "sort_order": 4
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 5,
+  "fields": {
+    "series": "60",
+    "name": "LACATO",
+    "sort_order": 5
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 6,
+  "fields": {
+    "series": "60",
+    "name": "FONDO",
+    "sort_order": 6
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 7,
+  "fields": {
+    "series": "60",
+    "name": "GLOSS",
+    "sort_order": 7
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 8,
+  "fields": {
+    "series": "60",
+    "name": "FRASSINO",
+    "sort_order": 8
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 9,
+  "fields": {
+    "series": "60",
+    "name": "FRASSINO OLD",
+    "sort_order": 3
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 10,
+  "fields": {
+    "series": "60",
+    "name": "КОМПОЗИТ",
+    "sort_order": 4
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 11,
+  "fields": {
+    "series": "60",
+    "name": "КОЖА",
+    "sort_order": 5
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 12,
+  "fields": {
+    "series": "60",
+    "name": "WOOD",
+    "sort_order": 7
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 13,
+  "fields": {
+    "series": "60",
+    "name": "ШПОН 5 ММ",
+    "sort_order": 9
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 14,
+  "fields": {
+    "series": "60",
+    "name": "ШПОН 2,5 ММ",
+    "sort_order": 10
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 15,
+  "fields": {
+    "series": "60",
+    "name": "MIRROR",
+    "sort_order": 12
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 16,
+  "fields": {
+    "series": "60",
+    "name": "COLOUR GLASS",
+    "sort_order": 13
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 17,
+  "fields": {
+    "series": "60",
+    "name": "COLOUR GLASS MAT",
+    "sort_order": 14
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 18,
+  "fields": {
+    "series": "60",
+    "name": "COLOUR GLASS 8W",
+    "sort_order": 15
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 19,
+  "fields": {
+    "series": "60",
+    "name": "COLOUR GLASS MAT 8W",
+    "sort_order": 16
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 20,
+  "fields": {
+    "series": "60",
+    "name": "ШПОН 1,5 ММ",
+    "sort_order": 17
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 21,
+  "fields": {
+    "series": "60",
+    "name": "LACATO 2,5 ММ",
+    "sort_order": 18
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 22,
+  "fields": {
+    "series": "50",
+    "name": "ШПОН",
+    "sort_order": 1
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 23,
+  "fields": {
+    "series": "50",
+    "name": "FRASSINO",
+    "sort_order": 2
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 24,
+  "fields": {
+    "series": "50",
+    "name": "FRASSINO OLD",
+    "sort_order": 3
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 25,
+  "fields": {
+    "series": "50",
+    "name": "КОМПОЗИТ",
+    "sort_order": 4
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 26,
+  "fields": {
+    "series": "50",
+    "name": "КОЖА",
+    "sort_order": 5
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 27,
+  "fields": {
+    "series": "50",
+    "name": "STONE",
+    "sort_order": 6
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 28,
+  "fields": {
+    "series": "50",
+    "name": "WOOD",
+    "sort_order": 7
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 29,
+  "fields": {
+    "series": "50",
+    "name": "LACATO",
+    "sort_order": 8
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 30,
+  "fields": {
+    "series": "50",
+    "name": "FONDO",
+    "sort_order": 9
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 31,
+  "fields": {
+    "series": "50",
+    "name": "MIRROR",
+    "sort_order": 10
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 32,
+  "fields": {
+    "series": "50",
+    "name": "COLOUR GLASS",
+    "sort_order": 11
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 33,
+  "fields": {
+    "series": "50",
+    "name": "COLOUR GLASS MAT",
+    "sort_order": 12
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 34,
+  "fields": {
+    "series": "50",
+    "name": "COLOUR GLASS 8W",
+    "sort_order": 13
+  }
+},
+{
+  "model": "panels.finishgroup",
+  "pk": 35,
+  "fields": {
+    "series": "50",
+    "name": "COLOUR GLASS MAT 8W",
+    "sort_order": 14
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 1,
+  "fields": {
+    "group": 1,
+    "name": "Faggio",
+    "price_sqm": 2951.0,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 2,
+  "fields": {
+    "group": 1,
+    "name": "Noce Americano",
+    "price_sqm": 2497.45,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 3,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Europeo",
+    "price_sqm": 2032.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 4,
+  "fields": {
+    "group": 1,
+    "name": "Noce Europeo",
+    "price_sqm": 1939.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 5,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Country",
+    "price_sqm": 2302.4,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 6,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Whisky",
+    "price_sqm": 1981.55,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 7,
+  "fields": {
+    "group": 1,
+    "name": "Ebano",
+    "price_sqm": 2175.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 8,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Grigio",
+    "price_sqm": 1991.55,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 9,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Cioccolato",
+    "price_sqm": 1991.55,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 10,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Moca",
+    "price_sqm": 3168.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 11,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Retro",
+    "price_sqm": 2578.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 12,
+  "fields": {
+    "group": 1,
+    "name": "Noce Europeo RAD",
+    "price_sqm": 2194.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 13,
+  "fields": {
+    "group": 2,
+    "name": "Rovere Country",
+    "price_sqm": 19570.4,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 14,
+  "fields": {
+    "group": 2,
+    "name": "Rovere Europeo",
+    "price_sqm": 17278.38,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 15,
+  "fields": {
+    "group": 2,
+    "name": "Frassino",
+    "price_sqm": 17278.38,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 16,
+  "fields": {
+    "group": 3,
+    "name": "Rovere Europeo",
+    "price_sqm": 17278.38,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 17,
+  "fields": {
+    "group": 3,
+    "name": "Noce Europeo",
+    "price_sqm": 16487.88,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 18,
+  "fields": {
+    "group": 3,
+    "name": "Frassino OLD",
+    "price_sqm": 17278.38,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 19,
+  "fields": {
+    "group": 4,
+    "name": "3324",
+    "price_sqm": 10450.45,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 20,
+  "fields": {
+    "group": 4,
+    "name": "3329",
+    "price_sqm": 10450.45,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 21,
+  "fields": {
+    "group": 4,
+    "name": "3347",
+    "price_sqm": 10290.65,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 22,
+  "fields": {
+    "group": 4,
+    "name": "3349",
+    "price_sqm": 10450.45,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 23,
+  "fields": {
+    "group": 4,
+    "name": "3355",
+    "price_sqm": 10483.35,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 24,
+  "fields": {
+    "group": 4,
+    "name": "3382",
+    "price_sqm": 10450.45,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 25,
+  "fields": {
+    "group": 4,
+    "name": "3416",
+    "price_sqm": 10459.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 26,
+  "fields": {
+    "group": 4,
+    "name": "2000 S",
+    "price_sqm": 17528.65,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 27,
+  "fields": {
+    "group": 4,
+    "name": "3445",
+    "price_sqm": 10450.45,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 28,
+  "fields": {
+    "group": 4,
+    "name": "3446",
+    "price_sqm": 10450.45,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 29,
+  "fields": {
+    "group": 4,
+    "name": "3447",
+    "price_sqm": 10450.45,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 30,
+  "fields": {
+    "group": 4,
+    "name": "3449",
+    "price_sqm": 10295.35,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 31,
+  "fields": {
+    "group": 4,
+    "name": "3450",
+    "price_sqm": 10450.45,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 32,
+  "fields": {
+    "group": 4,
+    "name": "Noce savoia 4605",
+    "price_sqm": 10492.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 33,
+  "fields": {
+    "group": 4,
+    "name": "Ciliegia avollo 4604",
+    "price_sqm": 10483.35,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 34,
+  "fields": {
+    "group": 4,
+    "name": "Linen grigio 3318",
+    "price_sqm": 2712.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 35,
+  "fields": {
+    "group": 4,
+    "name": "Bronzo 3412",
+    "price_sqm": 2712.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 36,
+  "fields": {
+    "group": 4,
+    "name": "Rame FB 43",
+    "price_sqm": 2712.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 37,
+  "fields": {
+    "group": 5,
+    "name": "Nero",
+    "price_sqm": 7881.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 38,
+  "fields": {
+    "group": 5,
+    "name": "Bianco",
+    "price_sqm": 7581.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 39,
+  "fields": {
+    "group": 5,
+    "name": "Bianco Night",
+    "price_sqm": 7618.65,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 40,
+  "fields": {
+    "group": 5,
+    "name": "Grigio",
+    "price_sqm": 7618.65,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 41,
+  "fields": {
+    "group": 5,
+    "name": "Grigio Chiaro",
+    "price_sqm": 7552.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 42,
+  "fields": {
+    "group": 5,
+    "name": "Cioccolato",
+    "price_sqm": 7618.65,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 43,
+  "fields": {
+    "group": 5,
+    "name": "Cappuccino",
+    "price_sqm": 7590.45,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 44,
+  "fields": {
+    "group": 5,
+    "name": "Avorio",
+    "price_sqm": 7590.45,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 45,
+  "fields": {
+    "group": 6,
+    "name": "Fondo",
+    "price_sqm": 820.0,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 46,
+  "fields": {
+    "group": 7,
+    "name": "Gloss",
+    "price_sqm": 10046.25,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 47,
+  "fields": {
+    "group": 8,
+    "name": "Nero",
+    "price_sqm": 8912.42,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 48,
+  "fields": {
+    "group": 8,
+    "name": "Bianco",
+    "price_sqm": 8310.82,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 49,
+  "fields": {
+    "group": 8,
+    "name": "Bianco Night",
+    "price_sqm": 8386.02,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 50,
+  "fields": {
+    "group": 8,
+    "name": "Grigio",
+    "price_sqm": 8386.02,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 51,
+  "fields": {
+    "group": 8,
+    "name": "Grigio Chiaro",
+    "price_sqm": 8254.42,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 52,
+  "fields": {
+    "group": 8,
+    "name": "Cioccolato",
+    "price_sqm": 8386.02,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 53,
+  "fields": {
+    "group": 8,
+    "name": "Cappuccino",
+    "price_sqm": 8329.62,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 54,
+  "fields": {
+    "group": 8,
+    "name": "Avorio",
+    "price_sqm": 8329.62,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 55,
+  "fields": {
+    "group": 8,
+    "name": "Nero old",
+    "price_sqm": 7668.33,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 56,
+  "fields": {
+    "group": 8,
+    "name": "Bianco old",
+    "price_sqm": 7066.73,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 57,
+  "fields": {
+    "group": 8,
+    "name": "Bianco Night old",
+    "price_sqm": 7141.93,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 58,
+  "fields": {
+    "group": 8,
+    "name": "Grigio old",
+    "price_sqm": 7141.93,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 59,
+  "fields": {
+    "group": 8,
+    "name": "Grigio Chiaro old",
+    "price_sqm": 7010.33,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 60,
+  "fields": {
+    "group": 8,
+    "name": "Cioccolato old",
+    "price_sqm": 7141.93,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 61,
+  "fields": {
+    "group": 8,
+    "name": "Cappuccino old",
+    "price_sqm": 7085.53,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 62,
+  "fields": {
+    "group": 8,
+    "name": "Avorio old",
+    "price_sqm": 7085.53,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 63,
+  "fields": {
+    "group": 1,
+    "name": "Oak thermo",
+    "price_sqm": 2193.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 64,
+  "fields": {
+    "group": 1,
+    "name": "Oak moka",
+    "price_sqm": 2236.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 65,
+  "fields": {
+    "group": 1,
+    "name": "Chok Ebano",
+    "price_sqm": 2593.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 66,
+  "fields": {
+    "group": 1,
+    "name": "Teak",
+    "price_sqm": 2185.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 67,
+  "fields": {
+    "group": 1,
+    "name": "American walnut",
+    "price_sqm": 2164.55,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 68,
+  "fields": {
+    "group": 1,
+    "name": "Breeze Oak",
+    "price_sqm": 2388.35,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 69,
+  "fields": {
+    "group": 1,
+    "name": "Vienna Oak Flamed",
+    "price_sqm": 2293.25,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 70,
+  "fields": {
+    "group": 1,
+    "name": "Walnut Striped",
+    "price_sqm": 2228.9,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 71,
+  "fields": {
+    "group": 1,
+    "name": "Dark Grey Oak",
+    "price_sqm": 2291.68,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 72,
+  "fields": {
+    "group": 1,
+    "name": "Walnut Flamed",
+    "price_sqm": 2275.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 73,
+  "fields": {
+    "group": 1,
+    "name": "Noce Canaletto",
+    "price_sqm": 2179.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 74,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Canuto",
+    "price_sqm": 3391.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 75,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Tetro",
+    "price_sqm": 3391.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 76,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Chiaro",
+    "price_sqm": 2236.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 77,
+  "fields": {
+    "group": 1,
+    "name": "Vienna Oak Striped",
+    "price_sqm": 2293.25,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 78,
+  "fields": {
+    "group": 1,
+    "name": "Eucalipto Canuto",
+    "price_sqm": 3391.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 79,
+  "fields": {
+    "group": 1,
+    "name": "Eucalipto Perla",
+    "price_sqm": 3391.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 80,
+  "fields": {
+    "group": 1,
+    "name": "Makassar",
+    "price_sqm": 2176.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 81,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Fume",
+    "price_sqm": 2179.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 82,
+  "fields": {
+    "group": 1,
+    "name": "Noce Ondulato",
+    "price_sqm": 2226.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 83,
+  "fields": {
+    "group": 8,
+    "name": "Nero FRASSINO",
+    "price_sqm": 1896.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 84,
+  "fields": {
+    "group": 8,
+    "name": "Bianco FRASSINO",
+    "price_sqm": 1768.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 85,
+  "fields": {
+    "group": 8,
+    "name": "Bianco Night FRASSINO",
+    "price_sqm": 1784.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 86,
+  "fields": {
+    "group": 8,
+    "name": "Grigio FRASSINO",
+    "price_sqm": 1785.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 87,
+  "fields": {
+    "group": 8,
+    "name": "Grigio Chiaro FRASSINO",
+    "price_sqm": 1757.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 88,
+  "fields": {
+    "group": 8,
+    "name": "Cioccolato FRASSINO",
+    "price_sqm": 1785.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 89,
+  "fields": {
+    "group": 8,
+    "name": "Cappuccino FRASSINO",
+    "price_sqm": 1773.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 90,
+  "fields": {
+    "group": 8,
+    "name": "Avorio FRASSINO",
+    "price_sqm": 1773.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 91,
+  "fields": {
+    "group": 8,
+    "name": "Rose FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 92,
+  "fields": {
+    "group": 8,
+    "name": "Rocca FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 93,
+  "fields": {
+    "group": 8,
+    "name": "Sabbia FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 94,
+  "fields": {
+    "group": 8,
+    "name": "Viola FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 95,
+  "fields": {
+    "group": 8,
+    "name": "Grigio Seta FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 96,
+  "fields": {
+    "group": 8,
+    "name": "Silver FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 97,
+  "fields": {
+    "group": 8,
+    "name": "Ombra FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 98,
+  "fields": {
+    "group": 8,
+    "name": "Grigio Fume FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 99,
+  "fields": {
+    "group": 8,
+    "name": "Grafite FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 100,
+  "fields": {
+    "group": 8,
+    "name": "Pesco FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 101,
+  "fields": {
+    "group": 8,
+    "name": "Tortora FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 102,
+  "fields": {
+    "group": 8,
+    "name": "Corda FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 103,
+  "fields": {
+    "group": 8,
+    "name": "Bruno FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 104,
+  "fields": {
+    "group": 8,
+    "name": "RAL FRASSINO",
+    "price_sqm": 2200.0,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 105,
+  "fields": {
+    "group": 9,
+    "name": "Nero FRASSINO OLD",
+    "price_sqm": 2196.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 106,
+  "fields": {
+    "group": 9,
+    "name": "Bianco FRASSINO OLD",
+    "price_sqm": 2068.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 107,
+  "fields": {
+    "group": 9,
+    "name": "Bianco Night FRASSINO OLD",
+    "price_sqm": 2084.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 108,
+  "fields": {
+    "group": 9,
+    "name": "Grigio FRASSINO OLD",
+    "price_sqm": 2085.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 109,
+  "fields": {
+    "group": 9,
+    "name": "Grigio Chiaro FRASSINO OLD",
+    "price_sqm": 2057.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 110,
+  "fields": {
+    "group": 9,
+    "name": "Cioccolato FRASSINO OLD",
+    "price_sqm": 2085.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 111,
+  "fields": {
+    "group": 9,
+    "name": "Cappuccino FRASSINO OLD",
+    "price_sqm": 2073.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 112,
+  "fields": {
+    "group": 9,
+    "name": "Avorio FRASSINO OLD",
+    "price_sqm": 2073.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 113,
+  "fields": {
+    "group": 9,
+    "name": "Rose FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 114,
+  "fields": {
+    "group": 9,
+    "name": "Rocca FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 115,
+  "fields": {
+    "group": 9,
+    "name": "Sabbia FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 116,
+  "fields": {
+    "group": 9,
+    "name": "Viola FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 117,
+  "fields": {
+    "group": 9,
+    "name": "Grigio Seta FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 118,
+  "fields": {
+    "group": 9,
+    "name": "Silver FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 119,
+  "fields": {
+    "group": 9,
+    "name": "Ombra FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 120,
+  "fields": {
+    "group": 9,
+    "name": "Grigio Fume FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 121,
+  "fields": {
+    "group": 9,
+    "name": "Grafite FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 122,
+  "fields": {
+    "group": 9,
+    "name": "Pesco FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 123,
+  "fields": {
+    "group": 9,
+    "name": "Tortora FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 124,
+  "fields": {
+    "group": 9,
+    "name": "Corda FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 125,
+  "fields": {
+    "group": 9,
+    "name": "Bruno FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 126,
+  "fields": {
+    "group": 9,
+    "name": "RAL FRASSINO OLD",
+    "price_sqm": 2520.0,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 127,
+  "fields": {
+    "group": 10,
+    "name": "3324",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 128,
+  "fields": {
+    "group": 10,
+    "name": "3329",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 129,
+  "fields": {
+    "group": 10,
+    "name": "3347",
+    "price_sqm": 2408.45,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 130,
+  "fields": {
+    "group": 10,
+    "name": "3349",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 131,
+  "fields": {
+    "group": 10,
+    "name": "3355",
+    "price_sqm": 2453.55,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 132,
+  "fields": {
+    "group": 10,
+    "name": "3382",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 133,
+  "fields": {
+    "group": 10,
+    "name": "3416",
+    "price_sqm": 2448.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 134,
+  "fields": {
+    "group": 10,
+    "name": "3446",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 135,
+  "fields": {
+    "group": 10,
+    "name": "3447",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 136,
+  "fields": {
+    "group": 10,
+    "name": "5695",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 137,
+  "fields": {
+    "group": 10,
+    "name": "5730",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 138,
+  "fields": {
+    "group": 10,
+    "name": "5646",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 139,
+  "fields": {
+    "group": 11,
+    "name": "3299 (PELLE)",
+    "price_sqm": 2550.35,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 140,
+  "fields": {
+    "group": 11,
+    "name": "3153(PELLE)",
+    "price_sqm": 2550.35,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 141,
+  "fields": {
+    "group": 11,
+    "name": "3156(PELLE)",
+    "price_sqm": 2550.35,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 142,
+  "fields": {
+    "group": 11,
+    "name": "3240(PELLE)",
+    "price_sqm": 2550.35,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 143,
+  "fields": {
+    "group": 11,
+    "name": "5679",
+    "price_sqm": 2388.65,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 144,
+  "fields": {
+    "group": 4,
+    "name": "Marmo Antracite",
+    "price_sqm": 2899.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 145,
+  "fields": {
+    "group": 4,
+    "name": "Ciliegia avollo_4604",
+    "price_sqm": 2712.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 146,
+  "fields": {
+    "group": 4,
+    "name": "Penelope Cappucino",
+    "price_sqm": 2712.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 147,
+  "fields": {
+    "group": 4,
+    "name": "Skin Late",
+    "price_sqm": 2712.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 148,
+  "fields": {
+    "group": 4,
+    "name": "Pietra Calce",
+    "price_sqm": 2712.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 149,
+  "fields": {
+    "group": 4,
+    "name": "5785",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 150,
+  "fields": {
+    "group": 4,
+    "name": "5684",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 151,
+  "fields": {
+    "group": 4,
+    "name": "5644",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 152,
+  "fields": {
+    "group": 4,
+    "name": "5813",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 153,
+  "fields": {
+    "group": 4,
+    "name": "5742",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 154,
+  "fields": {
+    "group": 4,
+    "name": "5769",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 155,
+  "fields": {
+    "group": 4,
+    "name": "5427",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 156,
+  "fields": {
+    "group": 4,
+    "name": "5734",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 157,
+  "fields": {
+    "group": 4,
+    "name": "5657",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 158,
+  "fields": {
+    "group": 4,
+    "name": "5741",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 159,
+  "fields": {
+    "group": 4,
+    "name": "5666",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 160,
+  "fields": {
+    "group": 4,
+    "name": "5680",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 161,
+  "fields": {
+    "group": 4,
+    "name": "5743",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 162,
+  "fields": {
+    "group": 12,
+    "name": "4691 (WOOD)",
+    "price_sqm": 2712.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 163,
+  "fields": {
+    "group": 12,
+    "name": "4653 (WOOD)",
+    "price_sqm": 2712.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 164,
+  "fields": {
+    "group": 12,
+    "name": "4583 (WOOD)",
+    "price_sqm": 2712.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 165,
+  "fields": {
+    "group": 5,
+    "name": "Nero LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 166,
+  "fields": {
+    "group": 5,
+    "name": "Bianco LACATO",
+    "price_sqm": 1612.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 167,
+  "fields": {
+    "group": 5,
+    "name": "Bianco Night LACATO",
+    "price_sqm": 1620.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 168,
+  "fields": {
+    "group": 5,
+    "name": "Grigio LACATO",
+    "price_sqm": 1620.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 169,
+  "fields": {
+    "group": 5,
+    "name": "Grigio Chiaro LACATO",
+    "price_sqm": 1606.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 170,
+  "fields": {
+    "group": 5,
+    "name": "Cioccolato LACATO",
+    "price_sqm": 1620.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 171,
+  "fields": {
+    "group": 5,
+    "name": "Cappuccino LACATO",
+    "price_sqm": 1614.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 172,
+  "fields": {
+    "group": 5,
+    "name": "Avorio LACATO",
+    "price_sqm": 1614.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 173,
+  "fields": {
+    "group": 5,
+    "name": "Rose LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 174,
+  "fields": {
+    "group": 5,
+    "name": "Rocca LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 175,
+  "fields": {
+    "group": 5,
+    "name": "Sabbia LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 176,
+  "fields": {
+    "group": 5,
+    "name": "Viola LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 177,
+  "fields": {
+    "group": 5,
+    "name": "Grigio Seta LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 178,
+  "fields": {
+    "group": 5,
+    "name": "Silver LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 179,
+  "fields": {
+    "group": 5,
+    "name": "Ombra LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 180,
+  "fields": {
+    "group": 5,
+    "name": "Grigio Fume LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 181,
+  "fields": {
+    "group": 5,
+    "name": "Grafite LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 182,
+  "fields": {
+    "group": 5,
+    "name": "Pesco LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 183,
+  "fields": {
+    "group": 5,
+    "name": "Tortora LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 184,
+  "fields": {
+    "group": 5,
+    "name": "Corda LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 185,
+  "fields": {
+    "group": 5,
+    "name": "Bruno LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 186,
+  "fields": {
+    "group": 5,
+    "name": "RAL",
+    "price_sqm": 1916.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 187,
+  "fields": {
+    "group": 13,
+    "name": "American walnut 5 мм",
+    "price_sqm": 6657.35,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 188,
+  "fields": {
+    "group": 13,
+    "name": "Walnut Flamed 5мм",
+    "price_sqm": 7435.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 189,
+  "fields": {
+    "group": 13,
+    "name": "Walnut Striped 5 мм",
+    "price_sqm": 7107.8,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 190,
+  "fields": {
+    "group": 13,
+    "name": "Vienna Oak Flamed 5 мм",
+    "price_sqm": 7558.25,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 191,
+  "fields": {
+    "group": 13,
+    "name": "Breeze Oak 5 мм",
+    "price_sqm": 8223.95,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 192,
+  "fields": {
+    "group": 13,
+    "name": "Dark Grey Oak 5 мм",
+    "price_sqm": 7547.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 193,
+  "fields": {
+    "group": 13,
+    "name": "Oak moka 5 мм",
+    "price_sqm": 7162.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 194,
+  "fields": {
+    "group": 13,
+    "name": "Oak thermo 5 мм",
+    "price_sqm": 6861.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 195,
+  "fields": {
+    "group": 13,
+    "name": "Noce Canaletto 5 мм",
+    "price_sqm": 6763.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 196,
+  "fields": {
+    "group": 13,
+    "name": "Noce Ondulato 5 мм",
+    "price_sqm": 7092.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 197,
+  "fields": {
+    "group": 13,
+    "name": "Rovere Chiaro 5 мм",
+    "price_sqm": 7162.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 198,
+  "fields": {
+    "group": 13,
+    "name": "Rovere Fume 5 мм",
+    "price_sqm": 6763.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 199,
+  "fields": {
+    "group": 13,
+    "name": "Makassar 5 мм",
+    "price_sqm": 6742.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 200,
+  "fields": {
+    "group": 13,
+    "name": "Chok Ebano 5 мм",
+    "price_sqm": 9661.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 201,
+  "fields": {
+    "group": 13,
+    "name": "Teak 5 мм",
+    "price_sqm": 6805.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 202,
+  "fields": {
+    "group": 13,
+    "name": "Dark Gey Lati 5 мм",
+    "price_sqm": 7558.25,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 203,
+  "fields": {
+    "group": 14,
+    "name": "American walnut 2,5 мм",
+    "price_sqm": 4410.95,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 204,
+  "fields": {
+    "group": 14,
+    "name": "Walnut Flamed 2,5 мм",
+    "price_sqm": 4855.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 205,
+  "fields": {
+    "group": 14,
+    "name": "Walnut Striped 2,5 мм",
+    "price_sqm": 4668.35,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 206,
+  "fields": {
+    "group": 14,
+    "name": "Vienna Oak Flamed 2,5 мм",
+    "price_sqm": 4925.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 207,
+  "fields": {
+    "group": 14,
+    "name": "Breeze Oak 2,5 мм",
+    "price_sqm": 5306.15,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 208,
+  "fields": {
+    "group": 14,
+    "name": "Dark Gray Oak 2,5 мм",
+    "price_sqm": 4919.47,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 209,
+  "fields": {
+    "group": 14,
+    "name": "Oak moka 2,5 мм",
+    "price_sqm": 4699.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 210,
+  "fields": {
+    "group": 14,
+    "name": "Oak thermo 2,5 мм",
+    "price_sqm": 4527.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 211,
+  "fields": {
+    "group": 14,
+    "name": "Noce Canaletto 2,5 мм",
+    "price_sqm": 4471.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 212,
+  "fields": {
+    "group": 14,
+    "name": "Noce Ondulato 2,5мм",
+    "price_sqm": 4659.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 213,
+  "fields": {
+    "group": 14,
+    "name": "Rovere Chiaro 2,5 мм",
+    "price_sqm": 4699.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 214,
+  "fields": {
+    "group": 14,
+    "name": "Rovere Fume 2,5 мм",
+    "price_sqm": 4471.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 215,
+  "fields": {
+    "group": 14,
+    "name": "Makassar 2,5 мм",
+    "price_sqm": 4459.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 216,
+  "fields": {
+    "group": 14,
+    "name": "Chok Ebano 2,5 мм",
+    "price_sqm": 6127.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 217,
+  "fields": {
+    "group": 14,
+    "name": "Teak 2,5 мм",
+    "price_sqm": 4495.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 218,
+  "fields": {
+    "group": 14,
+    "name": "Dark Gey Lati 2,5 мм",
+    "price_sqm": 4925.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 219,
+  "fields": {
+    "group": 15,
+    "name": "Mirror",
+    "price_sqm": 2345.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 220,
+  "fields": {
+    "group": 15,
+    "name": "Mirror Grey",
+    "price_sqm": 2665.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 221,
+  "fields": {
+    "group": 15,
+    "name": "Mirror Bronze",
+    "price_sqm": 2665.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 222,
+  "fields": {
+    "group": 16,
+    "name": "Colour Glass",
+    "price_sqm": 3165.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 223,
+  "fields": {
+    "group": 17,
+    "name": "Colour Glass Mat",
+    "price_sqm": 3352.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 224,
+  "fields": {
+    "group": 18,
+    "name": "Color Glass (W/U)",
+    "price_sqm": 3965.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 225,
+  "fields": {
+    "group": 19,
+    "name": "Color Glass mat  (W/U)",
+    "price_sqm": 4265.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 226,
+  "fields": {
+    "group": 11,
+    "name": "Pele Fumoso",
+    "price_sqm": 3815.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 227,
+  "fields": {
+    "group": 11,
+    "name": "Pele Marone",
+    "price_sqm": 3815.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 228,
+  "fields": {
+    "group": 11,
+    "name": "Pele Grigio",
+    "price_sqm": 3815.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 229,
+  "fields": {
+    "group": 11,
+    "name": "Pele Salar",
+    "price_sqm": 3815.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 230,
+  "fields": {
+    "group": 11,
+    "name": "Pele Black",
+    "price_sqm": 3815.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 231,
+  "fields": {
+    "group": 20,
+    "name": "American walnut 1,5 мм",
+    "price_sqm": 2867.12,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 232,
+  "fields": {
+    "group": 20,
+    "name": "Walnut Flamed 1,5 мм",
+    "price_sqm": 3156.24,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 233,
+  "fields": {
+    "group": 20,
+    "name": "Walnut Striped 1,5 мм",
+    "price_sqm": 3034.43,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 234,
+  "fields": {
+    "group": 20,
+    "name": "Vienna Oak Flamed 1,5 мм",
+    "price_sqm": 3201.74,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 235,
+  "fields": {
+    "group": 20,
+    "name": "Breeze Oak 1,5 мм",
+    "price_sqm": 3449.0,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 236,
+  "fields": {
+    "group": 20,
+    "name": "Dark Gray Oak 1,5 мм",
+    "price_sqm": 3197.66,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 237,
+  "fields": {
+    "group": 20,
+    "name": "Oak moka 1,5 мм",
+    "price_sqm": 3054.84,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 238,
+  "fields": {
+    "group": 20,
+    "name": "Oak thermo 1,5 мм",
+    "price_sqm": 2943.04,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 239,
+  "fields": {
+    "group": 20,
+    "name": "Noce Canaletto 1,5 мм",
+    "price_sqm": 2906.64,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 240,
+  "fields": {
+    "group": 20,
+    "name": "Noce Ondulato 1,5мм",
+    "price_sqm": 3028.84,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 241,
+  "fields": {
+    "group": 20,
+    "name": "Rovere Chiaro 1,5 мм",
+    "price_sqm": 3054.84,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 242,
+  "fields": {
+    "group": 20,
+    "name": "Rovere Fume 1,5 мм",
+    "price_sqm": 2906.64,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 243,
+  "fields": {
+    "group": 20,
+    "name": "Makassar 1,5 мм",
+    "price_sqm": 2898.84,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 244,
+  "fields": {
+    "group": 20,
+    "name": "Chok Ebano 1,5 мм",
+    "price_sqm": 3983.04,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 245,
+  "fields": {
+    "group": 20,
+    "name": "Teak 1,5 мм",
+    "price_sqm": 2922.24,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 246,
+  "fields": {
+    "group": 21,
+    "name": "Nero  2,5 mm",
+    "price_sqm": 260.0,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 247,
+  "fields": {
+    "group": 21,
+    "name": "Bianco  2,5 mm",
+    "price_sqm": 196.0,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 248,
+  "fields": {
+    "group": 21,
+    "name": "Bianco Night  2,5 mm",
+    "price_sqm": 204.0,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 249,
+  "fields": {
+    "group": 21,
+    "name": "Grigio  2,5 mm",
+    "price_sqm": 204.0,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 250,
+  "fields": {
+    "group": 21,
+    "name": "Grigio Chiaro  2,5 mm",
+    "price_sqm": 190.0,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 251,
+  "fields": {
+    "group": 21,
+    "name": "Cioccolato  2,5 mm",
+    "price_sqm": 204.0,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 252,
+  "fields": {
+    "group": 21,
+    "name": "Cappuccino  2,5 mm",
+    "price_sqm": 198.0,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 253,
+  "fields": {
+    "group": 21,
+    "name": "Avorio  2,5 mm",
+    "price_sqm": 198.0,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 254,
+  "fields": {
+    "group": 21,
+    "name": "Rose  2,5 mm",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 255,
+  "fields": {
+    "group": 21,
+    "name": "Rocca  2,5 mm",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 256,
+  "fields": {
+    "group": 21,
+    "name": "Sabbia  2,5 mm",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 257,
+  "fields": {
+    "group": 21,
+    "name": "Viola  2,5 mm",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 258,
+  "fields": {
+    "group": 21,
+    "name": "Grigio Seta  2,5 mm",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 259,
+  "fields": {
+    "group": 21,
+    "name": "Silver  2,5 mm",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 260,
+  "fields": {
+    "group": 21,
+    "name": "Ombra  2,5 mm",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 261,
+  "fields": {
+    "group": 21,
+    "name": "Grigio Fume  2,5 mm",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 262,
+  "fields": {
+    "group": 21,
+    "name": "Grafite  2,5 mm",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 263,
+  "fields": {
+    "group": 21,
+    "name": "Pesco  2,5 mm",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 264,
+  "fields": {
+    "group": 21,
+    "name": "Tortora  2,5 mm",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 265,
+  "fields": {
+    "group": 21,
+    "name": "Corda  2,5 mm",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 266,
+  "fields": {
+    "group": 21,
+    "name": "Bruno 2,5 mm",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 267,
+  "fields": {
+    "group": 21,
+    "name": "RAL 2,5 mm",
+    "price_sqm": 1916.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 268,
+  "fields": {
+    "group": 22,
+    "name": "Faggio",
+    "price_sqm": 2951.0,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 269,
+  "fields": {
+    "group": 22,
+    "name": "Noce Americano",
+    "price_sqm": 2497.45,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 270,
+  "fields": {
+    "group": 22,
+    "name": "Rovere Europeo",
+    "price_sqm": 2032.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 271,
+  "fields": {
+    "group": 22,
+    "name": "Noce Europeo",
+    "price_sqm": 1939.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 272,
+  "fields": {
+    "group": 22,
+    "name": "Rovere Country",
+    "price_sqm": 2302.4,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 273,
+  "fields": {
+    "group": 22,
+    "name": "Rovere Whisky",
+    "price_sqm": 1981.55,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 274,
+  "fields": {
+    "group": 22,
+    "name": "Ebano",
+    "price_sqm": 2175.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 275,
+  "fields": {
+    "group": 22,
+    "name": "Rovere Grigio",
+    "price_sqm": 1991.55,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 276,
+  "fields": {
+    "group": 22,
+    "name": "Rovere Cioccolato",
+    "price_sqm": 1991.55,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 277,
+  "fields": {
+    "group": 22,
+    "name": "Rovere Moca",
+    "price_sqm": 3168.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 278,
+  "fields": {
+    "group": 22,
+    "name": "Rovere Retro",
+    "price_sqm": 2578.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 279,
+  "fields": {
+    "group": 22,
+    "name": "Noce Europeo RAD",
+    "price_sqm": 2194.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 280,
+  "fields": {
+    "group": 22,
+    "name": "Oak thermo",
+    "price_sqm": 2193.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 281,
+  "fields": {
+    "group": 22,
+    "name": "Oak moka",
+    "price_sqm": 2236.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 282,
+  "fields": {
+    "group": 22,
+    "name": "Chok Ebano",
+    "price_sqm": 2593.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 283,
+  "fields": {
+    "group": 22,
+    "name": "Teak",
+    "price_sqm": 2185.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 284,
+  "fields": {
+    "group": 22,
+    "name": "American walnut",
+    "price_sqm": 2164.55,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 285,
+  "fields": {
+    "group": 22,
+    "name": "Breeze Oak",
+    "price_sqm": 2388.35,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 286,
+  "fields": {
+    "group": 22,
+    "name": "Vienna Oak Flamed",
+    "price_sqm": 2293.25,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 287,
+  "fields": {
+    "group": 22,
+    "name": "Walnut Striped",
+    "price_sqm": 2228.9,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 288,
+  "fields": {
+    "group": 22,
+    "name": "Dark Grey Oak",
+    "price_sqm": 2291.68,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 289,
+  "fields": {
+    "group": 22,
+    "name": "Walnut Flamed",
+    "price_sqm": 2275.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 290,
+  "fields": {
+    "group": 22,
+    "name": "Noce Canaletto",
+    "price_sqm": 2179.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 291,
+  "fields": {
+    "group": 22,
+    "name": "Rovere Canuto",
+    "price_sqm": 3391.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 292,
+  "fields": {
+    "group": 22,
+    "name": "Rovere Tetro",
+    "price_sqm": 3391.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 293,
+  "fields": {
+    "group": 22,
+    "name": "Rovere Chiaro",
+    "price_sqm": 2236.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 294,
+  "fields": {
+    "group": 22,
+    "name": "Vienna Oak Striped",
+    "price_sqm": 2293.25,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 295,
+  "fields": {
+    "group": 22,
+    "name": "Eucalipto Canuto",
+    "price_sqm": 3391.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 296,
+  "fields": {
+    "group": 22,
+    "name": "Eucalipto Perla",
+    "price_sqm": 3391.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 297,
+  "fields": {
+    "group": 22,
+    "name": "Makassar",
+    "price_sqm": 2176.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 298,
+  "fields": {
+    "group": 22,
+    "name": "Rovere Fume",
+    "price_sqm": 2179.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 299,
+  "fields": {
+    "group": 22,
+    "name": "Noce Ondulato",
+    "price_sqm": 2226.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 300,
+  "fields": {
+    "group": 23,
+    "name": "Nero FRASSINO",
+    "price_sqm": 1896.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 301,
+  "fields": {
+    "group": 23,
+    "name": "Bianco FRASSINO",
+    "price_sqm": 1768.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 302,
+  "fields": {
+    "group": 23,
+    "name": "Bianco Night FRASSINO",
+    "price_sqm": 1784.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 303,
+  "fields": {
+    "group": 23,
+    "name": "Grigio FRASSINO",
+    "price_sqm": 1785.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 304,
+  "fields": {
+    "group": 23,
+    "name": "Grigio Chiaro FRASSINO",
+    "price_sqm": 1757.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 305,
+  "fields": {
+    "group": 23,
+    "name": "Cioccolato FRASSINO",
+    "price_sqm": 1785.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 306,
+  "fields": {
+    "group": 23,
+    "name": "Cappuccino FRASSINO",
+    "price_sqm": 1773.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 307,
+  "fields": {
+    "group": 23,
+    "name": "Avorio FRASSINO",
+    "price_sqm": 1773.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 308,
+  "fields": {
+    "group": 23,
+    "name": "Rose FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 309,
+  "fields": {
+    "group": 23,
+    "name": "Rocca FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 310,
+  "fields": {
+    "group": 23,
+    "name": "Sabbia FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 311,
+  "fields": {
+    "group": 23,
+    "name": "Viola FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 312,
+  "fields": {
+    "group": 23,
+    "name": "Grigio Seta FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 313,
+  "fields": {
+    "group": 23,
+    "name": "Silver FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 314,
+  "fields": {
+    "group": 23,
+    "name": "Ombra FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 315,
+  "fields": {
+    "group": 23,
+    "name": "Grigio Fume FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 316,
+  "fields": {
+    "group": 23,
+    "name": "Grafite FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 317,
+  "fields": {
+    "group": 23,
+    "name": "Pesco FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 318,
+  "fields": {
+    "group": 23,
+    "name": "Tortora FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 319,
+  "fields": {
+    "group": 23,
+    "name": "Corda FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 320,
+  "fields": {
+    "group": 23,
+    "name": "Bruno FRASSINO",
+    "price_sqm": 1897.26,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 321,
+  "fields": {
+    "group": 23,
+    "name": "RAL FRASSINO",
+    "price_sqm": 2200.0,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 322,
+  "fields": {
+    "group": 24,
+    "name": "Nero FRASSINO OLD",
+    "price_sqm": 2196.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 323,
+  "fields": {
+    "group": 24,
+    "name": "Bianco FRASSINO OLD",
+    "price_sqm": 2068.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 324,
+  "fields": {
+    "group": 24,
+    "name": "Bianco Night FRASSINO OLD",
+    "price_sqm": 2084.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 325,
+  "fields": {
+    "group": 24,
+    "name": "Grigio FRASSINO OLD",
+    "price_sqm": 2085.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 326,
+  "fields": {
+    "group": 24,
+    "name": "Grigio Chiaro FRASSINO OLD",
+    "price_sqm": 2057.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 327,
+  "fields": {
+    "group": 24,
+    "name": "Cioccolato FRASSINO OLD",
+    "price_sqm": 2085.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 328,
+  "fields": {
+    "group": 24,
+    "name": "Cappuccino FRASSINO OLD",
+    "price_sqm": 2073.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 329,
+  "fields": {
+    "group": 24,
+    "name": "Avorio FRASSINO OLD",
+    "price_sqm": 2073.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 330,
+  "fields": {
+    "group": 24,
+    "name": "Rose FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 331,
+  "fields": {
+    "group": 24,
+    "name": "Rocca FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 332,
+  "fields": {
+    "group": 24,
+    "name": "Sabbia FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 333,
+  "fields": {
+    "group": 24,
+    "name": "Viola FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 334,
+  "fields": {
+    "group": 24,
+    "name": "Grigio Seta FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 335,
+  "fields": {
+    "group": 24,
+    "name": "Silver FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 336,
+  "fields": {
+    "group": 24,
+    "name": "Ombra FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 337,
+  "fields": {
+    "group": 24,
+    "name": "Grigio Fume FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 338,
+  "fields": {
+    "group": 24,
+    "name": "Grafite FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 339,
+  "fields": {
+    "group": 24,
+    "name": "Pesco FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 340,
+  "fields": {
+    "group": 24,
+    "name": "Tortora FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 341,
+  "fields": {
+    "group": 24,
+    "name": "Corda FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 342,
+  "fields": {
+    "group": 24,
+    "name": "Bruno FRASSINO OLD",
+    "price_sqm": 2197.56,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 343,
+  "fields": {
+    "group": 24,
+    "name": "RAL FRASSINO OLD",
+    "price_sqm": 2520.0,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 344,
+  "fields": {
+    "group": 25,
+    "name": "3324",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 345,
+  "fields": {
+    "group": 25,
+    "name": "3329",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 346,
+  "fields": {
+    "group": 25,
+    "name": "3347",
+    "price_sqm": 2408.45,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 347,
+  "fields": {
+    "group": 25,
+    "name": "3349",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 348,
+  "fields": {
+    "group": 25,
+    "name": "3355",
+    "price_sqm": 2453.55,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 349,
+  "fields": {
+    "group": 25,
+    "name": "3382",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 350,
+  "fields": {
+    "group": 25,
+    "name": "3416",
+    "price_sqm": 2448.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 351,
+  "fields": {
+    "group": 25,
+    "name": "3446",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 352,
+  "fields": {
+    "group": 25,
+    "name": "3447",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 353,
+  "fields": {
+    "group": 25,
+    "name": "5695",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 354,
+  "fields": {
+    "group": 25,
+    "name": "5730",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 355,
+  "fields": {
+    "group": 25,
+    "name": "5646",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 356,
+  "fields": {
+    "group": 26,
+    "name": "3299 (PELLE)",
+    "price_sqm": 2550.35,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 357,
+  "fields": {
+    "group": 26,
+    "name": "3153(PELLE)",
+    "price_sqm": 2550.35,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 358,
+  "fields": {
+    "group": 26,
+    "name": "3156(PELLE)",
+    "price_sqm": 2550.35,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 359,
+  "fields": {
+    "group": 26,
+    "name": "3240(PELLE)",
+    "price_sqm": 2550.35,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 360,
+  "fields": {
+    "group": 26,
+    "name": "5679",
+    "price_sqm": 2388.65,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 361,
+  "fields": {
+    "group": 27,
+    "name": "Marmo Antracite",
+    "price_sqm": 2899.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 362,
+  "fields": {
+    "group": 27,
+    "name": "Rame FB 43",
+    "price_sqm": 2712.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 363,
+  "fields": {
+    "group": 27,
+    "name": "Ciliegia avollo_4604",
+    "price_sqm": 2712.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 364,
+  "fields": {
+    "group": 27,
+    "name": "Penelope Cappucino",
+    "price_sqm": 2712.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 365,
+  "fields": {
+    "group": 27,
+    "name": "Linen grigio 3318",
+    "price_sqm": 2712.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 366,
+  "fields": {
+    "group": 27,
+    "name": "Skin Late",
+    "price_sqm": 2712.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 367,
+  "fields": {
+    "group": 27,
+    "name": "Pietra Calce",
+    "price_sqm": 2712.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 368,
+  "fields": {
+    "group": 27,
+    "name": "Bronzo 3412",
+    "price_sqm": 2712.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 369,
+  "fields": {
+    "group": 27,
+    "name": "5785",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 370,
+  "fields": {
+    "group": 27,
+    "name": "5684",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 371,
+  "fields": {
+    "group": 27,
+    "name": "5644",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 372,
+  "fields": {
+    "group": 27,
+    "name": "5813",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 373,
+  "fields": {
+    "group": 27,
+    "name": "5742",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 374,
+  "fields": {
+    "group": 27,
+    "name": "5769",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 375,
+  "fields": {
+    "group": 27,
+    "name": "5427",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 376,
+  "fields": {
+    "group": 27,
+    "name": "5734",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 377,
+  "fields": {
+    "group": 27,
+    "name": "5657",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 378,
+  "fields": {
+    "group": 27,
+    "name": "5741",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 379,
+  "fields": {
+    "group": 27,
+    "name": "5666",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 380,
+  "fields": {
+    "group": 27,
+    "name": "5680",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 381,
+  "fields": {
+    "group": 27,
+    "name": "5743",
+    "price_sqm": 2445.85,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 382,
+  "fields": {
+    "group": 28,
+    "name": "4691 (WOOD)",
+    "price_sqm": 2712.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 383,
+  "fields": {
+    "group": 28,
+    "name": "4653 (WOOD)",
+    "price_sqm": 2712.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 384,
+  "fields": {
+    "group": 28,
+    "name": "4583 (WOOD)",
+    "price_sqm": 2712.05,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 385,
+  "fields": {
+    "group": 29,
+    "name": "Nero LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 386,
+  "fields": {
+    "group": 29,
+    "name": "Bianco LACATO",
+    "price_sqm": 1612.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 387,
+  "fields": {
+    "group": 29,
+    "name": "Bianco Night LACATO",
+    "price_sqm": 1620.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 388,
+  "fields": {
+    "group": 29,
+    "name": "Grigio LACATO",
+    "price_sqm": 1620.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 389,
+  "fields": {
+    "group": 29,
+    "name": "Grigio Chiaro LACATO",
+    "price_sqm": 1606.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 390,
+  "fields": {
+    "group": 29,
+    "name": "Cioccolato LACATO",
+    "price_sqm": 1620.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 391,
+  "fields": {
+    "group": 29,
+    "name": "Cappuccino LACATO",
+    "price_sqm": 1614.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 392,
+  "fields": {
+    "group": 29,
+    "name": "Avorio LACATO",
+    "price_sqm": 1614.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 393,
+  "fields": {
+    "group": 29,
+    "name": "Rose LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 394,
+  "fields": {
+    "group": 29,
+    "name": "Rocca LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 395,
+  "fields": {
+    "group": 29,
+    "name": "Sabbia LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 396,
+  "fields": {
+    "group": 29,
+    "name": "Viola LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 397,
+  "fields": {
+    "group": 29,
+    "name": "Grigio Seta LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 398,
+  "fields": {
+    "group": 29,
+    "name": "Silver LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 399,
+  "fields": {
+    "group": 29,
+    "name": "Ombra LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 400,
+  "fields": {
+    "group": 29,
+    "name": "Grigio Fume LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 401,
+  "fields": {
+    "group": 29,
+    "name": "Grafite LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 402,
+  "fields": {
+    "group": 29,
+    "name": "Pesco LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 403,
+  "fields": {
+    "group": 29,
+    "name": "Tortora LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 404,
+  "fields": {
+    "group": 29,
+    "name": "Corda LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 405,
+  "fields": {
+    "group": 29,
+    "name": "Bruno LACATO",
+    "price_sqm": 1676.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 406,
+  "fields": {
+    "group": 29,
+    "name": "RAL",
+    "price_sqm": 1916.99,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 407,
+  "fields": {
+    "group": 30,
+    "name": "Fondo",
+    "price_sqm": 820.0,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 408,
+  "fields": {
+    "group": 31,
+    "name": "Mirror",
+    "price_sqm": 2345.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 409,
+  "fields": {
+    "group": 31,
+    "name": "Mirror Grey",
+    "price_sqm": 2665.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 410,
+  "fields": {
+    "group": 31,
+    "name": "Mirror Bronze",
+    "price_sqm": 2665.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 411,
+  "fields": {
+    "group": 32,
+    "name": "Colour Glass",
+    "price_sqm": 3165.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 412,
+  "fields": {
+    "group": 33,
+    "name": "Colour Glass Mat",
+    "price_sqm": 3352.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 413,
+  "fields": {
+    "group": 34,
+    "name": "Color Glass (W/U)",
+    "price_sqm": 3965.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 414,
+  "fields": {
+    "group": 35,
+    "name": "Color Glass mat  (W/U)",
+    "price_sqm": 4265.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 415,
+  "fields": {
+    "group": 26,
+    "name": "Pele Fumoso",
+    "price_sqm": 3815.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 416,
+  "fields": {
+    "group": 26,
+    "name": "Pele Marone",
+    "price_sqm": 3815.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 417,
+  "fields": {
+    "group": 26,
+    "name": "Pele Grigio",
+    "price_sqm": 3815.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 418,
+  "fields": {
+    "group": 26,
+    "name": "Pele Salar",
+    "price_sqm": 3815.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.finish",
+  "pk": 419,
+  "fields": {
+    "group": 26,
+    "name": "Pele Black",
+    "price_sqm": 3815.75,
+    "decor_name": ""
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 1,
+  "fields": {
+    "name": "Black sand 1K",
+    "sort_order": 2
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 2,
+  "fields": {
+    "name": "Champagne Colour 2K",
+    "sort_order": 3
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 3,
+  "fields": {
+    "name": "Titanium Matt Colour 2K",
+    "sort_order": 4
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 4,
+  "fields": {
+    "name": "Dark brown Colour 2K",
+    "sort_order": 5
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 5,
+  "fields": {
+    "name": "Black Matt Colour 2K",
+    "sort_order": 6
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 6,
+  "fields": {
+    "name": "White Matt Colour 2K",
+    "sort_order": 7
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 7,
+  "fields": {
+    "name": "Pearl Matt Colour 2K",
+    "sort_order": 8
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 8,
+  "fields": {
+    "name": "Gold matt Colour 2K",
+    "sort_order": 9
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 9,
+  "fields": {
+    "name": "Bronze Matt Colour 3K",
+    "sort_order": 10
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 10,
+  "fields": {
+    "name": "Chrome mat. 1K",
+    "sort_order": 11
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 11,
+  "fields": {
+    "name": "White sand 9003 1K",
+    "sort_order": 12
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 12,
+  "fields": {
+    "name": "Gold mat. 3K",
+    "sort_order": 13
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 13,
+  "fields": {
+    "name": "Champagne mat. 3K",
+    "sort_order": 14
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 14,
+  "fields": {
+    "name": "Gold 005 colour 2K",
+    "sort_order": 15
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 15,
+  "fields": {
+    "name": "Bonded 001 colour 2K",
+    "sort_order": 16
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 16,
+  "fields": {
+    "name": "Grafit 7016 colour 2K",
+    "sort_order": 17
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 17,
+  "fields": {
+    "name": "Cave colour",
+    "sort_order": 18
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 18,
+  "fields": {
+    "name": "Nomad colour",
+    "sort_order": 19
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 19,
+  "fields": {
+    "name": "Paladium Colour",
+    "sort_order": 20
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 20,
+  "fields": {
+    "name": "Marone Colour",
+    "sort_order": 19
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 21,
+  "fields": {
+    "name": "Gold 012 colour",
+    "sort_order": 22
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 22,
+  "fields": {
+    "name": "Avorio Colour",
+    "sort_order": 23
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 23,
+  "fields": {
+    "name": "Grafite Colour",
+    "sort_order": 24
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 24,
+  "fields": {
+    "name": "Corda Colour",
+    "sort_order": 25
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 25,
+  "fields": {
+    "name": "Ombra Colour",
+    "sort_order": 26
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 26,
+  "fields": {
+    "name": "Nikel Colour",
+    "sort_order": 27
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 27,
+  "fields": {
+    "name": "Copper Colour",
+    "sort_order": 28
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 28,
+  "fields": {
+    "name": "Цвет профиля",
+    "sort_order": 1
+  }
+},
+{
+  "model": "panels.profilecolor",
+  "pk": 29,
+  "fields": {
+    "name": "Marone  Colour",
+    "sort_order": 21
+  }
+},
+{
+  "model": "panels.aluminumprofile",
+  "pk": 17,
+  "fields": {
+    "article": "104.256",
+    "name": "Торцевой профиль (финишный) Арт. 104.256",
+    "length_mm": 3000,
+    "price_per_piece": 250.0,
+    "joint_type_code": "A",
+    "count_per_joint": 1.0,
+    "note": ""
+  }
+},
+{
+  "model": "panels.aluminumprofile",
+  "pk": 18,
+  "fields": {
+    "article": "104.256",
+    "name": "Торцевой профиль (финишный) Арт. 104.256",
+    "length_mm": 3000,
+    "price_per_piece": 250.0,
+    "joint_type_code": "I",
+    "count_per_joint": 1.0,
+    "note": ""
+  }
+},
+{
+  "model": "panels.aluminumprofile",
+  "pk": 19,
+  "fields": {
+    "article": "104.259",
+    "name": "Соединительный профиль Арт. 104.259",
+    "length_mm": 3000,
+    "price_per_piece": 250.0,
+    "joint_type_code": "C",
+    "count_per_joint": 0.5,
+    "note": ""
+  }
+},
+{
+  "model": "panels.aluminumprofile",
+  "pk": 20,
+  "fields": {
+    "article": "104.270",
+    "name": "Угловой профиль Арт. 104.270",
+    "length_mm": 3000,
+    "price_per_piece": 350.0,
+    "joint_type_code": "D",
+    "count_per_joint": 0.5,
+    "note": ""
+  }
+},
+{
+  "model": "panels.aluminumprofile",
+  "pk": 21,
+  "fields": {
+    "article": "104.270",
+    "name": "Угловой профиль Арт. 104.270",
+    "length_mm": 3000,
+    "price_per_piece": 350.0,
+    "joint_type_code": "DG",
+    "count_per_joint": 0.5,
+    "note": ""
+  }
+},
+{
+  "model": "panels.aluminumprofile",
+  "pk": 22,
+  "fields": {
+    "article": "104.270",
+    "name": "Угловой профиль Арт. 104.270",
+    "length_mm": 3000,
+    "price_per_piece": 350.0,
+    "joint_type_code": "DH",
+    "count_per_joint": 0.5,
+    "note": ""
+  }
+},
+{
+  "model": "panels.aluminumprofile",
+  "pk": 23,
+  "fields": {
+    "article": "ламель",
+    "name": "Ламель соединительная (тип B)",
+    "length_mm": 3000,
+    "price_per_piece": 40.0,
+    "joint_type_code": "B",
+    "count_per_joint": 0.5,
+    "note": ""
+  }
+},
+{
+  "model": "panels.aluminumprofile",
+  "pk": 24,
+  "fields": {
+    "article": "МДФ 10",
+    "name": "Навес стеновой панели",
+    "length_mm": 900,
+    "price_per_piece": 200.0,
+    "joint_type_code": "",
+    "count_per_joint": 0.0,
+    "note": "4 шт на каждую панель"
+  }
+},
+{
+  "model": "panels.aluminumprofile",
+  "pk": 25,
+  "fields": {
+    "article": "П 6x6",
+    "name": "Алюминиевый декоративный профиль П 6×6",
+    "length_mm": 2995,
+    "price_per_piece": 250.0,
+    "joint_type_code": "decor",
+    "count_per_joint": 1.0,
+    "note": "Декоративный вертикальный/горизонтальный вставной профиль. Укажите цену в разделе администрирования."
+  }
+},
+{
+  "model": "panels.framingprofileprice",
+  "pk": 1,
+  "fields": {
+    "category": "mini",
+    "price_per_3000": 865.0
+  }
+},
+{
+  "model": "panels.framingprofileprice",
+  "pk": 2,
+  "fields": {
+    "category": "passo",
+    "price_per_3000": 2760.0
+  }
+},
+{
+  "model": "panels.framingprofileprice",
+  "pk": 3,
+  "fields": {
+    "category": "triangle",
+    "price_per_3000": 1090.0
+  }
+},
+{
+  "model": "panels.framingprofileprice",
+  "pk": 4,
+  "fields": {
+    "category": "default",
+    "price_per_3000": 2760.0
+  }
+},
+{
+  "model": "panels.framingmodel",
+  "pk": 1,
+  "fields": {
+    "name": "Luna",
+    "subtitle": "Классика",
+    "nH": 45.0,
+    "nL": 90.0,
+    "dH": -22.0,
+    "dL": -25.0,
+    "depth_mode": "luna",
+    "depth_delta": 0.0,
+    "profile_count": 4,
+    "has_glass": false,
+    "price_category": "default",
+    "sort_order": 0
+  }
+},
+{
+  "model": "panels.framingmodel",
+  "pk": 2,
+  "fields": {
+    "name": "Luna-Glass",
+    "subtitle": "Со стеклом",
+    "nH": 45.0,
+    "nL": 90.0,
+    "dH": -22.0,
+    "dL": -25.0,
+    "depth_mode": "luna",
+    "depth_delta": 0.0,
+    "profile_count": 4,
+    "has_glass": true,
+    "price_category": "default",
+    "sort_order": 1
+  }
+},
+{
+  "model": "panels.framingmodel",
+  "pk": 3,
+  "fields": {
+    "name": "Dune",
+    "subtitle": "Широкий",
+    "nH": 105.0,
+    "nL": 210.0,
+    "dH": -22.0,
+    "dL": -25.0,
+    "depth_mode": "cas",
+    "depth_delta": 0.0,
+    "profile_count": 4,
+    "has_glass": false,
+    "price_category": "default",
+    "sort_order": 2
+  }
+},
+{
+  "model": "panels.framingmodel",
+  "pk": 4,
+  "fields": {
+    "name": "Cascade",
+    "subtitle": "Широкий",
+    "nH": 105.0,
+    "nL": 210.0,
+    "dH": -22.0,
+    "dL": -25.0,
+    "depth_mode": "cas",
+    "depth_delta": 0.0,
+    "profile_count": 4,
+    "has_glass": false,
+    "price_category": "default",
+    "sort_order": 3
+  }
+},
+{
+  "model": "panels.framingmodel",
+  "pk": 5,
+  "fields": {
+    "name": "MINI",
+    "subtitle": "Компактный",
+    "nH": 12.0,
+    "nL": 24.0,
+    "dH": -17.0,
+    "dL": -15.0,
+    "depth_mode": "fixed",
+    "depth_delta": 10.0,
+    "profile_count": 1,
+    "has_glass": false,
+    "price_category": "mini",
+    "sort_order": 4
+  }
+},
+{
+  "model": "panels.framingmodel",
+  "pk": 6,
+  "fields": {
+    "name": "TRIANGLE",
+    "subtitle": "Треугольный",
+    "nH": 6.0,
+    "nL": 12.0,
+    "dH": -17.0,
+    "dL": -15.0,
+    "depth_mode": "fixed",
+    "depth_delta": -3.0,
+    "profile_count": 3,
+    "has_glass": false,
+    "price_category": "triangle",
+    "sort_order": 5
+  }
+},
+{
+  "model": "panels.framingmodel",
+  "pk": 7,
+  "fields": {
+    "name": "PASSO",
+    "subtitle": "Широкий",
+    "nH": 105.0,
+    "nL": 210.0,
+    "dH": -22.0,
+    "dL": -25.0,
+    "depth_mode": "fixed",
+    "depth_delta": 0.0,
+    "profile_count": 2,
+    "has_glass": false,
+    "price_category": "passo",
+    "sort_order": 6
+  }
+},
+{
+  "model": "panels.framingmodel",
+  "pk": 8,
+  "fields": {
+    "name": "PORTALE",
+    "subtitle": "Портальный",
+    "nH": -5.0,
+    "nL": -10.0,
+    "dH": -34.0,
+    "dL": -48.0,
+    "depth_mode": "fixed",
+    "depth_delta": -25.0,
+    "profile_count": 4,
+    "has_glass": false,
+    "price_category": "default",
+    "sort_order": 7
+  }
+},
+{
+  "model": "panels.framingmodel",
+  "pk": 9,
+  "fields": {
+    "name": "TERZO",
+    "subtitle": "Трёхуровневый",
+    "nH": 45.0,
+    "nL": 90.0,
+    "dH": -21.5,
+    "dL": -23.0,
+    "depth_mode": "fixed",
+    "depth_delta": 23.0,
+    "profile_count": 4,
+    "has_glass": false,
+    "price_category": "default",
+    "sort_order": 8
+  }
+},
+{
+  "model": "panels.framingmodel",
+  "pk": 10,
+  "fields": {
+    "name": "WAVE",
+    "subtitle": "Волна",
+    "nH": 45.0,
+    "nL": 46.0,
+    "dH": -22.0,
+    "dL": -23.0,
+    "depth_mode": "fixed",
+    "depth_delta": 53.0,
+    "profile_count": 4,
+    "has_glass": false,
+    "price_category": "default",
+    "sort_order": 9
+  }
+},
+{
+  "model": "panels.framingmodel",
+  "pk": 11,
+  "fields": {
+    "name": "DORA",
+    "subtitle": "Широкий профиль",
+    "nH": 66.0,
+    "nL": 132.0,
+    "dH": -21.5,
+    "dL": -23.0,
+    "depth_mode": "fixed",
+    "depth_delta": 26.0,
+    "profile_count": 4,
+    "has_glass": false,
+    "price_category": "default",
+    "sort_order": 10
+  }
+},
+{
+  "model": "panels.framingmodel",
+  "pk": 12,
+  "fields": {
+    "name": "BAMBOO",
+    "subtitle": "Тонкий",
+    "nH": 45.0,
+    "nL": 90.0,
+    "dH": -22.0,
+    "dL": -25.0,
+    "depth_mode": "fixed",
+    "depth_delta": 10.0,
+    "profile_count": 4,
+    "has_glass": false,
+    "price_category": "default",
+    "sort_order": 11
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 1,
+  "fields": {
+    "name": "Chrome Matt 1К",
+    "sort_order": 0
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 2,
+  "fields": {
+    "name": "White Matt Colour 2К",
+    "sort_order": 1
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 3,
+  "fields": {
+    "name": "Black Matt Colour 2K",
+    "sort_order": 2
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 4,
+  "fields": {
+    "name": "Titanium Matt Colour 2К",
+    "sort_order": 3
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 5,
+  "fields": {
+    "name": "Gold Matt Colour 2К",
+    "sort_order": 4
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 6,
+  "fields": {
+    "name": "Champagne Colour 2К",
+    "sort_order": 5
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 7,
+  "fields": {
+    "name": "Champagne Bright 4К",
+    "sort_order": 6
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 8,
+  "fields": {
+    "name": "Champagne Matt 3К",
+    "sort_order": 7
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 9,
+  "fields": {
+    "name": "Bronze Matt Colour 3K",
+    "sort_order": 8
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 10,
+  "fields": {
+    "name": "Dark Brown Colour 2К",
+    "sort_order": 9
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 11,
+  "fields": {
+    "name": "Pearl Matt Colour 2К",
+    "sort_order": 10
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 12,
+  "fields": {
+    "name": "White Sand 1К",
+    "sort_order": 11
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 13,
+  "fields": {
+    "name": "Black Sand 1K",
+    "sort_order": 12
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 14,
+  "fields": {
+    "name": "Bonded 001 colour 2K",
+    "sort_order": 13
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 15,
+  "fields": {
+    "name": "Grafit 7016 colour 2K",
+    "sort_order": 14
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 16,
+  "fields": {
+    "name": "Gold 005 colour 2K",
+    "sort_order": 15
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 17,
+  "fields": {
+    "name": "Cave colour",
+    "sort_order": 16
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 18,
+  "fields": {
+    "name": "Nomad colour",
+    "sort_order": 17
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 19,
+  "fields": {
+    "name": "Paladium colour",
+    "sort_order": 18
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 20,
+  "fields": {
+    "name": "Marone Colour",
+    "sort_order": 19
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 21,
+  "fields": {
+    "name": "Avorio Colour",
+    "sort_order": 20
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 22,
+  "fields": {
+    "name": "Grafite Colour",
+    "sort_order": 21
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 23,
+  "fields": {
+    "name": "Corda Colour",
+    "sort_order": 22
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 24,
+  "fields": {
+    "name": "Ombra Colour",
+    "sort_order": 23
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 25,
+  "fields": {
+    "name": "Nikel Colour",
+    "sort_order": 24
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 26,
+  "fields": {
+    "name": "Copper Colour",
+    "sort_order": 25
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 27,
+  "fields": {
+    "name": "Chrome Matt Colour 2К",
+    "sort_order": 26
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 28,
+  "fields": {
+    "name": "Gold Matt 3К",
+    "sort_order": 27
+  }
+},
+{
+  "model": "panels.framingcolor",
+  "pk": 29,
+  "fields": {
+    "name": "Gold 012 colour",
+    "sort_order": 28
+  }
+},
+{
+  "model": "panels.framingdoborgroup",
+  "pk": 1,
+  "fields": {
+    "name": "ШПОН",
+    "is_dobor": true,
+    "is_glass": true,
+    "glass_price_per_m": 360.0,
+    "sort_order": 0
+  }
+},
+{
+  "model": "panels.framingdoborgroup",
+  "pk": 2,
+  "fields": {
+    "name": "КОМПОЗИТ",
+    "is_dobor": true,
+    "is_glass": true,
+    "glass_price_per_m": 620.0,
+    "sort_order": 1
+  }
+},
+{
+  "model": "panels.framingdoborgroup",
+  "pk": 3,
+  "fields": {
+    "name": "LACATO",
+    "is_dobor": true,
+    "is_glass": true,
+    "glass_price_per_m": 620.0,
+    "sort_order": 2
+  }
+},
+{
+  "model": "panels.framingdoborgroup",
+  "pk": 4,
+  "fields": {
+    "name": "FRASSINO",
+    "is_dobor": true,
+    "is_glass": true,
+    "glass_price_per_m": 620.0,
+    "sort_order": 3
+  }
+},
+{
+  "model": "panels.framingdoborgroup",
+  "pk": 5,
+  "fields": {
+    "name": "FONDO",
+    "is_dobor": true,
+    "is_glass": true,
+    "glass_price_per_m": 620.0,
+    "sort_order": 4
+  }
+},
+{
+  "model": "panels.framingdoborgroup",
+  "pk": 6,
+  "fields": {
+    "name": "ПОД_АЛЮМИНИЙ",
+    "is_dobor": true,
+    "is_glass": false,
+    "glass_price_per_m": 620.0,
+    "sort_order": 5
+  }
+},
+{
+  "model": "panels.framingdoborgroup",
+  "pk": 7,
+  "fields": {
+    "name": "КОЖА",
+    "is_dobor": true,
+    "is_glass": true,
+    "glass_price_per_m": 620.0,
+    "sort_order": 6
+  }
+},
+{
+  "model": "panels.framingdoborgroup",
+  "pk": 8,
+  "fields": {
+    "name": "СТЕКЛО",
+    "is_dobor": false,
+    "is_glass": true,
+    "glass_price_per_m": 620.0,
+    "sort_order": 100
+  }
+},
+{
+  "model": "panels.framingdoborgroup",
+  "pk": 9,
+  "fields": {
+    "name": "ЗЕРКАЛО",
+    "is_dobor": false,
+    "is_glass": true,
+    "glass_price_per_m": 620.0,
+    "sort_order": 101
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 1,
+  "fields": {
+    "group": 1,
+    "name": "Faggio",
+    "price": 10713.0,
+    "sort_order": 0
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 2,
+  "fields": {
+    "group": 1,
+    "name": "Noce Americano",
+    "price": 10713.0,
+    "sort_order": 1
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 3,
+  "fields": {
+    "group": 1,
+    "name": "Noce Europeo",
+    "price": 10713.0,
+    "sort_order": 2
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 4,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Country",
+    "price": 10713.0,
+    "sort_order": 3
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 5,
+  "fields": {
+    "group": 1,
+    "name": "American Walnut",
+    "price": 10713.0,
+    "sort_order": 4
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 6,
+  "fields": {
+    "group": 1,
+    "name": "Breeze Oak",
+    "price": 10713.0,
+    "sort_order": 5
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 7,
+  "fields": {
+    "group": 1,
+    "name": "Dark Grey Oak",
+    "price": 10713.0,
+    "sort_order": 6
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 8,
+  "fields": {
+    "group": 1,
+    "name": "Vienna Oak Flamed",
+    "price": 10713.0,
+    "sort_order": 7
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 9,
+  "fields": {
+    "group": 1,
+    "name": "Noce Canaletto",
+    "price": 10713.0,
+    "sort_order": 8
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 10,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Canuto",
+    "price": 10713.0,
+    "sort_order": 9
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 11,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Tetro",
+    "price": 10713.0,
+    "sort_order": 10
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 12,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Chiaro",
+    "price": 10713.0,
+    "sort_order": 11
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 13,
+  "fields": {
+    "group": 1,
+    "name": "Vienna Oak Striped",
+    "price": 10713.0,
+    "sort_order": 12
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 14,
+  "fields": {
+    "group": 1,
+    "name": "Eucalipto Canuto",
+    "price": 10713.0,
+    "sort_order": 13
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 15,
+  "fields": {
+    "group": 1,
+    "name": "Eucalipto Perla",
+    "price": 10713.0,
+    "sort_order": 14
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 16,
+  "fields": {
+    "group": 1,
+    "name": "Makassar",
+    "price": 10713.0,
+    "sort_order": 15
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 17,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Fume",
+    "price": 10713.0,
+    "sort_order": 16
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 18,
+  "fields": {
+    "group": 1,
+    "name": "Noce Ondulato",
+    "price": 10713.0,
+    "sort_order": 17
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 19,
+  "fields": {
+    "group": 1,
+    "name": "Walnut Flamed",
+    "price": 10713.0,
+    "sort_order": 18
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 20,
+  "fields": {
+    "group": 1,
+    "name": "Walnut Striped",
+    "price": 10713.0,
+    "sort_order": 19
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 21,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Europeo",
+    "price": 10713.0,
+    "sort_order": 20
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 22,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Whisky",
+    "price": 10713.0,
+    "sort_order": 21
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 23,
+  "fields": {
+    "group": 1,
+    "name": "Ebano",
+    "price": 10713.0,
+    "sort_order": 22
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 24,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Grigio",
+    "price": 10713.0,
+    "sort_order": 23
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 25,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Cioccolato",
+    "price": 10713.0,
+    "sort_order": 24
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 26,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Moca",
+    "price": 10713.0,
+    "sort_order": 25
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 27,
+  "fields": {
+    "group": 1,
+    "name": "Rovere Retro",
+    "price": 10713.0,
+    "sort_order": 26
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 28,
+  "fields": {
+    "group": 1,
+    "name": "Noce Europeo RAD",
+    "price": 10713.0,
+    "sort_order": 27
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 29,
+  "fields": {
+    "group": 1,
+    "name": "Oak Thermo",
+    "price": 10713.0,
+    "sort_order": 28
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 30,
+  "fields": {
+    "group": 1,
+    "name": "Oak Moka",
+    "price": 10713.0,
+    "sort_order": 29
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 31,
+  "fields": {
+    "group": 1,
+    "name": "Teak",
+    "price": 10713.0,
+    "sort_order": 30
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 32,
+  "fields": {
+    "group": 1,
+    "name": "Chok ebano",
+    "price": 10713.0,
+    "sort_order": 31
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 33,
+  "fields": {
+    "group": 2,
+    "name": "STONE 3324",
+    "price": 12860.0,
+    "sort_order": 0
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 34,
+  "fields": {
+    "group": 2,
+    "name": "STONE 3329",
+    "price": 12860.0,
+    "sort_order": 1
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 35,
+  "fields": {
+    "group": 2,
+    "name": "STONE 3347",
+    "price": 12860.0,
+    "sort_order": 2
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 36,
+  "fields": {
+    "group": 2,
+    "name": "STONE 3349",
+    "price": 12860.0,
+    "sort_order": 3
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 37,
+  "fields": {
+    "group": 2,
+    "name": "STONE 3355",
+    "price": 12860.0,
+    "sort_order": 4
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 38,
+  "fields": {
+    "group": 2,
+    "name": "STONE 3382",
+    "price": 12860.0,
+    "sort_order": 5
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 39,
+  "fields": {
+    "group": 2,
+    "name": "STONE 3416",
+    "price": 12860.0,
+    "sort_order": 6
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 40,
+  "fields": {
+    "group": 2,
+    "name": "STONE 3446",
+    "price": 12860.0,
+    "sort_order": 7
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 41,
+  "fields": {
+    "group": 2,
+    "name": "STONE 3447",
+    "price": 12860.0,
+    "sort_order": 8
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 42,
+  "fields": {
+    "group": 2,
+    "name": "STONE 5695",
+    "price": 12860.0,
+    "sort_order": 9
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 43,
+  "fields": {
+    "group": 2,
+    "name": "STONE 5730",
+    "price": 12860.0,
+    "sort_order": 10
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 44,
+  "fields": {
+    "group": 2,
+    "name": "STONE 5646",
+    "price": 12860.0,
+    "sort_order": 11
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 45,
+  "fields": {
+    "group": 2,
+    "name": "STONE 3299 (PELLE)",
+    "price": 12860.0,
+    "sort_order": 12
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 46,
+  "fields": {
+    "group": 2,
+    "name": "STONE 3153(PELLE)",
+    "price": 12860.0,
+    "sort_order": 13
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 47,
+  "fields": {
+    "group": 2,
+    "name": "STONE 3156(PELLE)",
+    "price": 12860.0,
+    "sort_order": 14
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 48,
+  "fields": {
+    "group": 2,
+    "name": "STONE 3240(PELLE)",
+    "price": 12860.0,
+    "sort_order": 15
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 49,
+  "fields": {
+    "group": 2,
+    "name": "STONE 5679",
+    "price": 12860.0,
+    "sort_order": 16
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 50,
+  "fields": {
+    "group": 2,
+    "name": "Marmo Antracite",
+    "price": 12860.0,
+    "sort_order": 17
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 51,
+  "fields": {
+    "group": 2,
+    "name": "Rame FB 43",
+    "price": 12860.0,
+    "sort_order": 18
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 52,
+  "fields": {
+    "group": 2,
+    "name": "Ciliegia avollo_4604",
+    "price": 12860.0,
+    "sort_order": 19
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 53,
+  "fields": {
+    "group": 2,
+    "name": "Penelope Cappucino",
+    "price": 12860.0,
+    "sort_order": 20
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 54,
+  "fields": {
+    "group": 2,
+    "name": "Linen grigio 3318",
+    "price": 12860.0,
+    "sort_order": 21
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 55,
+  "fields": {
+    "group": 2,
+    "name": "Skin Late",
+    "price": 12860.0,
+    "sort_order": 22
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 56,
+  "fields": {
+    "group": 2,
+    "name": "Pietra Calce",
+    "price": 12860.0,
+    "sort_order": 23
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 57,
+  "fields": {
+    "group": 2,
+    "name": "Bronzo 3412",
+    "price": 12860.0,
+    "sort_order": 24
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 58,
+  "fields": {
+    "group": 2,
+    "name": "STONE 5785",
+    "price": 12860.0,
+    "sort_order": 25
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 59,
+  "fields": {
+    "group": 2,
+    "name": "STONE 5684",
+    "price": 12860.0,
+    "sort_order": 26
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 60,
+  "fields": {
+    "group": 2,
+    "name": "STONE 5644",
+    "price": 12860.0,
+    "sort_order": 27
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 61,
+  "fields": {
+    "group": 2,
+    "name": "STONE 5813",
+    "price": 12860.0,
+    "sort_order": 28
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 62,
+  "fields": {
+    "group": 2,
+    "name": "STONE 5742",
+    "price": 12860.0,
+    "sort_order": 29
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 63,
+  "fields": {
+    "group": 2,
+    "name": "STONE 5769",
+    "price": 12860.0,
+    "sort_order": 30
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 64,
+  "fields": {
+    "group": 2,
+    "name": "STONE 5427",
+    "price": 12860.0,
+    "sort_order": 31
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 65,
+  "fields": {
+    "group": 2,
+    "name": "STONE 5734",
+    "price": 12860.0,
+    "sort_order": 32
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 66,
+  "fields": {
+    "group": 2,
+    "name": "STONE 5657",
+    "price": 12860.0,
+    "sort_order": 33
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 67,
+  "fields": {
+    "group": 2,
+    "name": "STONE 5741",
+    "price": 12860.0,
+    "sort_order": 34
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 68,
+  "fields": {
+    "group": 2,
+    "name": "STONE 5666",
+    "price": 12860.0,
+    "sort_order": 35
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 69,
+  "fields": {
+    "group": 2,
+    "name": "STONE 5680",
+    "price": 12860.0,
+    "sort_order": 36
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 70,
+  "fields": {
+    "group": 2,
+    "name": "STONE 5743",
+    "price": 12860.0,
+    "sort_order": 37
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 71,
+  "fields": {
+    "group": 2,
+    "name": "STONE 4691 (WOOD)",
+    "price": 12860.0,
+    "sort_order": 38
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 72,
+  "fields": {
+    "group": 2,
+    "name": "STONE 4653 (WOOD)",
+    "price": 12860.0,
+    "sort_order": 39
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 73,
+  "fields": {
+    "group": 2,
+    "name": "STONE 4583 (WOOD)",
+    "price": 12860.0,
+    "sort_order": 40
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 74,
+  "fields": {
+    "group": 3,
+    "name": "Nero LACATO",
+    "price": 8790.0,
+    "sort_order": 0
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 75,
+  "fields": {
+    "group": 3,
+    "name": "Bianco LACATO",
+    "price": 8790.0,
+    "sort_order": 1
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 76,
+  "fields": {
+    "group": 3,
+    "name": "Bianco Night LACATO",
+    "price": 8790.0,
+    "sort_order": 2
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 77,
+  "fields": {
+    "group": 3,
+    "name": "Grigio LACATO",
+    "price": 8790.0,
+    "sort_order": 3
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 78,
+  "fields": {
+    "group": 3,
+    "name": "Grigio Chiaro LACATO",
+    "price": 8790.0,
+    "sort_order": 4
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 79,
+  "fields": {
+    "group": 3,
+    "name": "Cioccolato LACATO",
+    "price": 8790.0,
+    "sort_order": 5
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 80,
+  "fields": {
+    "group": 3,
+    "name": "Cappuccino LACATO",
+    "price": 8790.0,
+    "sort_order": 6
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 81,
+  "fields": {
+    "group": 3,
+    "name": "Avorio LACATO",
+    "price": 8790.0,
+    "sort_order": 7
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 82,
+  "fields": {
+    "group": 3,
+    "name": "Rose LACATO",
+    "price": 8790.0,
+    "sort_order": 8
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 83,
+  "fields": {
+    "group": 3,
+    "name": "Rocca LACATO",
+    "price": 8790.0,
+    "sort_order": 9
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 84,
+  "fields": {
+    "group": 3,
+    "name": "Sabbia LACATO",
+    "price": 8790.0,
+    "sort_order": 10
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 85,
+  "fields": {
+    "group": 3,
+    "name": "Viola LACATO",
+    "price": 8790.0,
+    "sort_order": 11
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 86,
+  "fields": {
+    "group": 3,
+    "name": "Grigio Seta LACATO",
+    "price": 8790.0,
+    "sort_order": 12
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 87,
+  "fields": {
+    "group": 3,
+    "name": "Silver LACATO",
+    "price": 8790.0,
+    "sort_order": 13
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 88,
+  "fields": {
+    "group": 3,
+    "name": "Ombra LACATO",
+    "price": 8790.0,
+    "sort_order": 14
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 89,
+  "fields": {
+    "group": 3,
+    "name": "Grigio Fume LACATO",
+    "price": 8790.0,
+    "sort_order": 15
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 90,
+  "fields": {
+    "group": 3,
+    "name": "Grafite LACATO",
+    "price": 8790.0,
+    "sort_order": 16
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 91,
+  "fields": {
+    "group": 3,
+    "name": "Pesco LACATO",
+    "price": 8790.0,
+    "sort_order": 17
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 92,
+  "fields": {
+    "group": 3,
+    "name": "Tortora LACATO",
+    "price": 8790.0,
+    "sort_order": 18
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 93,
+  "fields": {
+    "group": 3,
+    "name": "Corda LACATO",
+    "price": 8790.0,
+    "sort_order": 19
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 94,
+  "fields": {
+    "group": 3,
+    "name": "Bruno LACATO",
+    "price": 8790.0,
+    "sort_order": 20
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 95,
+  "fields": {
+    "group": 4,
+    "name": "Nero FRASSINO",
+    "price": 13437.5,
+    "sort_order": 0
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 96,
+  "fields": {
+    "group": 4,
+    "name": "Bianco FRASSINO",
+    "price": 13437.5,
+    "sort_order": 1
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 97,
+  "fields": {
+    "group": 4,
+    "name": "Bianco Night FRASSINO",
+    "price": 13437.5,
+    "sort_order": 2
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 98,
+  "fields": {
+    "group": 4,
+    "name": "Grigio FRASSINO",
+    "price": 13437.5,
+    "sort_order": 3
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 99,
+  "fields": {
+    "group": 4,
+    "name": "Grigio Chiaro FRASSINO",
+    "price": 13437.5,
+    "sort_order": 4
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 100,
+  "fields": {
+    "group": 4,
+    "name": "Cioccolato FRASSINO",
+    "price": 13437.5,
+    "sort_order": 5
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 101,
+  "fields": {
+    "group": 4,
+    "name": "Cappuccino FRASSINO",
+    "price": 13437.5,
+    "sort_order": 6
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 102,
+  "fields": {
+    "group": 4,
+    "name": "Avorio FRASSINO",
+    "price": 13437.5,
+    "sort_order": 7
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 103,
+  "fields": {
+    "group": 4,
+    "name": "Rose FRASSINO",
+    "price": 13437.5,
+    "sort_order": 8
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 104,
+  "fields": {
+    "group": 4,
+    "name": "Rocca FRASSINO",
+    "price": 13437.5,
+    "sort_order": 9
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 105,
+  "fields": {
+    "group": 4,
+    "name": "Sabbia FRASSINO",
+    "price": 13437.5,
+    "sort_order": 10
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 106,
+  "fields": {
+    "group": 4,
+    "name": "Viola FRASSINO",
+    "price": 13437.5,
+    "sort_order": 11
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 107,
+  "fields": {
+    "group": 4,
+    "name": "Grigio Seta FRASSINO",
+    "price": 13437.5,
+    "sort_order": 12
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 108,
+  "fields": {
+    "group": 4,
+    "name": "Silver FRASSINO",
+    "price": 13437.5,
+    "sort_order": 13
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 109,
+  "fields": {
+    "group": 4,
+    "name": "Ombra FRASSINO",
+    "price": 13437.5,
+    "sort_order": 14
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 110,
+  "fields": {
+    "group": 4,
+    "name": "Grigio Fume FRASSINO",
+    "price": 13437.5,
+    "sort_order": 15
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 111,
+  "fields": {
+    "group": 4,
+    "name": "Grafite FRASSINO",
+    "price": 13437.5,
+    "sort_order": 16
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 112,
+  "fields": {
+    "group": 4,
+    "name": "Pesco FRASSINO",
+    "price": 13437.5,
+    "sort_order": 17
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 113,
+  "fields": {
+    "group": 4,
+    "name": "Tortora FRASSINO",
+    "price": 13437.5,
+    "sort_order": 18
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 114,
+  "fields": {
+    "group": 4,
+    "name": "Corda FRASSINO",
+    "price": 13437.5,
+    "sort_order": 19
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 115,
+  "fields": {
+    "group": 4,
+    "name": "Bruno FRASSINO",
+    "price": 13437.5,
+    "sort_order": 20
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 116,
+  "fields": {
+    "group": 5,
+    "name": "FONDO",
+    "price": 7200.0,
+    "sort_order": 0
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 117,
+  "fields": {
+    "group": 6,
+    "name": "Black Matt Colour 2K",
+    "price": 13437.5,
+    "sort_order": 0
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 118,
+  "fields": {
+    "group": 6,
+    "name": "Black Sand 1K",
+    "price": 13437.5,
+    "sort_order": 1
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 119,
+  "fields": {
+    "group": 6,
+    "name": "Bronze Matt Colour 3K",
+    "price": 13437.5,
+    "sort_order": 2
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 120,
+  "fields": {
+    "group": 6,
+    "name": "Champagne Matt 3К",
+    "price": 13437.5,
+    "sort_order": 3
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 121,
+  "fields": {
+    "group": 6,
+    "name": "Champagne Colour 2К",
+    "price": 13437.5,
+    "sort_order": 4
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 122,
+  "fields": {
+    "group": 6,
+    "name": "Chrome Matt 1К",
+    "price": 13437.5,
+    "sort_order": 5
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 123,
+  "fields": {
+    "group": 6,
+    "name": "Dark Brown Colour 2К",
+    "price": 13437.5,
+    "sort_order": 6
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 124,
+  "fields": {
+    "group": 6,
+    "name": "Gold Matt 3К",
+    "price": 13437.5,
+    "sort_order": 7
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 125,
+  "fields": {
+    "group": 6,
+    "name": "Gold Matt Colour 2К",
+    "price": 13437.5,
+    "sort_order": 8
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 126,
+  "fields": {
+    "group": 6,
+    "name": "Pearl Matt Colour 2К",
+    "price": 13437.5,
+    "sort_order": 9
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 127,
+  "fields": {
+    "group": 6,
+    "name": "Titanium Matt Colour 2К",
+    "price": 13437.5,
+    "sort_order": 10
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 128,
+  "fields": {
+    "group": 6,
+    "name": "White Matt Colour 2К",
+    "price": 13437.5,
+    "sort_order": 11
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 129,
+  "fields": {
+    "group": 6,
+    "name": "White Sand 1К",
+    "price": 13437.5,
+    "sort_order": 12
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 130,
+  "fields": {
+    "group": 6,
+    "name": "Bonded 001 colour 2K",
+    "price": 13437.5,
+    "sort_order": 13
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 131,
+  "fields": {
+    "group": 6,
+    "name": "Grafit 7016 colour 2K",
+    "price": 13437.5,
+    "sort_order": 14
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 132,
+  "fields": {
+    "group": 6,
+    "name": "Gold 005 colour 2K",
+    "price": 13437.5,
+    "sort_order": 15
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 133,
+  "fields": {
+    "group": 6,
+    "name": "Cave colour",
+    "price": 13437.5,
+    "sort_order": 16
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 134,
+  "fields": {
+    "group": 6,
+    "name": "Nomad colour",
+    "price": 13437.5,
+    "sort_order": 17
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 135,
+  "fields": {
+    "group": 6,
+    "name": "Paladium Colour",
+    "price": 13437.5,
+    "sort_order": 18
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 136,
+  "fields": {
+    "group": 6,
+    "name": "Marone Colour",
+    "price": 13437.5,
+    "sort_order": 19
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 137,
+  "fields": {
+    "group": 6,
+    "name": "Gold 012 colour",
+    "price": 13437.5,
+    "sort_order": 20
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 138,
+  "fields": {
+    "group": 6,
+    "name": "Avorio Colour",
+    "price": 13437.5,
+    "sort_order": 21
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 139,
+  "fields": {
+    "group": 6,
+    "name": "Grafite Colour",
+    "price": 13437.5,
+    "sort_order": 22
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 140,
+  "fields": {
+    "group": 6,
+    "name": "Corda Colour",
+    "price": 13437.5,
+    "sort_order": 23
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 141,
+  "fields": {
+    "group": 6,
+    "name": "Ombra Colour",
+    "price": 13437.5,
+    "sort_order": 24
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 142,
+  "fields": {
+    "group": 6,
+    "name": "Nikel Colour",
+    "price": 13437.5,
+    "sort_order": 25
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 143,
+  "fields": {
+    "group": 6,
+    "name": "Copper Colour",
+    "price": 13437.5,
+    "sort_order": 26
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 144,
+  "fields": {
+    "group": 7,
+    "name": "Pele Fumoso",
+    "price": 17200.0,
+    "sort_order": 0
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 145,
+  "fields": {
+    "group": 7,
+    "name": "Pele Marone",
+    "price": 17200.0,
+    "sort_order": 1
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 146,
+  "fields": {
+    "group": 7,
+    "name": "Pele Grigio",
+    "price": 17200.0,
+    "sort_order": 2
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 147,
+  "fields": {
+    "group": 7,
+    "name": "Pele Salar",
+    "price": 17200.0,
+    "sort_order": 3
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 148,
+  "fields": {
+    "group": 7,
+    "name": "Pele Black",
+    "price": 17200.0,
+    "sort_order": 4
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 149,
+  "fields": {
+    "group": 8,
+    "name": "Glass Colour",
+    "price": 0.0,
+    "sort_order": 0
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 150,
+  "fields": {
+    "group": 8,
+    "name": "Glass Colour Matt",
+    "price": 0.0,
+    "sort_order": 1
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 151,
+  "fields": {
+    "group": 9,
+    "name": "Mirror",
+    "price": 0.0,
+    "sort_order": 0
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 152,
+  "fields": {
+    "group": 9,
+    "name": "Mirror Bronze",
+    "price": 0.0,
+    "sort_order": 1
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 153,
+  "fields": {
+    "group": 9,
+    "name": "Mirror Grey",
+    "price": 0.0,
+    "sort_order": 2
+  }
+}
+]
