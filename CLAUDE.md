@@ -224,6 +224,28 @@ Base URL: `http://localhost:8000/api/`
 
 ---
 
+## Каталог (справочники) и заказы: хранение
+
+`db.sqlite3` **не в git** (заказы, панели, заявки, медиа — это runtime-данные).
+Справочники (каталог) версионируются отдельно фикстурой:
+
+- **Файл:** `panels/fixtures/catalog.json` — коммитим. Содержит:
+  `JointType, FinishGroup, Finish, ProfileColor, AluminumProfile,
+   FramingProfilePrice, FramingModel, FramingColor, FramingDoborGroup, FramingDobor`.
+  НЕ содержит `Order/Panel/DoorPanel/FramingLead`.
+- **Деплой** (`deploy.sh`) после `migrate` делает `loaddata catalog.json` —
+  сервер получает актуальный каталог, заказы не затрагиваются (loaddata пишет по PK
+  только справочные таблицы). БД бэкапится перед `git pull`.
+
+**После правки цен/узлов/отделок локально — перегенерировать фикстуру:**
+```bash
+python manage.py dumpdata \
+  panels.jointtype panels.finishgroup panels.finish panels.profilecolor panels.aluminumprofile \
+  panels.framingprofileprice panels.framingmodel panels.framingcolor panels.framingdoborgroup panels.framingdobor \
+  --indent 2 --output panels/fixtures/catalog.json
+```
+Затем закоммитить `catalog.json` и задеплоить.
+
 ## Частые команды
 
 ```bash
