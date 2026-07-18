@@ -1,26 +1,46 @@
 #!/usr/bin/env bash
+# Деплой NUOVO 60 / panels.cascate.ru
+# Запускать ПОД ROOT из корня проекта:  sudo bash deploy.sh
+#
+# Git тянем под пользователем site (владелец репозитория и сокета),
+# Django-часть и рестарт — под root. Заказы (db.sqlite3) не в git,
+# бэкапим их и возвращаем владельца, иначе gunicorn (site) не запишет в БД.
 set -e
 
-# БД с заказами не хранится в git. Бэкапим её перед обновлением, чтобы
-# переход db.sqlite3 в untracked (или сбой pull) не уничтожил заказы.
+APP_DIR=/var/www/cascate.ru/panels
+APP_USER=site
+cd "$APP_DIR"
+
+echo "==> Бэкап БД с заказами"
 [ -f db.sqlite3 ] && cp db.sqlite3 db.sqlite3.bak
 
-git pull
+echo "==> git pull (под $APP_USER)"
+sudo -u "$APP_USER" git checkout -- db.sqlite3 2>/dev/null || true
+sudo -u "$APP_USER" git pull
 
-# Если git удалил рабочую БД при pull этого коммита — восстанавливаем из бэкапа.
+# Если pull убрал рабочую БД (переход в untracked) — восстанавливаем из бэкапа.
 [ ! -f db.sqlite3 ] && [ -f db.sqlite3.bak ] && cp db.sqlite3.bak db.sqlite3
 
-source .venv/bin/activate
+echo "==> Python: зависимости, миграции, каталог, статика"
+source venv/bin/activate
 pip install -r requirements.txt
-
 python manage.py migrate --noinput
-# Справочники (каталог) заливаем/обновляем из фикстуры. Заказы не трогаются.
+# Справочники (каталог) из фикстуры. Заказы не трогаются.
 python manage.py loaddata catalog.json
 python manage.py collectstatic --noinput
 
+echo "==> Сборка фронтенда"
 cd frontend
 npm install
 npm run build
 cd ..
 
-sudo systemctl restart gunicorn
+echo "==> Возврат владельца файлов пользователю $APP_USER"
+chown "$APP_USER":"$APP_USER" db.sqlite3
+chown -R "$APP_USER":"$APP_USER" frontend/dist staticfiles static 2>/dev/null || true
+
+echo "==> Рестарт gunicorn (supervisor)"
+supervisorctl restart panels
+supervisorctl status panels
+
+echo "==> Готово"
