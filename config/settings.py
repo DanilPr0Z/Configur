@@ -83,6 +83,11 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'frontend' / 'dist']
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
+# Публичные файлы фронта (logo-footer.png, /schemes/*, favicon) фронт запрашивает
+# с корня, а не из /static/ (base='/static/' на них не влияет). Отдаём их
+# из собранного dist через whitenoise, минуя SPA catch-all в config/urls.py.
+WHITENOISE_ROOT = BASE_DIR / 'frontend' / 'dist'
+
 # ── Медиафайлы ────────────────────────────────────────────────────────────────
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
