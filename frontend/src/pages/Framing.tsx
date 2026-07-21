@@ -150,7 +150,6 @@ export default function Framing() {
                   <div key={m.name} className={'fr-model' + (i === st.mi ? ' on' : '')}
                     onClick={() => pickModel(i)}>
                     <span className="fr-model-n">{m.name}</span>
-                    <span className="fr-model-t">{m.subtitle}</span>
                   </div>
                 ))}
               </div>

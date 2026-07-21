@@ -236,7 +236,7 @@ function makeWall(n: number): WallSeg {
     wallHeight: 2700, wallLength: 3000,
     leftNode: 'A', rightNode: 'A',
     topEdge: '', bottomEdge: '',
-    numPanels: 3, connType: 'C',
+    numPanels: 0, connType: 'C',
     finishGroup: '', finishName: '',
     veneerDirection: '', decor3d: '',
     copies: 1,
@@ -335,12 +335,11 @@ function getInitialConfig() {
       doorSeq: _SAVED_CONFIG.doorSeq ?? _SAVED_CONFIG.doors.length,
     }
   }
-  const w = makeWall(1)
   return {
-    walls: [w],
+    walls: [] as WallSeg[],
     doors: [] as DoorSeg[],
-    itemOrder: [{ type: 'wall' as const, id: w.id }],
-    wallSeq: 1,
+    itemOrder: [] as { type: 'wall' | 'door'; id: string }[],
+    wallSeq: 0,
     doorSeq: 0,
   }
 }
