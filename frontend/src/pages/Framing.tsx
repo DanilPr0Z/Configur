@@ -31,7 +31,10 @@ export default function Framing() {
       .catch(() => setLoadErr('Не удалось загрузить справочник обрамления. Проверьте, что сервер запущен.'))
   }, [])
 
-  const spec = useMemo(() => cat ? computeSpec(st, cat) : null, [st, cat])
+  const spec = useMemo(
+    () => cat && cat.models.length > 0 ? computeSpec(st, cat) : null,
+    [st, cat],
+  )
 
   if (loadErr) return (
     <div className="page"><div className="container">
@@ -39,19 +42,32 @@ export default function Framing() {
       <div className="alert alert-error">{loadErr}</div>
     </div></div>
   )
-  if (!cat || !spec) return (
+  if (!cat) return (
     <div className="page"><div className="container">
       <h1 className="page-title">Обрамление проёма</h1>
       <div className="flex-center gap-2"><span className="spinner" /> Загрузка справочника…</div>
     </div></div>
   )
+  // Справочник загрузился, но пуст (не залита фикстура каталога) — без моделей
+  // расчёт невозможен, показываем причину вместо пустой страницы.
+  if (cat.models.length === 0 || !spec) return (
+    <div className="page"><div className="container">
+      <h1 className="page-title">Обрамление проёма</h1>
+      <div className="alert alert-error">
+        Справочник обрамления пуст — в базе нет моделей наличников.
+        Загрузите каталог: <code>python manage.py loaddata catalog.json</code>
+      </div>
+    </div></div>
+  )
 
-  const model = cat.models[st.mi]
+  const model = cat.models[st.mi] ?? cat.models[0]
   const dobGroup = cat.doborItems[st.di]?.group || cat.doborGroupNames[0]
   const patch = (p: Partial<FramingState>) => setSt(s => ({ ...s, ...p }))
   const showNal = st.kit !== 'dob'
   const showDob = st.kit !== 'nal'
   const hasGlass = model.has_glass && showNal
+  const showVeneer = model.has_veneer && showNal
+  const veneerName = showVeneer && st.veneer ? (cat.veneerItems[st.vi]?.name || '') : ''
 
   function go(n: number) {
     if (n > step && !validate(n)) return
@@ -72,7 +88,11 @@ export default function Framing() {
 
   function pickModel(i: number) {
     const m = cat!.models[i]
-    patch({ mi: i, glassGroup: m.has_glass ? st.glassGroup : '', glassInsert: '', glassColor: '' })
+    patch({
+      mi: i,
+      glassGroup: m.has_glass ? st.glassGroup : '', glassInsert: '', glassColor: '',
+      veneer: m.has_veneer ? st.veneer : false,
+    })
   }
 
   function setDobGroup(g: string) {
@@ -105,7 +125,8 @@ export default function Framing() {
         opening_height: st.H,
         opening_width: st.L,
         wall_depth: st.C,
-        color_name: showNal ? cat!.colors[st.ci] : '',
+        color_name: showNal
+          ? cat!.colors[st.ci] + (veneerName ? ` · шпон ${veneerName}` : '') : '',
         dobor_name: showDob ? (cat!.doborItems[st.di]?.name || '') : '',
         glass: hasGlass && st.glassGroup
           ? [st.glassGroup, st.glassInsert, st.glassColor].filter(Boolean).join(' · ') : '',
@@ -242,6 +263,26 @@ export default function Framing() {
                 )}
               </div>
 
+              {showVeneer && (
+                <div className="grid-2 mt-4">
+                  <div className="field">
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '.5rem', cursor: 'pointer' }}>
+                      <input type="checkbox" checked={st.veneer} style={{ width: 'auto', margin: 0 }}
+                        onChange={e => patch({ veneer: e.target.checked })} />
+                      Наличник со шпоном
+                    </label>
+                  </div>
+                  {st.veneer && (
+                    <div className="field">
+                      <label>Шпон наличника</label>
+                      <select value={st.vi} onChange={e => patch({ vi: +e.target.value })}>
+                        {cat.veneerItems.map((d, i) => <option key={i} value={i}>{d.name}</option>)}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              )}
+
               {hasGlass && (
                 <div className="grid-2 mt-4">
                   <div className="field">
@@ -356,7 +397,8 @@ export default function Framing() {
                   <div className="alert alert-info" style={{ lineHeight: 1.7 }}>
                     <strong>Модель:</strong> {model.name} · <strong>Установка:</strong> {st.inst}<br />
                     <strong>Размеры проёма:</strong> {st.H} × {st.L} × {st.C} мм<br />
-                    {showNal && <><strong>Наличник:</strong> {cat.colors[st.ci]} </>}
+                    {showNal && <><strong>Наличник:</strong> {cat.colors[st.ci]}
+                      {veneerName && ` · шпон ${veneerName}`} </>}
                     {showDob && <>· <strong>Добор:</strong> {cat.doborItems[st.di]?.name}</>}<br />
                     <strong>Итого:</strong> {fmt(spec.total)} ₽
                   </div>

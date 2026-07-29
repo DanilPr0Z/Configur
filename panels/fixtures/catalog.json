@@ -5270,6 +5270,19 @@
 },
 {
   "model": "panels.aluminumprofile",
+  "pk": 1,
+  "fields": {
+    "article": "П 6x6",
+    "name": "Алюминиевый декоративный профиль П 6×6",
+    "length_mm": 2995,
+    "price_per_piece": 0.0,
+    "joint_type_code": "decor",
+    "count_per_joint": 1.0,
+    "note": "Декоративный вертикальный/горизонтальный вставной профиль. Укажите цену в разделе администрирования."
+  }
+},
+{
+  "model": "panels.aluminumprofile",
   "pk": 17,
   "fields": {
     "article": "104.256",
@@ -5432,6 +5445,12 @@
     "profile_count": 4,
     "has_glass": false,
     "price_category": "default",
+    "has_veneer": false,
+    "veneer_surcharge": 800.0,
+    "has_shadow": false,
+    "shadow_nH": 0.0,
+    "shadow_nL": 0.0,
+    "shadow_price_per_m": 1200.0,
     "sort_order": 0
   }
 },
@@ -5450,6 +5469,12 @@
     "profile_count": 4,
     "has_glass": true,
     "price_category": "default",
+    "has_veneer": false,
+    "veneer_surcharge": 800.0,
+    "has_shadow": false,
+    "shadow_nH": 0.0,
+    "shadow_nL": 0.0,
+    "shadow_price_per_m": 1200.0,
     "sort_order": 1
   }
 },
@@ -5468,6 +5493,12 @@
     "profile_count": 4,
     "has_glass": false,
     "price_category": "default",
+    "has_veneer": false,
+    "veneer_surcharge": 800.0,
+    "has_shadow": false,
+    "shadow_nH": 0.0,
+    "shadow_nL": 0.0,
+    "shadow_price_per_m": 1200.0,
     "sort_order": 2
   }
 },
@@ -5486,6 +5517,12 @@
     "profile_count": 4,
     "has_glass": false,
     "price_category": "default",
+    "has_veneer": false,
+    "veneer_surcharge": 800.0,
+    "has_shadow": false,
+    "shadow_nH": 0.0,
+    "shadow_nL": 0.0,
+    "shadow_price_per_m": 1200.0,
     "sort_order": 3
   }
 },
@@ -5504,6 +5541,12 @@
     "profile_count": 1,
     "has_glass": false,
     "price_category": "mini",
+    "has_veneer": false,
+    "veneer_surcharge": 800.0,
+    "has_shadow": false,
+    "shadow_nH": 0.0,
+    "shadow_nL": 0.0,
+    "shadow_price_per_m": 1200.0,
     "sort_order": 4
   }
 },
@@ -5522,6 +5565,12 @@
     "profile_count": 3,
     "has_glass": false,
     "price_category": "triangle",
+    "has_veneer": false,
+    "veneer_surcharge": 800.0,
+    "has_shadow": false,
+    "shadow_nH": 0.0,
+    "shadow_nL": 0.0,
+    "shadow_price_per_m": 1200.0,
     "sort_order": 5
   }
 },
@@ -5540,6 +5589,12 @@
     "profile_count": 2,
     "has_glass": false,
     "price_category": "passo",
+    "has_veneer": false,
+    "veneer_surcharge": 800.0,
+    "has_shadow": false,
+    "shadow_nH": 0.0,
+    "shadow_nL": 0.0,
+    "shadow_price_per_m": 1200.0,
     "sort_order": 6
   }
 },
@@ -5558,6 +5613,12 @@
     "profile_count": 4,
     "has_glass": false,
     "price_category": "default",
+    "has_veneer": false,
+    "veneer_surcharge": 800.0,
+    "has_shadow": false,
+    "shadow_nH": 0.0,
+    "shadow_nL": 0.0,
+    "shadow_price_per_m": 1200.0,
     "sort_order": 7
   }
 },
@@ -5576,6 +5637,12 @@
     "profile_count": 4,
     "has_glass": false,
     "price_category": "default",
+    "has_veneer": false,
+    "veneer_surcharge": 800.0,
+    "has_shadow": false,
+    "shadow_nH": 0.0,
+    "shadow_nL": 0.0,
+    "shadow_price_per_m": 1200.0,
     "sort_order": 8
   }
 },
@@ -5594,6 +5661,12 @@
     "profile_count": 4,
     "has_glass": false,
     "price_category": "default",
+    "has_veneer": false,
+    "veneer_surcharge": 800.0,
+    "has_shadow": false,
+    "shadow_nH": 0.0,
+    "shadow_nL": 0.0,
+    "shadow_price_per_m": 1200.0,
     "sort_order": 9
   }
 },
@@ -5612,6 +5685,12 @@
     "profile_count": 4,
     "has_glass": false,
     "price_category": "default",
+    "has_veneer": false,
+    "veneer_surcharge": 800.0,
+    "has_shadow": false,
+    "shadow_nH": 0.0,
+    "shadow_nL": 0.0,
+    "shadow_price_per_m": 1200.0,
     "sort_order": 10
   }
 },
@@ -5630,7 +5709,109 @@
     "profile_count": 4,
     "has_glass": false,
     "price_category": "default",
+    "has_veneer": false,
+    "veneer_surcharge": 800.0,
+    "has_shadow": false,
+    "shadow_nH": 0.0,
+    "shadow_nL": 0.0,
+    "shadow_price_per_m": 1200.0,
     "sort_order": 11
+  }
+},
+{
+  "model": "panels.framingmodel",
+  "pk": 13,
+  "fields": {
+    "name": "Frame",
+    "subtitle": "Рамочный",
+    "nH": 20.0,
+    "nL": 40.0,
+    "dH": -18.0,
+    "dL": -16.0,
+    "depth_mode": "fixed",
+    "depth_delta": 16.0,
+    "profile_count": 4,
+    "has_glass": false,
+    "price_category": "default",
+    "has_veneer": true,
+    "veneer_surcharge": 800.0,
+    "has_shadow": false,
+    "shadow_nH": 0.0,
+    "shadow_nL": 0.0,
+    "shadow_price_per_m": 1200.0,
+    "sort_order": 12
+  }
+},
+{
+  "model": "panels.framingmodel",
+  "pk": 14,
+  "fields": {
+    "name": "Frame + теневой профиль",
+    "subtitle": "Рамочный с тенью",
+    "nH": -6.5,
+    "nL": -13.0,
+    "dH": -44.5,
+    "dL": -69.0,
+    "depth_mode": "fixed",
+    "depth_delta": 0.0,
+    "profile_count": 4,
+    "has_glass": false,
+    "price_category": "default",
+    "has_veneer": true,
+    "veneer_surcharge": 800.0,
+    "has_shadow": true,
+    "shadow_nH": 2.0,
+    "shadow_nL": 4.0,
+    "shadow_price_per_m": 1200.0,
+    "sort_order": 13
+  }
+},
+{
+  "model": "panels.framingmodel",
+  "pk": 15,
+  "fields": {
+    "name": "Shade",
+    "subtitle": "Теневой",
+    "nH": 25.0,
+    "nL": 50.0,
+    "dH": -19.5,
+    "dL": -19.0,
+    "depth_mode": "fixed",
+    "depth_delta": 19.0,
+    "profile_count": 4,
+    "has_glass": false,
+    "price_category": "default",
+    "has_veneer": true,
+    "veneer_surcharge": 800.0,
+    "has_shadow": false,
+    "shadow_nH": 0.0,
+    "shadow_nL": 0.0,
+    "shadow_price_per_m": 1200.0,
+    "sort_order": 14
+  }
+},
+{
+  "model": "panels.framingmodel",
+  "pk": 16,
+  "fields": {
+    "name": "Shade + теневой профиль",
+    "subtitle": "Теневой с тенью",
+    "nH": -8.5,
+    "nL": -17.0,
+    "dH": -53.0,
+    "dL": -86.0,
+    "depth_mode": "fixed",
+    "depth_delta": 0.0,
+    "profile_count": 4,
+    "has_glass": false,
+    "price_category": "default",
+    "has_veneer": true,
+    "veneer_surcharge": 800.0,
+    "has_shadow": true,
+    "shadow_nH": 2.0,
+    "shadow_nL": 4.0,
+    "shadow_price_per_m": 1200.0,
+    "sort_order": 15
   }
 },
 {
@@ -7492,6 +7673,16 @@
     "name": "Mirror Grey",
     "price": 0.0,
     "sort_order": 2
+  }
+},
+{
+  "model": "panels.framingdobor",
+  "pk": 154,
+  "fields": {
+    "group": 1,
+    "name": "Oak Cloud",
+    "price": 10713.0,
+    "sort_order": 32
   }
 }
 ]

@@ -12,7 +12,9 @@ class FramingModelSerializer(serializers.ModelSerializer):
         model = FramingModel
         fields = ['name', 'subtitle', 'nH', 'nL', 'dH', 'dL',
                   'depth_mode', 'depth_delta', 'profile_count',
-                  'has_glass', 'price_category']
+                  'has_glass', 'price_category',
+                  'has_veneer', 'veneer_surcharge',
+                  'has_shadow', 'shadow_nH', 'shadow_nL', 'shadow_price_per_m']
 
 
 class FramingColorSerializer(serializers.ModelSerializer):

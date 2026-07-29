@@ -344,6 +344,15 @@ textarea{resize:vertical;min-height:90px}
       <div class="fg" id="fgDobGroup"><label class="fl">Группа добора <em>*</em></label><select id="sDobGroup" onchange="onDobGroup()"></select></div>
       <div class="fg" id="fgDob"><label class="fl">Отделка добора <em>*</em></label><select id="sDob" onchange="st.di=+this.value"></select></div>
     </div>
+    <div class="fg" id="fgVeneer" style="display:none">
+      <label class="fl" style="display:flex;align-items:center;gap:.5rem;cursor:pointer">
+        <input type="checkbox" id="chkVeneer" onchange="onVeneer()" style="width:auto;margin:0"> Наличник со шпоном
+      </label>
+    </div>
+    <div class="fg" id="fgVeneerSel" style="display:none">
+      <label class="fl">Шпон наличника <em>*</em></label>
+      <select id="sVeneer" onchange="st.vi=+this.value"></select>
+    </div>
     <div id="glassWrap" style="display:none">
       <div class="g2">
         <div class="fg"><label class="fl">Группа вставки</label>
@@ -456,6 +465,10 @@ const MODELS=[
   {n:'WAVE',t:'Волна',nH:45,nL:46,dH:-22,dL:-23,dC:53,pc:4,glass:false},
   {n:'DORA',t:'Широкий профиль',nH:66,nL:132,dH:-21.5,dL:-23,dC:26,pc:4,glass:false},
   {n:'BAMBOO',t:'Тонкий',nH:45,nL:90,dH:-22,dL:-25,dC:10,pc:4,glass:false},
+  {n:'Frame',t:'Рамочный',nH:20,nL:40,dH:-18,dL:-16,dC:16,pc:4,glass:false,veneer:true},
+  {n:'Frame + теневой профиль',t:'Рамочный с тенью',nH:-6.5,nL:-13,dH:-44.5,dL:-69,dC:0,pc:4,glass:false,veneer:true,shadow:{nH:2,nL:4,ppm:1200}},
+  {n:'Shade',t:'Теневой',nH:25,nL:50,dH:-19.5,dL:-19,dC:19,pc:4,glass:false,veneer:true},
+  {n:'Shade + теневой профиль',t:'Теневой с тенью',nH:-8.5,nL:-17,dH:-53,dL:-86,dC:0,pc:4,glass:false,veneer:true,shadow:{nH:2,nL:4,ppm:1200}},
 ];
 
 const COLORS=[
@@ -491,7 +504,7 @@ const COLORS=[
 ];
 
 const DOBS_GROUPS={
-  'ШПОН':[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31],
+  'ШПОН':[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,148],
   'КОМПОЗИТ':[32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72],
   'LACATO':[73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93],
   'FRASSINO':[94,95,96,97,98,99,100,101,102,103,104,105,106,107,108,109,110,111,112,113,114],
@@ -648,10 +661,11 @@ const DOBS=[
   {n:'Pele Grigio',p:17200},
   {n:'Pele Salar',p:17200},
   {n:'Pele Black',p:17200},
+  {n:'Oak Cloud',p:10713},
 ];
 
 
-let st={mi:0,H:2000,L:900,C:200,inst:'с двух сторон',ci:0,di:0,kit:'both'};
+let st={mi:0,H:2000,L:900,C:200,inst:'с двух сторон',ci:0,di:0,kit:'both',veneer:false,vi:0};
 
 function init(){
   const g=document.getElementById('mgrid');
@@ -664,6 +678,9 @@ function init(){
   COLORS.forEach((c,i)=>{const o=new Option(c.n,i);sc.add(o);});
   const sg=document.getElementById('sDobGroup');
   Object.keys(DOBS_GROUPS).forEach(g=>{sg.add(new Option(g,g));});
+  const sv=document.getElementById('sVeneer');
+  DOBS_GROUPS['ШПОН'].forEach(i=>{sv.add(new Option(DOBS[i].n,i));});
+  st.vi=DOBS_GROUPS['ШПОН'][0];
   sc.onchange=()=>{st.ci=+sc.value;};
   onDobGroup();
   initGlassGroup();
@@ -703,6 +720,16 @@ function applyKitUI(){
   document.getElementById('fgDobGroup').style.display=showDob?'':'none';
   document.getElementById('fgDob').style.display=showDob?'':'none';
   document.getElementById('glassWrap').style.display=(MODELS[st.mi].glass&&showNal)?'block':'none';
+  // Опция «наличник со шпоном» — только для моделей с флагом veneer
+  var isVen=MODELS[st.mi].veneer;
+  if(!isVen){st.veneer=false;var cb=document.getElementById('chkVeneer');if(cb)cb.checked=false;}
+  document.getElementById('fgVeneer').style.display=(isVen&&showNal)?'':'none';
+  document.getElementById('fgVeneerSel').style.display=(isVen&&showNal&&st.veneer)?'':'none';
+}
+
+function onVeneer(){
+  st.veneer=document.getElementById('chkVeneer').checked;
+  document.getElementById('fgVeneerSel').style.display=st.veneer?'':'none';
 }
 
 function validate(n){
@@ -751,10 +778,13 @@ function getDepth(m){
 
 function getPpu(m){
   const p=COLORS[st.ci].p;
-  if(m.n==='MINI')return p[0];
-  if(m.n==='PASSO')return p[1];
-  if(m.n==='TRIANGLE')return p[2];
-  return p[3];
+  let base;
+  if(m.n==='MINI')base=p[0];
+  else if(m.n==='PASSO')base=p[1];
+  else if(m.n==='TRIANGLE')base=p[2];
+  else base=p[3];
+  if(m.veneer&&st.veneer)base+=800; // наличник со шпоном: +800 ₽/м пог
+  return base;
 }
 
 function recalc(){
@@ -807,7 +837,13 @@ function buildSpec(){
   const pG=(glassGrp===''||glassGrp==='ШПОН')?360:620;
   const rGV=hasGlass?Math.round(pG*gV/1000*qv):0;
   const rGH=hasGlass?Math.round(pG*gH2/1000*qh):0;
-  const total=rNV+rNH+rDV+rDH+sur+rGV+rGH;
+  // Теневой профиль (модели «+ теневой профиль»): рамка по периметру, ppm ₽/м из модели
+  const sh=m.shadow;
+  const shV=(sh&&showNal)?Math.round(H+sh.nH):0;
+  const shH=(sh&&showNal)?Math.round(L+sh.nL):0;
+  const rShV=(sh&&showNal)?Math.round(sh.ppm*shV/1000*qv):0;
+  const rShH=(sh&&showNal)?Math.round(sh.ppm*shH/1000*qh):0;
+  const total=rNV+rNH+rDV+rDH+sur+rGV+rGH+rShV+rShH;
 
   document.getElementById('sname2').textContent=m.n;
   drawScheme('sbody2',st.mi);
@@ -819,12 +855,14 @@ function buildSpec(){
   ].map(d=>`<div class="dim"><div class="dim-v">${d.v}</div><div class="dim-l">${d.l}</div></div>`).join('');
 
   const cN=COLORS[st.ci].n,dN=DOBS[st.di].n;
+  const venActive=m.veneer&&st.veneer&&showNal;
+  const cLabel=cN+(venActive?` · шпон ${DOBS[st.vi].n}`:'');
   const dobGrp=document.getElementById('sDobGroup').value;
   const dLabel=dobGrp?dobGrp+' · '+dN:dN;
   const rows=[
     ...(showNal?[
-      {nm:`Наличник вертикальный, ${m.n} · ${cN}`,dm:`${nV} мм`,qt:qv,pr:rNV,cl:''},
-      {nm:`Наличник горизонтальный, ${m.n} · ${cN}`,dm:`${nH2} мм`,qt:qh,pr:rNH,cl:''},
+      {nm:`Наличник вертикальный, ${m.n} · ${cLabel}`,dm:`${nV} мм`,qt:qv,pr:rNV,cl:''},
+      {nm:`Наличник горизонтальный, ${m.n} · ${cLabel}`,dm:`${nH2} мм`,qt:qh,pr:rNH,cl:''},
     ]:[]),
     ...(hasGlass?(()=>{
       var grp=document.getElementById('sGlassGroup').value||'—';
@@ -836,6 +874,10 @@ function buildSpec(){
         {nm:`Вставка наличника гориз., ${glassName}`,dm:`${gH2} мм`,qt:qh,pr:rGH,cl:'glass-r'},
       ];
     })():[]),
+    ...((sh&&showNal)?[
+      {nm:`Теневой профиль вертикальный, ${m.n}`,dm:`${shV} мм`,qt:qv,pr:rShV,cl:''},
+      {nm:`Теневой профиль горизонтальный, ${m.n}`,dm:`${shH} мм`,qt:qh,pr:rShH,cl:''},
+    ]:[]),
     ...(showDob?[
       {nm:`Добор вертикальный, ${dLabel}`,dm:`${dV}×${Math.round(dep)} мм`,qt:2,pr:rDV,cl:''},
       {nm:`Добор горизонтальный, ${dLabel}`,dm:`${dH2}×${Math.round(dep)} мм`,qt:1,pr:rDH,cl:''},
@@ -857,7 +899,7 @@ function buildSum(){
   const m=MODELS[st.mi];
   const showNal=st.kit!=='dob',showDob=st.kit!=='nal';
   const parts=[];
-  if(showNal)parts.push(`<strong>Наличник:</strong> ${COLORS[st.ci].n}`);
+  if(showNal)parts.push(`<strong>Наличник:</strong> ${COLORS[st.ci].n}${(m.veneer&&st.veneer)?` · шпон ${DOBS[st.vi].n}`:''}`);
   if(showDob)parts.push(`<strong>Добор:</strong> ${DOBS[st.di].n}`);
   document.getElementById('osum').innerHTML=
     `<strong>Модель:</strong> ${m.n} &nbsp;·&nbsp; <strong>Установка:</strong> ${st.inst}<br>
@@ -889,6 +931,10 @@ const SCHEMES={
   'WAVE':['schemes/WAVE-1.jpg','schemes/WAVE-2.jpg'],
   'DORA':['schemes/DORA-1.jpg','schemes/DORA-2.jpg'],
   'BAMBOO':['schemes/BAMBOO-1.jpg','schemes/BAMBOO-2.jpg'],
+  'Frame':['schemes/Frame-1.png','schemes/Frame-2.png'],
+  'Frame + теневой профиль':['schemes/Frame-Shadow-1.png','schemes/Frame-Shadow-2.png'],
+  'Shade':['schemes/Shade-1.png','schemes/Shade-2.png'],
+  'Shade + теневой профиль':['schemes/Shade-Shadow-1.png','schemes/Shade-Shadow-2.png'],
 }
 
 function drawScheme(id,i){
@@ -1026,7 +1072,7 @@ function buildPDF(schemeSrcs){
   var specTable=document.querySelector('.spec-t');
   var totVal=document.getElementById('totVal')?document.getElementById('totVal').textContent:'—';
   var showNal=st.kit!=='dob',showDob=st.kit!=='nal';
-  var cN=showNal?COLORS[st.ci].n:'—', dN=showDob?DOBS[st.di].n:'—';
+  var cN=showNal?(COLORS[st.ci].n+((m.veneer&&st.veneer)?' · шпон '+DOBS[st.vi].n:'')):'—', dN=showDob?DOBS[st.di].n:'—';
   var dobGrp=(showDob&&document.getElementById('sDobGroup'))?document.getElementById('sDobGroup').value:'—';
   var kitLabel=st.kit==='nal'?'Только наличник':st.kit==='dob'?'Только добор':'';
   var invoice=document.getElementById('iInvoice').value.trim();

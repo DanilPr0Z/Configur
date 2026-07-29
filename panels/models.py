@@ -138,6 +138,15 @@ class FramingModel(models.Model):
     price_category = models.CharField(max_length=20, default='default',
                                       choices=FramingProfilePrice.CATEGORY_CHOICES,
                                       verbose_name='Категория цены профиля')
+    # Наличник со шпоном (Frame/Shade): галочка в калькуляторе, надбавка к цене профиля
+    has_veneer = models.BooleanField(default=False, verbose_name='Доступен наличник со шпоном')
+    veneer_surcharge = models.FloatField(default=800, verbose_name='Надбавка за шпон, руб/м пог')
+    # Теневой профиль — отдельные строки в смете (модели «+ теневой профиль»)
+    has_shadow = models.BooleanField(default=False, verbose_name='С теневым профилем')
+    shadow_nH = models.FloatField(default=0, verbose_name='Поправка высоты теневого профиля')
+    shadow_nL = models.FloatField(default=0, verbose_name='Поправка ширины теневого профиля')
+    shadow_price_per_m = models.FloatField(default=1200,
+                                           verbose_name='Цена теневого профиля, руб/м пог')
     sort_order = models.IntegerField(default=0)
 
     class Meta:

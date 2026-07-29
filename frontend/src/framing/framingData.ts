@@ -14,6 +14,11 @@ export interface FramingModel {
   profile_count: number
   has_glass: boolean
   price_category: string   // mini | passo | triangle | default
+  has_veneer: boolean          // доступна галочка «Наличник со шпоном»
+  veneer_surcharge: number     // надбавка к цене профиля, руб/м пог
+  has_shadow: boolean          // модель «+ теневой профиль»
+  shadow_nH: number; shadow_nL: number
+  shadow_price_per_m: number
 }
 
 export interface FramingDobor { group: string; name: string; price: number }
@@ -40,6 +45,7 @@ export interface FramingCatalog {
   doborItems: FramingDobor[]        // только доборы (is_dobor группы), для выбора добора
   doborGroupNames: string[]         // названия групп-доборов
   glassGroupNames: string[]         // названия групп-вставок
+  veneerItems: FramingDobor[]       // шпоны для наличника со шпоном (группа ШПОН)
 }
 
 export function buildCatalog(cfg: FramingConfig): FramingCatalog {
@@ -56,8 +62,12 @@ export function buildCatalog(cfg: FramingConfig): FramingCatalog {
     doborItems,
     doborGroupNames,
     glassGroupNames,
+    veneerItems: cfg.dobors.filter(d => d.group === VENEER_GROUP),
   }
 }
+
+// Группа отделок, из которой выбирается шпон наличника
+export const VENEER_GROUP = 'ШПОН'
 
 // Схемы сборки (2 картинки на модель) — статические файлы в /public/schemes
 export const SCHEMES: Record<string, [string, string]> = {
@@ -73,6 +83,11 @@ export const SCHEMES: Record<string, [string, string]> = {
   'WAVE': ['/schemes/WAVE-1.jpg', '/schemes/WAVE-2.jpg'],
   'DORA': ['/schemes/DORA-1.jpg', '/schemes/DORA-2.jpg'],
   'BAMBOO': ['/schemes/BAMBOO-1.jpg', '/schemes/BAMBOO-2.jpg'],
+  // Новые модели (21.07.2026) — схемы в .png, переименовывать нельзя
+  'Frame': ['/schemes/Frame-1.png', '/schemes/Frame-2.png'],
+  'Frame + теневой профиль': ['/schemes/Frame-Shadow-1.png', '/schemes/Frame-Shadow-2.png'],
+  'Shade': ['/schemes/Shade-1.png', '/schemes/Shade-2.png'],
+  'Shade + теневой профиль': ['/schemes/Shade-Shadow-1.png', '/schemes/Shade-Shadow-2.png'],
 }
 
 // ─── Расчёт ──────────────────────────────────────────────────────────────────
@@ -90,11 +105,13 @@ export interface FramingState {
   glassGroup: string // группа вставки ('' = без вставки)
   glassInsert: string
   glassColor: string
+  veneer: boolean    // наличник со шпоном (только для моделей has_veneer)
+  vi: number         // индекс шпона в cat.veneerItems
 }
 
 export const defaultState = (): FramingState => ({
   mi: 0, H: 2000, L: 900, C: 200, inst: 'с двух сторон', ci: 0, di: 0, kit: 'both',
-  glassGroup: '', glassInsert: '', glassColor: '',
+  glassGroup: '', glassInsert: '', glassColor: '', veneer: false, vi: 0,
 })
 
 // Глубина добора в зависимости от модели и установки
@@ -104,9 +121,11 @@ export function getDepth(m: FramingModel, C: number, inst: InstType): number {
   return C + m.depth_delta
 }
 
-// Цена профиля наличника за 3000 мм по категории модели
-export function getPpu(m: FramingModel, cat: FramingCatalog): number {
-  return cat.profilePrices[m.price_category] ?? cat.profilePrices['default'] ?? 0
+// Цена профиля наличника за 3000 мм по категории модели.
+// Наличник со шпоном — надбавка veneer_surcharge (₽/м пог), цвет профиля сохраняется.
+export function getPpu(m: FramingModel, cat: FramingCatalog, veneer = false): number {
+  const base = cat.profilePrices[m.price_category] ?? cat.profilePrices['default'] ?? 0
+  return (m.has_veneer && veneer) ? base + m.veneer_surcharge : base
 }
 
 // Цена вставки, руб/м: из группы, «без вставки» → 360
@@ -139,7 +158,8 @@ export function computeSpec(st: FramingState, cat: FramingCatalog): SpecResult {
   const dV = Math.round(H + m.dH), dH2 = Math.round(L + m.dL)
   const dep = getDepth(m, C, st.inst)
   const showNal = st.kit !== 'dob', showDob = st.kit !== 'nal'
-  const pN = getPpu(m, cat)
+  const venActive = m.has_veneer && st.veneer && showNal
+  const pN = getPpu(m, cat, st.veneer)
   const dob = cat.doborItems[st.di]
   const pD = dob ? dob.price : 0
 
@@ -156,20 +176,33 @@ export function computeSpec(st: FramingState, cat: FramingCatalog): SpecResult {
   const rGV = hasGlass ? Math.round(pG * gV / 1000 * qv) : 0
   const rGH = hasGlass ? Math.round(pG * gH2 / 1000 * qh) : 0
 
-  const total = rNV + rNH + rDV + rDH + sur + rGV + rGH
+  // Теневой профиль — рамка по периметру, отдельные строки сметы
+  const hasShadow = m.has_shadow && showNal
+  const shV = hasShadow ? Math.round(H + m.shadow_nH) : 0
+  const shH = hasShadow ? Math.round(L + m.shadow_nL) : 0
+  const rShV = hasShadow ? Math.round(m.shadow_price_per_m * shV / 1000 * qv) : 0
+  const rShH = hasShadow ? Math.round(m.shadow_price_per_m * shH / 1000 * qh) : 0
+
+  const total = rNV + rNH + rDV + rDH + sur + rGV + rGH + rShV + rShH
 
   const cN = cat.colors[st.ci] || '—'
   const dN = dob ? dob.name : '—'
+  const veneerName = venActive ? (cat.veneerItems[st.vi]?.name || '') : ''
+  const cLabel = veneerName ? `${cN} · шпон ${veneerName}` : cN
   const rows: SpecRow[] = []
   if (showNal) {
-    rows.push({ nm: `Наличник вертикальный, ${m.name} · ${cN}`, dm: `${nV} мм`, qt: qv, pr: rNV })
-    rows.push({ nm: `Наличник горизонтальный, ${m.name} · ${cN}`, dm: `${nH2} мм`, qt: qh, pr: rNH })
+    rows.push({ nm: `Наличник вертикальный, ${m.name} · ${cLabel}`, dm: `${nV} мм`, qt: qv, pr: rNV })
+    rows.push({ nm: `Наличник горизонтальный, ${m.name} · ${cLabel}`, dm: `${nH2} мм`, qt: qh, pr: rNH })
   }
   if (hasGlass) {
     const glassName = [st.glassGroup || '—', st.glassInsert, st.glassColor.trim()]
       .filter(Boolean).join(' · ')
     rows.push({ nm: `Вставка наличника верт., ${glassName}`, dm: `${gV} мм`, qt: qv, pr: rGV, cl: 'glass' })
     rows.push({ nm: `Вставка наличника гориз., ${glassName}`, dm: `${gH2} мм`, qt: qh, pr: rGH, cl: 'glass' })
+  }
+  if (hasShadow) {
+    rows.push({ nm: `Теневой профиль вертикальный, ${m.name}`, dm: `${shV} мм`, qt: qv, pr: rShV })
+    rows.push({ nm: `Теневой профиль горизонтальный, ${m.name}`, dm: `${shH} мм`, qt: qh, pr: rShH })
   }
   if (showDob) {
     rows.push({ nm: `Добор вертикальный, ${dN}`, dm: `${dV}×${Math.round(dep)} мм`, qt: 2, pr: rDV })

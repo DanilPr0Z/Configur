@@ -67,10 +67,14 @@ PythonProject9/
 ├── frontend/
 │   └── src/
 │       ├── api.ts                   # ВСЕ типы TypeScript и API-вызовы
-│       ├── App.tsx                  # роутинг (/, /orders, /orders/:id, /joint-images*)
+│       ├── App.tsx                  # роутинг (/, /wall-60, /wall-50, /framing,
+│       │                            # /orders, /orders/:id, /framing-leads, /joint-images*)
 │       │                            # * /joint-images скрыт из навигации
+│       │                            # Routes обёрнуты в ErrorBoundary
 │       ├── pages/
 │       │   ├── Configurator.tsx
+│       │   ├── Framing.tsx
+│       │   ├── FramingLeads.tsx     # заявки обрамления в ЛК
 │       │   ├── OrdersList.tsx
 │       │   ├── OrderDetail.tsx
 │       │   └── JointImages.tsx
@@ -245,6 +249,13 @@ python manage.py dumpdata \
   --indent 2 --output panels/fixtures/catalog.json
 ```
 Затем закоммитить `catalog.json` и задеплоить.
+
+**Обрамление: источники правды** (папка `News/`, от Виталия Габбасова):
+- `cascate_calculator.html` — эталонный калькулятор, по нему сверяется логика расчёта;
+- `Обрамление_проема_КАЛЬКУЛЯТОР_v3.xlsx` — старые модели;
+- `Чертёж - Frame и Shade (новые модели).pdf` — новые модели Frame/Shade (21.07.2026);
+- `News/schemes/` — схемы моделей; старые в `.jpg`, Frame/Shade в `.png` (не переименовывать),
+  дубль для фронта — `frontend/public/schemes/`.
 
 ## Частые команды
 
