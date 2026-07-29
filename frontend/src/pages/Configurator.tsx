@@ -290,49 +290,91 @@ const _SAVED_CONFIG: SavedConfigState | null = (() => {
   }
 })()
 
+// Мигрируем стены (wallFacing) — восстановленные из localStorage и из заказа
+function migrateWalls(raw: any[]): WallSeg[] {
+  return (raw ?? []).filter(Boolean).map((wa: any) => ({
+    ...wa,
+    id: wa.id ?? uid(),
+    name: wa.name ?? 'Стена',
+    wallHeight: wa.wallHeight ?? 2700,
+    wallLength: wa.wallLength ?? 3000,
+    numPanels: wa.numPanels ?? 0,
+    connType: wa.connType ?? 'C',
+    leftNode: wa.leftNode ?? 'A',
+    rightNode: wa.rightNode ?? 'A',
+    topEdge: wa.topEdge ?? '',
+    bottomEdge: wa.bottomEdge ?? '',
+    copies: wa.copies ?? 1,
+    finishGroup: wa.finishGroup ?? '',
+    finishName: wa.finishName ?? '',
+    veneerDirection: wa.veneerDirection ?? '',
+    decor3d: wa.decor3d ?? '',
+    aluminumVertical: wa.aluminumVertical ?? 0,
+    aluminumHorizontal: wa.aluminumHorizontal ?? 0,
+    aluminumColor: wa.aluminumColor ?? '',
+    markup: wa.markup ?? 0,
+    notes: wa.notes ?? '',
+    wallFacing: (wa.wallFacing ?? 'front') as 'front' | 'back',
+  }))
+}
+
+// Мигрируем старые DoorSeg без новых полей добора обрамления
+function migrateDoors(raw: any[]): DoorSeg[] {
+  return (raw ?? []).filter(Boolean).map((da: any) => ({
+    ...da,
+    id: da.id ?? uid(),
+    label: da.label ?? 'Дверной проём',
+    doorRef: da.doorRef ?? '',
+    openingW: da.openingW ?? 900,
+    openingH: da.openingH ?? 2100,
+    ceilingH: da.ceilingH ?? 2700,
+    mountType: da.mountType ?? 'В ПРОЕМ',
+    openingDir: da.openingDir ?? 'ВНУТРЬ',
+    hingeDir: da.hingeDir ?? 'СЛЕВА',
+    topEdge: da.topEdge ?? '',
+    bottomEdge: da.bottomEdge ?? '',
+    finishGroup: da.finishGroup ?? '',
+    finishName: da.finishName ?? '',
+    veneerDirection: da.veneerDirection ?? '',
+    decor3d: da.decor3d ?? '',
+    copies: da.copies ?? 1,
+    notes: da.notes ?? '',
+    wallDepth: da.wallDepth ?? 200,
+    trimLeftNode: da.trimLeftNode ?? 'A',
+    trimLeftW: da.trimLeftW ?? da.wallDepth ?? 200,
+    trimLeftH: da.trimLeftH ?? da.openingH ?? 2100,
+    trimRightNode: da.trimRightNode ?? 'A',
+    trimRightW: da.trimRightW ?? da.wallDepth ?? 200,
+    trimRightH: da.trimRightH ?? da.openingH ?? 2100,
+    trimTopLeftNode: da.trimTopLeftNode ?? 'A',
+    trimTopRightNode: da.trimTopRightNode ?? 'A',
+    trimTopW: da.trimTopW ?? da.openingW ?? 900,
+    trimTopH: da.trimTopH ?? da.wallDepth ?? 200,
+    trimLeftWallNode: da.trimLeftWallNode ?? 'A',
+    trimRightWallNode: da.trimRightWallNode ?? 'A',
+    hasTrim: da.hasTrim ?? false,
+    leftNode: ['B', 'C'].includes(da.leftNode) ? da.leftNode : 'B',
+    rightNode: ['B', 'C'].includes(da.rightNode) ? da.rightNode : 'B',
+  }))
+}
+
 function getInitialConfig() {
   if (_SAVED_CONFIG?.walls?.length) {
+    const walls = migrateWalls(_SAVED_CONFIG.walls)
+    const doors = migrateDoors(_SAVED_CONFIG.doors)
     const io: { type: 'wall' | 'door'; id: string }[] =
       _SAVED_CONFIG.itemOrder?.length
         ? _SAVED_CONFIG.itemOrder
         : [
-            ..._SAVED_CONFIG.walls.map(w => ({ type: 'wall' as const, id: w.id })),
-            ..._SAVED_CONFIG.doors.map(d => ({ type: 'door' as const, id: d.id })),
+            ...walls.map(w => ({ type: 'wall' as const, id: w.id })),
+            ...doors.map(d => ({ type: 'door' as const, id: d.id })),
           ]
-    // Мигрируем стены (wallFacing)
-    const walls = _SAVED_CONFIG.walls.map(w => {
-      const wa = w as any
-      return { ...w, wallFacing: (wa.wallFacing ?? 'front') as 'front' | 'back' }
-    })
-    // Мигрируем старые DoorSeg без новых полей добора
-    const doors = _SAVED_CONFIG.doors.map(d => {
-      const da = d as any
-      return {
-        ...d,
-        wallDepth: da.wallDepth ?? 200,
-        trimLeftNode: da.trimLeftNode ?? 'A',
-        trimLeftW: da.trimLeftW ?? da.wallDepth ?? 200,
-        trimLeftH: da.trimLeftH ?? da.openingH ?? 2100,
-        trimRightNode: da.trimRightNode ?? 'A',
-        trimRightW: da.trimRightW ?? da.wallDepth ?? 200,
-        trimRightH: da.trimRightH ?? da.openingH ?? 2100,
-        trimTopLeftNode: da.trimTopLeftNode ?? 'A',
-        trimTopRightNode: da.trimTopRightNode ?? 'A',
-        trimTopW: da.trimTopW ?? da.openingW ?? 900,
-        trimTopH: da.trimTopH ?? da.wallDepth ?? 200,
-        trimLeftWallNode: da.trimLeftWallNode ?? 'A',
-        trimRightWallNode: da.trimRightWallNode ?? 'A',
-        hasTrim: da.hasTrim ?? false,
-        leftNode: ['B', 'C'].includes(da.leftNode) ? da.leftNode : 'B',
-        rightNode: ['B', 'C'].includes(da.rightNode) ? da.rightNode : 'B',
-      }
-    })
     return {
       walls,
       doors,
       itemOrder: io,
-      wallSeq: _SAVED_CONFIG.wallSeq ?? _SAVED_CONFIG.walls.length,
-      doorSeq: _SAVED_CONFIG.doorSeq ?? _SAVED_CONFIG.doors.length,
+      wallSeq: _SAVED_CONFIG.wallSeq ?? walls.length,
+      doorSeq: _SAVED_CONFIG.doorSeq ?? doors.length,
     }
   }
   return {
@@ -1468,17 +1510,24 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
     fetchOrder(Number(editOrderId)).then(order => {
       setEditOrder(order)
       const cs = order.configurator_state
-      if (cs?.walls?.length) {
+      if (cs?.walls?.length || cs?.doors?.length) {
         // Синхронизируем _seq чтобы новые ID не коллидировали
         for (const item of [...(cs.walls ?? []), ...(cs.doors ?? [])]) {
-          const n = parseInt((item.id ?? '').replace('id', ''))
+          const n = parseInt((item?.id ?? '').replace('id', ''))
           if (!isNaN(n) && n > _seq) _seq = n
         }
-        setWalls(cs.walls)
-        setDoors(cs.doors ?? [])
-        setItemOrder(cs.itemOrder ?? cs.walls.map((w: WallSeg) => ({ type: 'wall', id: w.id })))
-        setWallSeq(cs.wallSeq ?? cs.walls.length)
-        setDoorSeq(cs.doorSeq ?? (cs.doors?.length ?? 0))
+        // Заказ мог быть сохранён прежней версией конфигуратора — дополняем
+        // недостающие поля дефолтами, иначе схема и формы падают на undefined.
+        const walls = migrateWalls(cs.walls)
+        const doors = migrateDoors(cs.doors)
+        setWalls(walls)
+        setDoors(doors)
+        setItemOrder(cs.itemOrder?.length ? cs.itemOrder : [
+          ...walls.map(w => ({ type: 'wall' as const, id: w.id })),
+          ...doors.map(d => ({ type: 'door' as const, id: d.id })),
+        ])
+        setWallSeq(cs.wallSeq ?? walls.length)
+        setDoorSeq(cs.doorSeq ?? doors.length)
       }
       setLoadingOrder(false)
     }).catch(() => setLoadingOrder(false))

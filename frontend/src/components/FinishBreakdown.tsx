@@ -21,13 +21,16 @@ interface Group {
 export function groupByFinish(panels: FinishBreakdownPanel[]): Group[] {
   const map = new Map<string, Group>()
   for (const p of panels) {
-    const key = `${p.finishGroup}|${p.finishName}|${p.decor3d}`
+    const finishGroup = p.finishGroup ?? ''
+    const finishName = p.finishName ?? ''
+    const decor3d = p.decor3d ?? ''
+    const key = `${finishGroup}|${finishName}|${decor3d}`
     let g = map.get(key)
     if (!g) {
-      g = { finishGroup: p.finishGroup, finishName: p.finishName, decor3d: p.decor3d, quantity: 0, areaSqm: 0, total: 0 }
+      g = { finishGroup, finishName, decor3d, quantity: 0, areaSqm: 0, total: 0 }
       map.set(key, g)
     }
-    g.quantity += p.quantity
+    g.quantity += p.quantity ?? 0
     g.areaSqm += p.areaSqm ?? 0
     g.total += p.total ?? 0
   }

@@ -91,8 +91,9 @@ export default function OrderDetail() {
           <div className={`step ${step === 'panels' ? 'active' : ''}`} onClick={() => setStep('panels')}>
             {(() => {
               const sp: SpecPanel[] = order.configurator_state?.spec?.panels ?? []
-              const wallCount = sp.filter((p: SpecPanel) => !p.panelLabel.startsWith('Д')).length
-              const doorCount = sp.filter((p: SpecPanel) => p.panelLabel.startsWith('Д')).length
+              const isDoor = (p: SpecPanel) => (p.panelLabel ?? '').startsWith('Д')
+              const doorCount = sp.filter(isDoor).length
+              const wallCount = sp.length - doorCount
               return `2. Панели (${wallCount} ст. / ${doorCount} дв.)`
             })()}
           </div>

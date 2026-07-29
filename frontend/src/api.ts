@@ -336,6 +336,21 @@ export interface FramingLeadPayload {
 export const createFramingLead = (data: FramingLeadPayload) =>
   api.post('framing-leads/', data).then(r => r.data)
 
+export interface FramingLeadSpecRow { nm: string; dm: string; qt: number; pr: number; cl?: string }
+
+export interface FramingLead extends FramingLeadPayload {
+  id: number
+  created_at: string
+  status: string
+  spec?: FramingLeadSpecRow[] | null
+}
+
+export const fetchFramingLeads = () =>
+  api.get<FramingLead[]>('framing-leads/').then(r => r.data)
+
+export const fetchFramingLead = (id: number) =>
+  api.get<FramingLead>(`framing-leads/${id}/`).then(r => r.data)
+
 // ─── Вход через cascate.ru ────────────────────────────────────────────────────
 
 export interface CascateUser { id_person: string; login: string }

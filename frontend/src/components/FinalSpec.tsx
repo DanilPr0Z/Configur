@@ -79,13 +79,16 @@ function formatDate(iso: string | null): string {
 
 /** «A \ 2988 * 1509 \ B» — как в колонке «РАЗМЕРЫ ПАНЕЛИ И ТИПЫ КРОМОК» */
 function dimensions(p: FinalSpecPanel): string {
-  return `${p.leftNode} \\ ${p.height} * ${p.width} \\ ${p.rightNode}`
+  return `${p.leftNode || '—'} \\ ${p.height} * ${p.width} \\ ${p.rightNode || '—'}`
 }
 
 /** Панели дверного проёма №n: надпроёмная «Дn» и доборы «Дn.1», «Дn.2»… */
 function doorPanels(panels: FinalSpecPanel[], index: number): FinalSpecPanel[] {
   const label = `Д${index + 1}`
-  return panels.filter(p => p.panelLabel === label || p.panelLabel.startsWith(`${label}.`))
+  return panels.filter(p => {
+    const l = p.panelLabel ?? ''
+    return l === label || l.startsWith(`${label}.`)
+  })
 }
 
 function HeaderField({ label, value }: { label: string; value: string }) {
@@ -112,7 +115,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
 }
 
 export default function FinalSpec({ header, panels, profiles, doors }: Props) {
-  const wallPanels = panels.filter(p => !p.panelLabel.startsWith('Д'))
+  const wallPanels = panels.filter(p => !(p.panelLabel ?? '').startsWith('Д'))
   const decorProfiles = profiles.filter(p => p.article === DECOR_ARTICLE)
   const mainProfiles = profiles.filter(p => p.article !== DECOR_ARTICLE)
 

@@ -55,6 +55,10 @@ const CORNER_INNER = new Set(['DG', 'DH'])  // −90° (против часов�
 
 // ── Цвета узлов ──────────────────────────────────────────────────────────────
 
+// Заказы, сохранённые прежними версиями конфигуратора, могут не содержать части
+// полей — схема не должна из-за этого падать (белый экран вместо заказа).
+const low = (s?: string) => (s ?? '').toLowerCase()
+
 function nodeColor(code: string): string {
   if (['A', 'FL', 'FR', 'E'].includes(code)) return '#3b82f6'
   if (code === 'B') return '#f97316'
@@ -78,7 +82,8 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
   // Бейдж узла — кликабельный, при наведении показывает превью фото.
   // Определён внутри компонента: замыкает jtByCode и setHover, поэтому
   // места вызова <Badge .../> остаются без изменений.
-  function Badge({ x, y, code, angle = 0 }: { x: number; y: number; code: string; angle?: number }) {
+  function Badge({ x, y, code, angle = 0 }: { x: number; y: number; code?: string; angle?: number }) {
+    if (!code) return null
     const fill = nodeColor(code)
     const r  = code.length > 2 ? 13 : 10
     const fs = code.length > 2 ? 7  : 9
@@ -353,7 +358,9 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
 
           // ── Доборы: размерные линии + узлы (без отрисовки панелей) ──────────────
           const TRIM_GAP    = 4
-          const trimEnabled = d.hasTrim !== false
+          // Добор рисуем только когда он реально посчитан в спецификации
+          // (buildSpec создаёт панели добора при hasTrim === true).
+          const trimEnabled = d.hasTrim === true
           const leftTrimPx  = trimEnabled ? Math.max(10, Math.min(70, (d.trimLeftW  || d.wallDepth || 200) * scale)) : 0
           const rightTrimPx = trimEnabled ? Math.max(10, Math.min(70, (d.trimRightW || d.wallDepth || 200) * scale)) : 0
           const showTopTrim = trimEnabled && d.mountType !== 'В ПОТОЛОК'
@@ -466,9 +473,9 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
                 return (
                   <HText lx={cx} ly={mountOff} angle={a}
                     textAnchor="middle" fontSize="8" fill="#94a3b8">
-                    <tspan x={cx}>Монтаж {d.mountType.toLowerCase()}</tspan>
+                    <tspan x={cx}>Монтаж {low(d.mountType)}</tspan>
                     <tspan x={cx} dy={11}>
-                      Открывание {d.openingDir.toLowerCase()} {d.hingeDir.toLowerCase()}
+                      Открывание {low(d.openingDir)} {low(d.hingeDir)}
                     </tspan>
                   </HText>
                 )
