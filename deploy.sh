@@ -21,19 +21,25 @@ sudo -u "$APP_USER" git pull
 # Если pull убрал рабочую БД (переход в untracked) — восстанавливаем из бэкапа.
 [ ! -f db.sqlite3 ] && [ -f db.sqlite3.bak ] && cp db.sqlite3.bak db.sqlite3
 
-echo "==> Python: зависимости, миграции, каталог, статика"
+echo "==> Python: зависимости, миграции, каталог"
 source venv/bin/activate
 pip install -r requirements.txt
 python manage.py migrate --noinput
 # Справочники (каталог) из фикстуры. Заказы не трогаются.
 python manage.py loaddata catalog.json
-python manage.py collectstatic --noinput
 
+# ВАЖНО: сборка фронта — ДО collectstatic. Vite даёт файлам новые хеши в имени
+# (assets/index-<hash>.js), и index.html ссылается на них как /static/assets/...
+# Если собрать после collectstatic, в staticfiles останутся файлы прошлой сборки,
+# новый index.html будет ссылаться на несуществующие → 404 и белый экран.
 echo "==> Сборка фронтенда"
 cd frontend
 npm install
 npm run build
 cd ..
+
+echo "==> Статика (после сборки фронта)"
+python manage.py collectstatic --noinput
 
 echo "==> Возврат владельца файлов пользователю $APP_USER"
 chown "$APP_USER":"$APP_USER" db.sqlite3
