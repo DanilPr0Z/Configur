@@ -364,11 +364,11 @@ td input:focus, td select:focus { border-color: #4c6ef5; outline: none; }
 @media print {
   .no-print { display: none !important; }
   .print-only { display: block !important; }
-  body { background: white !important; }
+  body { background: white !important; min-height: 0 !important; }
   .navbar { display: none !important; }
   /* Разворачиваем flex-обёртки с min-height:100vh в обычный поток —
      Chrome плохо разбивает flex-контейнеры по листам и вставляет пустые страницы. */
-  .app-shell, .app-layout, .app-main { display: block !important; min-height: 0 !important; }
+  .app-shell, .app-layout, .app-content, .app-main { display: block !important; min-height: 0 !important; }
   /* НЕ применяем break-inside: avoid к .card — карточка спецификации выше страницы,
      иначе браузер целиком переносит её на 2-й лист, а 1-й выходит пустым. */
   .card { box-shadow: none !important; border: 1px solid #ccc !important; break-inside: auto; }

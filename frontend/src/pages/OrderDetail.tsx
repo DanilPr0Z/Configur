@@ -173,6 +173,7 @@ export default function OrderDetail() {
               panels={order.configurator_state.spec?.panels ?? []}
               profiles={order.configurator_state.spec?.profiles ?? []}
               doors={(order.configurator_state.doors ?? []) as FinalSpecDoor[]}
+              series={order.series || '60'}
             />
           ) : (
             <div className="card">
@@ -348,8 +349,10 @@ interface SpecProfile {
 
 const fmtN = (n?: number) => n && n > 0 ? n.toLocaleString('ru-RU', { maximumFractionDigits: 0 }) : '—'
 
-function SchemeHint() {
+function SchemeHint({ series }: { series?: string }) {
   const [open, setOpen] = useState(false)
+  const s = series === '50' ? '50' : '60'
+  const suffix = s === '50' ? '-50' : ''
   return (
     <div className="card no-print" style={{ marginBottom: 20, padding: 0, overflow: 'hidden' }}>
       <button
@@ -361,15 +364,15 @@ function SchemeHint() {
           fontSize: 14, fontWeight: 600, color: '#1a4d8a', textAlign: 'left',
         }}
       >
-        <span>Схемы сборки стеновых панелей NUOVO 60 — справочные листы</span>
+        <span>Схемы сборки стеновых панелей NUOVO {s} — справочные листы</span>
         <svg width="14" height="14" viewBox="0 0 10 10" style={{ flexShrink: 0, opacity: .5, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
           <path d="M1 3l4 4 4-4" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" />
         </svg>
       </button>
       {open && (
         <div style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <img src={`${import.meta.env.BASE_URL}scheme1.png`} alt="Схема раскладки" style={{ width: '100%', borderRadius: 10, border: '1px solid #e0e8f5' }} />
-          <img src={`${import.meta.env.BASE_URL}scheme2.png`} alt="Типы узлов" style={{ width: '100%', borderRadius: 10, border: '1px solid #e0e8f5' }} />
+          <img src={`${import.meta.env.BASE_URL}scheme1${suffix}.png`} alt="Схема раскладки" style={{ width: '100%', borderRadius: 10, border: '1px solid #e0e8f5' }} />
+          <img src={`${import.meta.env.BASE_URL}scheme2${suffix}.png`} alt="Типы узлов" style={{ width: '100%', borderRadius: 10, border: '1px solid #e0e8f5' }} />
         </div>
       )}
     </div>
@@ -393,7 +396,7 @@ function ConfiguratorSpecView({ order, onEdit }: { order: Order; onEdit: () => v
   if (!cs) {
     return (
       <>
-        <SchemeHint />
+        <SchemeHint series={order.series} />
         <div className="card">
           <div className="alert alert-info" style={{ marginBottom: 16 }}>
             Спецификация недоступна — заказ создан не через конфигуратор или был создан до обновления системы.
@@ -406,7 +409,7 @@ function ConfiguratorSpecView({ order, onEdit }: { order: Order; onEdit: () => v
 
   return (
     <>
-      <SchemeHint />
+      <SchemeHint series={order.series} />
       <div className="card">
         <div className="flex justify-between flex-center no-print" style={{ marginBottom: 14 }}>
           <h2 style={{ margin: 0 }}>

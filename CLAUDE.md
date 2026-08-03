@@ -257,6 +257,14 @@ python manage.py dumpdata \
 - `News/schemes/` — схемы моделей; старые в `.jpg`, Frame/Shade в `.png` (не переименовывать),
   дубль для фронта — `frontend/public/schemes/`.
 
+**Стеновые: источники чертежей**
+- NUOVO 60 — справочные листы `frontend/public/scheme1.png`, `scheme2.png`;
+  чертежи узлов — `media/joints/joint_<CODE>.png`.
+- NUOVO 50 — `frontend/public/scheme1-50.png`, `scheme2-50.png` и `media/joints/joint_<CODE>_50.png`
+  собраны из картинок официального файла `News/NUOVO_50_Расчет_стеновых_панелей_учет_узлов_02_02_2026.xlsx`
+  (`unzip xl/media/*`: 11 — план + расчёт ширины, 12 — разрезы + расчёт высоты,
+  18–27 — узлы и коробка Complanar 50). Чертежи 60 и 50 РАЗНЫЕ — не переиспользовать.
+
 ## Частые команды
 
 ```bash

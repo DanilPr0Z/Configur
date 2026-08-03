@@ -64,6 +64,7 @@ interface Props {
   panels: FinalSpecPanel[]
   profiles: FinalSpecProfile[]
   doors: FinalSpecDoor[]
+  series?: string
 }
 
 const DECOR_ARTICLE = 'П 6x6'
@@ -114,7 +115,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   )
 }
 
-export default function FinalSpec({ header, panels, profiles, doors }: Props) {
+export default function FinalSpec({ header, panels, profiles, doors, series = '60' }: Props) {
   const wallPanels = panels.filter(p => !(p.panelLabel ?? '').startsWith('Д'))
   const decorProfiles = profiles.filter(p => p.article === DECOR_ARTICLE)
   const mainProfiles = profiles.filter(p => p.article !== DECOR_ARTICLE)
@@ -136,7 +137,7 @@ export default function FinalSpec({ header, panels, profiles, doors }: Props) {
       </div>
 
       <div className="print-only" style={{ marginBottom: 16, fontSize: '1.1rem', fontWeight: 700 }}>
-        NUOVO 60 — ОБЩАЯ СПЕЦИФИКАЦИЯ ЗАКАЗА СТЕНОВЫХ ПАНЕЛЕЙ
+        NUOVO {series} — ОБЩАЯ СПЕЦИФИКАЦИЯ ЗАКАЗА СТЕНОВЫХ ПАНЕЛЕЙ
       </div>
 
       {/* ── Шапка заказа ── */}

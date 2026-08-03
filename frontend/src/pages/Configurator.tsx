@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearchParams, useBlocker } from 'react-router-dom'
 import { fetchAluminumProfiles, fetchProfileColors, fetchJointTypes, fetchFinishGroups, fetchOrder, createOrder, updateOrder, createPanel, deletePanel, isCascateLoggedIn, LOGIN_REQUIRED_MSG } from '../api'
 import type { AluminumProfile, ProfileColor, JointType, FinishGroup, Finish, Order, Series } from '../api'
 import { visibleFinishGroups } from '../api'
@@ -263,32 +263,10 @@ function makeDoor(n: number): DoorSeg {
   }
 }
 
-// ─── State persistence (localStorage) ─────────────────────────────────────────
-
-interface SavedConfigState {
-  walls: WallSeg[]
-  doors: DoorSeg[]
-  itemOrder: { type: 'wall' | 'door'; id: string }[]
-  wallSeq: number
-  doorSeq: number
-}
-
-const _SAVED_CONFIG: SavedConfigState | null = (() => {
-  try {
-    const raw = localStorage.getItem('nuovo60_config')
-    if (!raw) return null
-    const data = JSON.parse(raw) as SavedConfigState
-    if (!Array.isArray(data.walls) || !Array.isArray(data.doors)) return null
-    // Синхронизируем счётчик ID, чтобы новые ID не коллидировали с восстановленными
-    for (const item of [...(data.walls ?? []), ...(data.doors ?? [])]) {
-      const n = parseInt((item.id ?? '').replace('id', ''))
-      if (!isNaN(n) && n > _seq) _seq = n
-    }
-    return data
-  } catch {
-    return null
-  }
-})()
+// Конфигуратор всегда открывается с чистого листа: черновик в localStorage больше
+// не восстанавливается (иначе панели от NUOVO 60 «протекали» в NUOVO 50 и наоборот).
+// Чистим ключ старых версий, чтобы он не висел в браузерах агентов.
+try { localStorage.removeItem('nuovo60_config') } catch { /* приватный режим */ }
 
 // Мигрируем стены (wallFacing) — восстановленные из localStorage и из заказа
 function migrateWalls(raw: any[]): WallSeg[] {
@@ -357,36 +335,6 @@ function migrateDoors(raw: any[]): DoorSeg[] {
     rightNode: ['B', 'C'].includes(da.rightNode) ? da.rightNode : 'B',
   }))
 }
-
-function getInitialConfig() {
-  if (_SAVED_CONFIG?.walls?.length) {
-    const walls = migrateWalls(_SAVED_CONFIG.walls)
-    const doors = migrateDoors(_SAVED_CONFIG.doors)
-    const io: { type: 'wall' | 'door'; id: string }[] =
-      _SAVED_CONFIG.itemOrder?.length
-        ? _SAVED_CONFIG.itemOrder
-        : [
-            ...walls.map(w => ({ type: 'wall' as const, id: w.id })),
-            ...doors.map(d => ({ type: 'door' as const, id: d.id })),
-          ]
-    return {
-      walls,
-      doors,
-      itemOrder: io,
-      wallSeq: _SAVED_CONFIG.wallSeq ?? walls.length,
-      doorSeq: _SAVED_CONFIG.doorSeq ?? doors.length,
-    }
-  }
-  return {
-    walls: [] as WallSeg[],
-    doors: [] as DoorSeg[],
-    itemOrder: [] as { type: 'wall' | 'door'; id: string }[],
-    wallSeq: 0,
-    doorSeq: 0,
-  }
-}
-
-const _INIT = getInitialConfig()
 
 // ─── Calculations ─────────────────────────────────────────────────────────────
 
@@ -1213,8 +1161,9 @@ function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove, phase }:
 
 // ─── SchemeHint ───────────────────────────────────────────────────────────────
 
-function SchemeHint() {
+function SchemeHint({ series }: { series: Series }) {
   const [open, setOpen] = useState(false)
+  const suffix = series === '50' ? '-50' : ''
 
   return (
     <div className="card no-print" style={{ marginBottom: 20, padding: 0, overflow: 'hidden' }}>
@@ -1227,7 +1176,7 @@ function SchemeHint() {
           fontSize: 14, fontWeight: 600, color: '#1a4d8a', textAlign: 'left',
         }}
       >
-        <span>Схемы сборки стеновых панелей NUOVO 60 — справочные листы</span>
+        <span>Схемы сборки стеновых панелей NUOVO {series} — справочные листы</span>
         <svg width="14" height="14" viewBox="0 0 10 10" style={{ flexShrink: 0, opacity: .5, transform: open ? 'rotate(180deg)' : 'none', transition: 'transform .2s' }}>
           <path d="M1 3l4 4 4-4" stroke="currentColor" strokeWidth="1.8" fill="none" strokeLinecap="round" />
         </svg>
@@ -1236,17 +1185,66 @@ function SchemeHint() {
       {open && (
         <div style={{ padding: '0 20px 20px', display: 'flex', flexDirection: 'column', gap: 16 }}>
           <img
-            src={`${import.meta.env.BASE_URL}scheme1.png`}
+            src={`${import.meta.env.BASE_URL}scheme1${suffix}.png`}
             alt="Схема сборки — план раскладки"
             style={{ width: '100%', borderRadius: 10, border: '1px solid #e0e8f5', display: 'block' }}
           />
           <img
-            src={`${import.meta.env.BASE_URL}scheme2.png`}
+            src={`${import.meta.env.BASE_URL}scheme2${suffix}.png`}
             alt="Схема сборки — типы узлов"
             style={{ width: '100%', borderRadius: 10, border: '1px solid #e0e8f5', display: 'block' }}
           />
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── LeaveGuard ───────────────────────────────────────────────────────────────
+
+interface LeaveGuardProps {
+  panelCount: number
+  isEdit: boolean
+  onSave: () => void
+  onLeave: () => void
+  onCancel: () => void
+}
+
+function LeaveGuard({ panelCount, isEdit, onSave, onLeave, onCancel }: LeaveGuardProps) {
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0, zIndex: 10001,
+        background: 'rgba(0,0,0,0.45)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}
+      onMouseDown={e => { if (e.target === e.currentTarget) onCancel() }}
+    >
+      <div style={{
+        background: '#fff', borderRadius: 16, width: 460, maxWidth: '95vw',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.22)', padding: '26px 30px',
+      }}>
+        <h2 style={{ margin: '0 0 12px', fontSize: '1.12rem', color: '#1a1a2e' }}>
+          {isEdit ? 'Сохранить изменения заказа?' : 'Сохранить набранное как заказ?'}
+        </h2>
+        <p style={{ margin: '0 0 8px', fontSize: 14, color: '#444', lineHeight: 1.5 }}>
+          В конфигураторе есть несохранённые данные{panelCount > 0 ? <> — <strong>{panelCount} панел.</strong></> : null}.
+          Если уйти, они пропадут.
+        </p>
+        <p style={{ margin: '0 0 22px', fontSize: 13, color: '#777', lineHeight: 1.5 }}>
+          Сохранение локальное — заказ появится в разделе «Заказы» с номером,
+          который вы укажете. Выгрузка в cascate.ru при этом не выполняется.
+        </p>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <button className="btn btn-primary" onClick={onSave}>
+            {isEdit ? 'Сохранить изменения' : 'Сохранить заказ'}
+          </button>
+          <button className="btn btn-ghost" onClick={onLeave}>Выйти без сохранения</button>
+          <div style={{ marginLeft: 'auto' }}>
+            <button className="btn btn-ghost" onClick={onCancel}>Отмена</button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -1475,21 +1473,30 @@ function SaveOrderModal({
 
 // ─── Configurator ─────────────────────────────────────────────────────────────
 
+type ItemOrder = { type: 'wall' | 'door'; id: string }[]
+
+const snapshotOf = (walls: WallSeg[], doors: DoorSeg[], itemOrder: ItemOrder) =>
+  JSON.stringify({ walls, doors, itemOrder })
+
 export default function Configurator({ series = '60' }: { series?: Series }) {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const editOrderId = searchParams.get('order')
 
-  const [walls, setWalls] = useState<WallSeg[]>(_INIT.walls)
-  const [doors, setDoors] = useState<DoorSeg[]>(_INIT.doors)
-  const [wallSeq, setWallSeq] = useState(_INIT.wallSeq)
-  const [doorSeq, setDoorSeq] = useState(_INIT.doorSeq)
-  const [itemOrder, setItemOrder] = useState<{ type: 'wall' | 'door'; id: string }[]>(_INIT.itemOrder)
+  const [walls, setWalls] = useState<WallSeg[]>([])
+  const [doors, setDoors] = useState<DoorSeg[]>([])
+  const [wallSeq, setWallSeq] = useState(0)
+  const [doorSeq, setDoorSeq] = useState(0)
+  const [itemOrder, setItemOrder] = useState<ItemOrder>([])
   const [activeStep, setActiveStep] = useState<number>(1)
   const [copied, setCopied] = useState(false)
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [editOrder, setEditOrder] = useState<Order | null>(null)
   const [loadingOrder, setLoadingOrder] = useState(false)
+  // Слепок набранного на момент последнего сохранения/загрузки заказа —
+  // по нему понимаем, есть ли несохранённые изменения.
+  const [savedSnapshot, setSavedSnapshot] = useState('')
+  const [pendingSave, setPendingSave] = useState(false)
 
   const [jointTypes, setJointTypes] = useState<JointType[]>([])
   const [finishGroups, setFinishGroups] = useState<FinishGroup[]>([])
@@ -1497,6 +1504,7 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
   const [profileColors, setProfileColors] = useState<ProfileColor[]>([])
 
   useEffect(() => {
+    document.title = `NUOVO ${series} — Конфигуратор стеновых панелей`
     fetchJointTypes(series).then(setJointTypes).catch(() => {})
     fetchFinishGroups(series).then(setFinishGroups).catch(() => {})
     fetchAluminumProfiles().then(setAluminumProfiles).catch(() => {})
@@ -1520,23 +1528,40 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
         // недостающие поля дефолтами, иначе схема и формы падают на undefined.
         const walls = migrateWalls(cs.walls)
         const doors = migrateDoors(cs.doors)
-        setWalls(walls)
-        setDoors(doors)
-        setItemOrder(cs.itemOrder?.length ? cs.itemOrder : [
+        const io = cs.itemOrder?.length ? cs.itemOrder : [
           ...walls.map(w => ({ type: 'wall' as const, id: w.id })),
           ...doors.map(d => ({ type: 'door' as const, id: d.id })),
-        ])
+        ]
+        setWalls(walls)
+        setDoors(doors)
+        setItemOrder(io)
         setWallSeq(cs.wallSeq ?? walls.length)
         setDoorSeq(cs.doorSeq ?? doors.length)
+        setSavedSnapshot(snapshotOf(walls, doors, io))
       }
       setLoadingOrder(false)
     }).catch(() => setLoadingOrder(false))
   }, [editOrderId])
 
-  // Сохраняем состояние в localStorage при каждом изменении
+  // ── Несохранённое: предупреждаем при уходе из раздела ──
+  const snapshot = useMemo(
+    () => snapshotOf(walls, doors, itemOrder), [walls, doors, itemOrder],
+  )
+  const hasItems = walls.length > 0 || doors.length > 0
+  const unsaved = hasItems && snapshot !== savedSnapshot
+
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      unsaved && currentLocation.pathname !== nextLocation.pathname,
+  )
+
+  // Закрытие вкладки / перезагрузка — штатное предупреждение браузера
   useEffect(() => {
-    localStorage.setItem('nuovo60_config', JSON.stringify({ walls, doors, itemOrder, wallSeq, doorSeq }))
-  }, [walls, doors, itemOrder, wallSeq, doorSeq])
+    if (!unsaved) return
+    const warn = (e: BeforeUnloadEvent) => { e.preventDefault() }
+    window.addEventListener('beforeunload', warn)
+    return () => window.removeEventListener('beforeunload', warn)
+  }, [unsaved])
 
   const priceMap = useMemo(() => {
     const m: Record<string, number> = {}
@@ -1608,6 +1633,15 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
 
   return (
     <div>
+      {blocker.state === 'blocked' && !showSaveModal && (
+        <LeaveGuard
+          panelCount={totalPanels}
+          isEdit={!!editOrder}
+          onSave={() => { setPendingSave(true); setShowSaveModal(true) }}
+          onLeave={() => blocker.proceed()}
+          onCancel={() => blocker.reset()}
+        />
+      )}
       {showSaveModal && (
         <SaveOrderModal
           panels={spec.panels}
@@ -1623,8 +1657,19 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
           profileColors={profileColors}
           editOrder={editOrder}
           series={series}
-          onClose={() => setShowSaveModal(false)}
-          onSaved={id => navigate(`/orders/${id}`)}
+          onClose={() => { setShowSaveModal(false); setPendingSave(false) }}
+          onSaved={id => {
+            setSavedSnapshot(snapshot)
+            setShowSaveModal(false)
+            // Сохраняли из-за ухода из раздела — продолжаем прерванный переход,
+            // иначе как раньше открываем сохранённый заказ.
+            if (pendingSave && blocker.state === 'blocked') {
+              setPendingSave(false)
+              blocker.proceed()
+            } else {
+              navigate(`/orders/${id}`)
+            }
+          }}
         />
       )}
       <div className="page">
@@ -1636,7 +1681,7 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
           {/* ── Шаг 1: Стены и узлы ── */}
           {activeStep === 1 && (
             <>
-              <SchemeHint />
+              <SchemeHint series={series} />
               <div className="flex gap-2 no-print" style={{ marginBottom: 20 }}>
                 <button className="btn btn-primary" onClick={addWall}>+ Добавить стену</button>
                 <button className="btn btn-ghost" onClick={addDoor}>+ Дверной проём</button>
