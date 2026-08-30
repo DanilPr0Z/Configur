@@ -69,6 +69,23 @@ interface Props {
 
 const DECOR_ARTICLE = 'П 6x6'
 
+/**
+ * Печать спецификации.
+ *
+ * Таблица спецификации шире книжного листа (22 колонки) — на экране она
+ * прокручивается вбок, а при обычной печати всё, что уходит за правый край,
+ * просто пропадает. Поэтому на время печати подменяем ориентацию страницы на
+ * альбомную; остальное (раскрытие .table-wrap, компактный шрифт, перенос
+ * заголовков) делает блок @media print в index.css.
+ */
+export function printSpec() {
+  const style = document.createElement('style')
+  style.textContent = '@page { size: A4 landscape; margin: 8mm; }'
+  document.head.appendChild(style)
+  window.addEventListener('afterprint', () => style.remove(), { once: true })
+  window.print()
+}
+
 const money = (n: number) => n > 0 ? n.toLocaleString('ru-RU', { maximumFractionDigits: 0 }) : '—'
 const dash = (s: string | number) => s ? String(s) : '—'
 
@@ -133,7 +150,7 @@ export default function FinalSpec({ header, panels, profiles, doors, series = '6
     <div className="card">
       <div className="flex justify-between flex-center no-print" style={{ marginBottom: 6 }}>
         <h2 style={{ margin: 0 }}>Общая спецификация заказа стеновых панелей</h2>
-        <button className="btn btn-ghost btn-sm" onClick={() => window.print()}>Печать</button>
+        <button className="btn btn-ghost btn-sm" onClick={printSpec}>Печать</button>
       </div>
 
       <div className="print-only" style={{ marginBottom: 16, fontSize: '1.1rem', fontWeight: 700 }}>

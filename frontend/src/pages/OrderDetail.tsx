@@ -4,7 +4,7 @@ import { fetchOrder, updateOrder, exportToCascate, isCascateLoggedIn, LOGIN_REQU
 import type { Order, CascateExportResult } from '../api'
 import WallScheme from '../components/WallScheme'
 import FinishBreakdown from '../components/FinishBreakdown'
-import FinalSpec from '../components/FinalSpec'
+import FinalSpec, { printSpec } from '../components/FinalSpec'
 import type { FinalSpecDoor } from '../components/FinalSpec'
 
 type Step = 'info' | 'panels' | 'final'
@@ -441,14 +441,14 @@ function ConfiguratorSpecView({ order, onEdit }: { order: Order; onEdit: () => v
               style={{ fontSize: 11, color: '#999' }}
             >сброс</button>
             <div style={{ width: 1, height: 20, background: '#e0e8f5', margin: '0 4px' }} />
-            <button className="btn btn-ghost btn-sm" onClick={() => window.print()}>Печать</button>
+            <button className="btn btn-ghost btn-sm" onClick={printSpec}>Печать</button>
           </div>
         </div>
 
         {specPanels.length === 0 ? (
           <div className="alert alert-info">Панелей нет. Откройте конфигуратор для добавления.</div>
         ) : (
-          <div style={{ zoom: `${zoom}%` }}>
+          <div className="spec-zoom" style={{ zoom: `${zoom}%` }}>
             <div className="table-wrap">
               <table>
                 <thead>

@@ -6,6 +6,7 @@ import { visibleFinishGroups } from '../api'
 import { JointSelectCode, StringSelect } from '../components/JointSelect'
 import WallScheme from '../components/WallScheme'
 import FinishBreakdown, { groupByFinish } from '../components/FinishBreakdown'
+import { printSpec } from '../components/FinalSpec'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -169,11 +170,11 @@ const DECORS_LACATO: string[] = [
   'Silver 2,5 mm','Ombra 2,5 mm','Grigio Fume 2,5 mm','Grafite 2,5 mm',
   'Pesco 2,5 mm','Tortora 2,5 mm','Corda 2,5 mm','Bruno 2,5 mm','RAL 2,5 mm',
 ]
+// Группа КОЖА в Excel — только Pele; артикулы «(PELLE)» и «(WOOD)» входят
+// в КОМПОЗИТ и выбираются там как отделка, отдельного декора им не нужно.
 const DECORS_KOZHA: string[] = [
   'Pele Grigio','Pele Fumoso','Pele Marone','Pele Salar','Pele Black',
-  '3299 (PELLE)','3153 (PELLE)','3156 (PELLE)','3240 (PELLE)',
 ]
-const DECORS_WOOD: string[] = ['4691 (WOOD)','4653 (WOOD)','4583 (WOOD)']
 
 // Извлекает базовое имя декора без суффикса толщины ("Breeze Oak 1,5 мм" → "Breeze Oak")
 function getDecorBaseName(decor: string): string {
@@ -219,7 +220,6 @@ function getDecorOptions(finishName: string, groupName: string): { group: string
   }
 
   if (g === 'КОЖА') return [{ group: 'КОЖА (Pele)', items: DECORS_KOZHA }]
-  if (g === 'WOOD')  return [{ group: 'WOOD',         items: DECORS_WOOD  }]
   return []
 }
 
@@ -1807,7 +1807,7 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
                 <button className="btn btn-ghost btn-sm" onClick={copySpec}>
                   {copied ? '✓ Скопировано' : 'Копировать'}
                 </button>
-                <button className="btn btn-ghost btn-sm" onClick={() => window.print()}>Печать</button>
+                <button className="btn btn-ghost btn-sm" onClick={printSpec}>Печать</button>
               </div>
             </div>
 

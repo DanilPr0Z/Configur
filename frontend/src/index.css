@@ -378,4 +378,21 @@ td input:focus, td select:focus { border-color: #4c6ef5; outline: none; }
   .btn { display: none !important; }
   .page { padding: 0 !important; }
   svg { max-width: 100% !important; height: auto !important; }
+
+  /* Широкие таблицы спецификации.
+     На экране .table-wrap прокручивается вбок, и при печати всё, что уходит
+     за правый край листа, просто пропадало. Раскрываем обёртку, разрешаем
+     переносы в шапке и ужимаем шрифт — вместе с альбомной ориентацией
+     (printSpec() в FinalSpec.tsx) 22 колонки помещаются на лист. */
+  .table-wrap { overflow: visible !important; }
+  table { font-size: 6.5pt; width: 100% !important; }
+  th, td { padding: 2px 3px !important; white-space: normal !important; }
+  /* Заголовки длинные — рвём где угодно; в ячейках только по словам, иначе
+     разрывается число («75 628» → «75 62 8»). Числовые колонки не переносим. */
+  th { font-size: 6pt; overflow-wrap: anywhere; }
+  td { overflow-wrap: break-word; }
+  td.text-right, td.price { white-space: nowrap !important; }
+  .badge { padding: 0 !important; background: transparent !important; color: inherit !important; }
+  /* Экранный зум карточки заказа не должен ужимать/растягивать лист */
+  .spec-zoom { zoom: 1 !important; }
 }
