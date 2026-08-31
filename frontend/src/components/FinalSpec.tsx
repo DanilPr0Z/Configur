@@ -72,17 +72,12 @@ const DECOR_ARTICLE = 'П 6x6'
 /**
  * Печать спецификации.
  *
- * Таблица спецификации шире книжного листа (22 колонки) — на экране она
- * прокручивается вбок, а при обычной печати всё, что уходит за правый край,
- * просто пропадает. Поэтому на время печати подменяем ориентацию страницы на
- * альбомную; остальное (раскрытие .table-wrap, компактный шрифт, перенос
- * заголовков) делает блок @media print в index.css.
+ * Вся печатная вёрстка (альбомный лист, раскрытие .table-wrap, компактный
+ * шрифт, перенос заголовков) живёт в @page и @media print в index.css —
+ * поэтому Ctrl+P и «Печать» из меню браузера дают тот же результат, что и
+ * эта кнопка.
  */
 export function printSpec() {
-  const style = document.createElement('style')
-  style.textContent = '@page { size: A4 landscape; margin: 8mm; }'
-  document.head.appendChild(style)
-  window.addEventListener('afterprint', () => style.remove(), { once: true })
   window.print()
 }
 

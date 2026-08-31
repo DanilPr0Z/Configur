@@ -361,6 +361,11 @@ td input:focus, td select:focus { border-color: #4c6ef5; outline: none; }
 /* Print */
 .print-only { display: none; }
 
+/* Спецификация — 22 колонки, в книжный лист не влезает. Ставим альбомную
+   ориентацию правилом CSS, а не инъекцией из printSpec(): иначе Ctrl+P и
+   «Печать» из меню браузера дают книжный лист и таблицу режет по правому краю. */
+@page { size: A4 landscape; margin: 8mm; }
+
 @media print {
   .no-print { display: none !important; }
   .print-only { display: block !important; }
