@@ -439,12 +439,12 @@
   "fields": {
     "series": "50",
     "code": "K",
-    "name": "Тип K",
+    "name": "Теневой плинтус",
     "offset_mm": 0.0,
     "price_per_meter": 0.0,
     "profile_article": "",
     "profile_count": 0.0,
-    "image": ""
+    "image": "joints/joint_K_50.png"
   }
 },
 {
@@ -453,12 +453,12 @@
   "fields": {
     "series": "50",
     "code": "J",
-    "name": "Тип J",
+    "name": "Теневая коробка Complanar",
     "offset_mm": 0.0,
     "price_per_meter": 0.0,
     "profile_article": "",
     "profile_count": 0.0,
-    "image": ""
+    "image": "joints/joint_J_50.png"
   }
 },
 {
