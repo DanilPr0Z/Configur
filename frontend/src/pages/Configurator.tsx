@@ -138,6 +138,31 @@ const NODES: NodeDef[] = [
 ]
 
 const NODE_MAP = new Map<string, NodeDef>(NODES.map(n => [n.code, n]))
+
+// Поправки узлов (offset) у NUOVO 50 и 60 РАЗНЫЕ (DG, DH, G, H), поэтому берём
+// их из справочника серии, а NODES оставляем как fallback и для heightOffset
+// узла TC, которого в справочнике нет.
+type OffsetMap = Map<string, number>
+
+function offsetsOf(jointTypes: JointType[]): OffsetMap {
+  return new Map(jointTypes.map(j => [j.code, j.offset_mm]))
+}
+
+function offsetOf(off: OffsetMap, code: string): number {
+  return off.get(code) ?? NODE_MAP.get(code)?.offset ?? 0
+}
+
+// Панель над дверью, лист «Ввод данных к заказу» Excel:
+//   высота = Н потолка − H проёма + (узел G ? hG : hH)
+//   ширина = L проёма − (открывание/узел соединения)
+// Константы у 50 и 60 разные — в 60 это K119/L119 (43 / 51,5 и 100,5…125,5),
+// в 50 те же ячейки дают 33 / 46 и 80…115.
+interface DoorGeom { hG: number; hH: number; wOutB: number; wOutC: number; wInB: number; wInC: number }
+
+const DOOR_GEOM: Record<Series, DoorGeom> = {
+  '60': { hG: 43, hH: 51.5, wOutB: 100.5, wOutC: 108.5, wInB: 117.5, wInC: 125.5 },
+  '50': { hG: 33, hH: 46,   wOutB: 80,    wOutC: 88,    wInB: 107,   wInC: 115   },
+}
 const EDGE_NODE_CODES = ['A', 'D', 'DG', 'DH', 'E', 'FL', 'FR', 'G', 'H', 'O', 'P', 'R', 'S', 'T', 'I']
 const EDGE_TOPBOT_CODES = [...EDGE_NODE_CODES, 'TC']  // + теневой профиль для верх/низ
 const CONN_NODE_CODES = ['B', 'C']
@@ -338,11 +363,11 @@ function migrateDoors(raw: any[]): DoorSeg[] {
 
 // ─── Calculations ─────────────────────────────────────────────────────────────
 
-function calcWall(w: WallSeg) {
+function calcWall(w: WallSeg, off: OffsetMap) {
   if (!w.wallHeight || !w.wallLength || !w.numPanels || w.numPanels < 1)
     return { wallLengthByPanels: 0, panelHeight: 0, panelWidth: 0, valid: false }
-  const lOff = NODE_MAP.get(w.leftNode)?.offset ?? 0
-  const rOff = NODE_MAP.get(w.rightNode)?.offset ?? 0
+  const lOff = offsetOf(off, w.leftNode)
+  const rOff = offsetOf(off, w.rightNode)
   const connAdj = w.connType === 'C' ? (w.numPanels - 1) * 4 : 0
   const wlbp = w.wallLength + lOff + rOff - connAdj
   const topOff = NODE_MAP.get(w.topEdge)?.heightOffset ?? 0
@@ -352,18 +377,22 @@ function calcWall(w: WallSeg) {
   return { wallLengthByPanels: Math.round(wlbp * 10) / 10, panelHeight: ph, panelWidth: pw, valid: true }
 }
 
-function calcDoorPanelWidth(d: DoorSeg): number {
+function calcDoorPanelWidth(d: DoorSeg, g: DoorGeom): number {
   const node = d.leftNode
-  const adj = (d.openingDir === 'НАРУЖУ' && node === 'B') ? 100.5
-            : (d.openingDir === 'НАРУЖУ')                  ? 108.5
-            : (node === 'B')                               ? 117.5
-            :                                                125.5
+  const adj = (d.openingDir === 'НАРУЖУ' && node === 'B') ? g.wOutB
+            : (d.openingDir === 'НАРУЖУ')                  ? g.wOutC
+            : (node === 'B')                               ? g.wInB
+            :                                                g.wInC
   return Math.round((d.openingW - adj) * 2) / 2
 }
 
-function suggestPanels(w: WallSeg, maxW = 1200): number {
-  const lOff = NODE_MAP.get(w.leftNode)?.offset ?? 0
-  const rOff = NODE_MAP.get(w.rightNode)?.offset ?? 0
+function calcDoorPanelHeight(d: DoorSeg, dtype: 'G' | 'H', g: DoorGeom): number {
+  return d.ceilingH - d.openingH + (dtype === 'G' ? g.hG : g.hH)
+}
+
+function suggestPanels(w: WallSeg, off: OffsetMap, maxW = 1200): number {
+  const lOff = offsetOf(off, w.leftNode)
+  const rOff = offsetOf(off, w.rightNode)
   const est = w.wallLength + lOff + rOff
   let n = Math.max(1, Math.ceil(est / maxW))
   if (w.connType === 'C') {
@@ -376,6 +405,8 @@ function suggestPanels(w: WallSeg, maxW = 1200): number {
 function buildSpec(
   walls: WallSeg[],
   doors: DoorSeg[],
+  off: OffsetMap,
+  geom: DoorGeom,
   priceMap: Record<string, number> = {},
 ): { panels: PanelSpec[]; profiles: ProfileSpec[] } {
   const panels: PanelSpec[] = []
@@ -393,7 +424,7 @@ function buildSpec(
   }
 
   walls.forEach((w, wi) => {
-    const c = calcWall(w)
+    const c = calcWall(w, off)
     if (!c.valid) return
     const copies = Math.max(1, w.copies)
     const N = w.numPanels
@@ -446,8 +477,8 @@ function buildSpec(
     // Панель НАД проёмом (только В ПРОЕМ)
     if (d.mountType !== 'В ПОТОЛОК') {
       const dtype = d.openingDir === 'НАРУЖУ' ? 'G' : 'H'
-      const ph = Math.round((d.ceilingH - d.openingH + (dtype === 'G' ? 43 : 51.5)) * 2) / 2
-      const pw = calcDoorPanelWidth(d)
+      const ph = Math.round(calcDoorPanelHeight(d, dtype, geom) * 2) / 2
+      const pw = calcDoorPanelWidth(d, geom)
       panels.push({
         panelLabel: doorLabel,
         wallName: doorName + ' — Надпроёмная',
@@ -573,7 +604,9 @@ function calcPanelCosts(
   const bp = getJointPrice(jointTypes, p.bottomEdge)
   const sideCost = (lp + rp) * p.height * 0.001 * p.quantity
   const topBotCost = (tp + bp) * p.width * 0.001 * p.quantity
-  const areaSqm = Math.max(p.height * p.width / 1_000_000, 0.5) * p.quantity
+  // Excel: R = ЕСЛИ(AN<0,5;"0,5"; В×Ш×Кол/1000000) — минимум 0,5 кв.м
+  // применяется к строке целиком (с количеством), а не к каждой панели.
+  const areaSqm = Math.max(p.height * p.width / 1_000_000 * p.quantity, 0.5)
   const finishPrice = getFinishPrice(finishGroups, p.finishGroup, p.finishName, p.decor3d)
   const finishCost = finishPrice * areaSqm * (1 + p.markup / 100)
   // Алюминиевый декор П 6×6 в стоимость панели не входит — он идёт отдельной
@@ -636,7 +669,8 @@ interface WallCardProps {
 }
 
 function WallCard({ wall, jointTypes, finishGroups, profileColors, onChange, onRemove, canRemove, phase }: WallCardProps) {
-  const calc = calcWall(wall)
+  const wallOffsets = useMemo(() => offsetsOf(jointTypes), [jointTypes])
+  const calc = calcWall(wall, wallOffsets)
   const selectedGroup = finishGroups.find(g => g.name === wall.finishGroup)
   const finishes: Finish[] = (selectedGroup?.finishes as Finish[]) ?? []
   const isVeneer = isVeneerGroup(wall.finishGroup)
@@ -673,7 +707,7 @@ function WallCard({ wall, jointTypes, finishGroups, profileColors, onChange, onR
           <div className="field">
             <label>
               Кол-во панелей
-              <button type="button" onClick={() => onChange({ numPanels: suggestPanels(wall) })}
+              <button type="button" onClick={() => onChange({ numPanels: suggestPanels(wall, wallOffsets) })}
                 title="Авто (макс. 1200 мм)"
                 style={{ marginLeft: 6, fontSize: '.72rem', color: '#4c6ef5', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 600 }}>
                 [авто]
@@ -846,6 +880,7 @@ function WallCard({ wall, jointTypes, finishGroups, profileColors, onChange, onR
 
 interface DoorCardProps {
   door: DoorSeg
+  series: Series
   jointTypes: JointType[]
   finishGroups: FinishGroup[]
   onChange: (u: Partial<DoorSeg>) => void
@@ -853,7 +888,8 @@ interface DoorCardProps {
   phase?: 'geometry' | 'finish'
 }
 
-function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove, phase }: DoorCardProps) {
+function DoorCard({ door, series, jointTypes, finishGroups, onChange, onRemove, phase }: DoorCardProps) {
+  const doorGeom = DOOR_GEOM[series]
   const selectedGroup = finishGroups.find(g => g.name === door.finishGroup)
   const finishes: Finish[] = (selectedGroup?.finishes as Finish[]) ?? []
   const isVeneer = isVeneerGroup(door.finishGroup)
@@ -864,9 +900,9 @@ function DoorCard({ door, jointTypes, finishGroups, onChange, onRemove, phase }:
   const inOpening = door.mountType === 'В ПРОЕМ'
   const dtype = inOpening ? (door.openingDir === 'НАРУЖУ' ? 'G' : 'H') : null
   const panelH = dtype !== null
-    ? Math.round((door.ceilingH - door.openingH + (dtype === 'G' ? 43 : 51.5)) * 10) / 10
+    ? Math.round(calcDoorPanelHeight(door, dtype, doorGeom) * 10) / 10
     : null
-  const panelW = dtype !== null ? calcDoorPanelWidth(door) : null
+  const panelW = dtype !== null ? calcDoorPanelWidth(door, doorGeom) : null
 
   return (
     <div className="card" style={{ borderLeft: '3px solid #2f9e44' }}>
@@ -1569,11 +1605,16 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
     return m
   }, [aluminumProfiles])
 
-  const spec = useMemo(() => buildSpec(walls, doors, priceMap), [walls, doors, priceMap])
+  const jointOffsets = useMemo(() => offsetsOf(jointTypes), [jointTypes])
+  const doorGeom = DOOR_GEOM[series]
+  const spec = useMemo(
+    () => buildSpec(walls, doors, jointOffsets, doorGeom, priceMap),
+    [walls, doors, jointOffsets, doorGeom, priceMap],
+  )
 
   const totalPanels = spec.panels.reduce((s, p) => s + p.quantity, 0)
   const totalAreaSqm = spec.panels.reduce(
-    (s, p) => s + Math.max(p.height * p.width / 1_000_000, 0.5) * p.quantity, 0,
+    (s, p) => s + Math.max(p.height * p.width / 1_000_000 * p.quantity, 0.5), 0,
   )
 
   const panelCosts = useMemo(

@@ -352,8 +352,11 @@ class DoorPanel(models.Model):
     def area_sqm(self):
         if self.panel_height <= 0 or self.panel_width <= 0:
             return 0
-        area = self.panel_height * self.panel_width / 1_000_000
-        return max(area, 0.5) * self.quantity
+        # Excel, «Ввод данных к заказу»: R = IF(AN<0.5;"0,5"; C*E*G/1000000),
+        # где AN = C*E*G/1000000. Минимум 0,5 кв.м применяется к СТРОКЕ целиком
+        # (с учётом количества), а не к каждой панели по отдельности.
+        area = self.panel_height * self.panel_width / 1_000_000 * self.quantity
+        return max(area, 0.5)
 
     @property
     def edge_side_cost(self):
@@ -434,8 +437,11 @@ class Panel(models.Model):
     def area_sqm(self):
         if self.height_mm <= 0 or self.width_mm <= 0 or self.quantity <= 0:
             return 0
-        area_per_panel = self.height_mm * self.width_mm / 1_000_000
-        return max(area_per_panel, 0.5) * self.quantity
+        # Excel, «Ввод данных к заказу»: R = IF(AN<0.5;"0,5"; C*E*G/1000000),
+        # где AN = C*E*G/1000000. Минимум 0,5 кв.м применяется к СТРОКЕ целиком
+        # (с учётом количества), а не к каждой панели по отдельности.
+        area = self.height_mm * self.width_mm / 1_000_000 * self.quantity
+        return max(area, 0.5)
 
     @property
     def joint_side_cost(self):
