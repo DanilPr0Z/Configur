@@ -1751,7 +1751,7 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
                   const d = doors.find(d => d.id === item.id)
                   if (!d) return null
                   return (
-                    <DoorCard key={d.id} door={d} jointTypes={jointTypes} finishGroups={finishGroups}
+                    <DoorCard key={d.id} door={d} series={series} jointTypes={jointTypes} finishGroups={finishGroups}
                       onChange={u => updateDoor(d.id, u)}
                       onRemove={() => removeDoor(d.id)}
                       phase="geometry" />
@@ -1801,7 +1801,7 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
                   const d = doors.find(d => d.id === item.id)
                   if (!d) return null
                   return (
-                    <DoorCard key={d.id} door={d} jointTypes={jointTypes} finishGroups={finishGroups}
+                    <DoorCard key={d.id} door={d} series={series} jointTypes={jointTypes} finishGroups={finishGroups}
                       onChange={u => updateDoor(d.id, u)}
                       onRemove={() => removeDoor(d.id)}
                       phase="finish" />
