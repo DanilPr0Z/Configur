@@ -231,11 +231,21 @@ body {
 .table-wrap { overflow-x: auto; }
 table { width: 100%; border-collapse: collapse; font-size: .86rem; }
 thead tr { background: #f5f7fa; }
-th { text-align: left; padding: 10px 8px; font-weight: 600; color: #555; white-space: nowrap; border-bottom: 2px solid #e8ecf0; }
+/* Заголовки переносятся: у спецификации 22 колонки, и с nowrap таблица
+   уезжала за экран — приходилось листать вбок, чтобы увидеть отделку,
+   наценку и итог. Числа в ячейках по-прежнему не рвём (см. .price ниже). */
+th { text-align: left; padding: 10px 8px; font-weight: 600; color: #555; white-space: normal; overflow-wrap: break-word; border-bottom: 2px solid #e8ecf0; }
 td { padding: 8px; border-bottom: 1px solid #f0f2f5; vertical-align: middle; }
 tr:hover td { background: #f8f9ff; }
 td input, td select { width: 100%; border: 1px solid #d0d5dd; border-radius: 5px; padding: 5px 7px; font-size: .84rem; }
 td input:focus, td select:focus { border-color: #4c6ef5; outline: none; }
+
+/* Широкие таблицы спецификации — компактнее, чтобы влезали и на ноутбуке. */
+.table-wrap.spec-table table { font-size: .79rem; }
+.table-wrap.spec-table th { padding: 7px 5px; font-size: .72rem; }
+.table-wrap.spec-table td { padding: 6px 5px; }
+.table-wrap.spec-table td.text-right, .table-wrap.spec-table td.price { white-space: nowrap; }
+
 
 .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: .75rem; font-weight: 600; }
 .badge-blue { background: #dbe4ff; color: #364fc7; }
@@ -361,10 +371,13 @@ td input:focus, td select:focus { border-color: #4c6ef5; outline: none; }
 /* Print */
 .print-only { display: none; }
 
-/* Спецификация — 22 колонки, в книжный лист не влезает. Ставим альбомную
-   ориентацию правилом CSS, а не инъекцией из printSpec(): иначе Ctrl+P и
-   «Печать» из меню браузера дают книжный лист и таблицу режет по правому краю. */
-@page { size: A4 landscape; margin: 8mm; }
+/* Альбомный лист нужен только спецификации стеновых панелей — там 22 колонки.
+   Остальное (обрамление, заказы) печатаем книжным. Именованная страница вместо
+   инъекции стиля из printSpec(): иначе Ctrl+P и «Печать» из меню браузера
+   давали не ту ориентацию. */
+@page { size: A4 portrait; margin: 10mm; }
+@page spec-landscape { size: A4 landscape; margin: 8mm; }
+.print-landscape { page: spec-landscape; }
 
 @media print {
   .no-print { display: none !important; }
@@ -390,11 +403,15 @@ td input:focus, td select:focus { border-color: #4c6ef5; outline: none; }
      переносы в шапке и ужимаем шрифт — вместе с альбомной ориентацией
      (printSpec() в FinalSpec.tsx) 22 колонки помещаются на лист. */
   .table-wrap { overflow: visible !important; }
-  table { font-size: 6.5pt; width: 100% !important; }
+  table { font-size: 8pt; width: 100% !important; }
+  /* Сильно ужимаем только широкие таблицы спецификации: у обрамления в таблице
+     4 колонки, и 6,5 pt там читать невозможно. */
+  .table-wrap.spec-table table { font-size: 6.5pt; }
   th, td { padding: 2px 3px !important; white-space: normal !important; }
   /* Заголовки длинные — рвём где угодно; в ячейках только по словам, иначе
      разрывается число («75 628» → «75 62 8»). Числовые колонки не переносим. */
-  th { font-size: 6pt; overflow-wrap: anywhere; }
+  th { overflow-wrap: anywhere; }
+  .table-wrap.spec-table th { font-size: 6pt; }
   td { overflow-wrap: break-word; }
   td.text-right, td.price { white-space: nowrap !important; }
   .badge { padding: 0 !important; background: transparent !important; color: inherit !important; }

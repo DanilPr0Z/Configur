@@ -142,7 +142,7 @@ export default function FinalSpec({ header, panels, profiles, doors, series = '6
   const decorColor = [...new Set(panels.map(p => p.aluminumColor).filter(Boolean))].join(', ')
 
   return (
-    <div className="card">
+    <div className="card print-landscape">
       <div className="flex justify-between flex-center no-print" style={{ marginBottom: 6 }}>
         <h2 style={{ margin: 0 }}>Общая спецификация заказа стеновых панелей</h2>
         <button className="btn btn-ghost btn-sm" onClick={printSpec}>Печать</button>
@@ -167,7 +167,7 @@ export default function FinalSpec({ header, panels, profiles, doors, series = '6
       {doors.length > 0 && (
         <>
           <SectionTitle>РАЗМЕРЫ ДВЕРНЫХ ПРОЁМОВ (РАСЧЁТ СТЕНОВОЙ ПАНЕЛИ НАД ДВЕРНЫМ ПРОЁМОМ)</SectionTitle>
-          <div className="table-wrap">
+          <div className="table-wrap spec-table">
             <table>
               <thead>
                 <tr>
@@ -220,7 +220,7 @@ export default function FinalSpec({ header, panels, profiles, doors, series = '6
       {wallPanels.length === 0 ? (
         <div className="alert alert-info">Стеновых панелей в заказе нет.</div>
       ) : (
-        <div className="table-wrap">
+        <div className="table-wrap spec-table">
           <table>
             <thead>
               <tr>

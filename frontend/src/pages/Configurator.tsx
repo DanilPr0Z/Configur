@@ -1854,7 +1854,7 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
           )}
 
           {/* ── Спецификация (шаги 3 и 4) ── */}
-          {activeStep >= 3 && <div className="card" style={{ marginTop: 24 }}>
+          {activeStep >= 3 && <div className="card print-landscape" style={{ marginTop: 24 }}>
             <div className="flex justify-between flex-center no-print" style={{ marginBottom: 14 }}>
               <h2 style={{ margin: 0 }}>Спецификация</h2>
               <div className="flex gap-2">
@@ -1891,7 +1891,7 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
                   )}
                 </h3>
 
-                <div className="table-wrap" style={{ marginBottom: 22 }}>
+                <div className="table-wrap spec-table" style={{ marginBottom: 22 }}>
                   <table>
                     <thead>
                       <tr>
