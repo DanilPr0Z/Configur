@@ -674,7 +674,14 @@ function WallCard({ wall, jointTypes, finishGroups, profileColors, onChange, onR
   const finishes: Finish[] = (selectedGroup?.finishes as Finish[]) ?? []
   const isVeneer = isVeneerGroup(wall.finishGroup)
   // Для шпона «Отделка» — это базовые названия декоров (Breeze Oak, …)
-  const finishOptions = isVeneer ? SHPON_BASE_NAMES : finishes.map(f => f.name)
+  // Шпон: к базовым названиям декоров добавляем отделки из справочника группы.
+  // Раньше список был только из декоров, и 17 отделок ШПОН, которые есть в Excel
+  // (Faggio, Noce Americano, Rovere Whisky и др.), выбрать было нельзя. Обратное
+  // тоже верно: «Dark Gey Lati» лежит только в группах с толщиной, поэтому берём
+  // объединение, а не одну сторону.
+  const finishOptions = isVeneer
+    ? [...new Set([...finishes.map(f => f.name), ...SHPON_BASE_NAMES])]
+    : finishes.map(f => f.name)
   const decorOptions = getDecorOptions(wall.finishName, wall.finishGroup)
   const hasDecors = decorOptions.length > 0
 
@@ -893,7 +900,14 @@ function DoorCard({ door, series, jointTypes, finishGroups, onChange, onRemove, 
   const finishes: Finish[] = (selectedGroup?.finishes as Finish[]) ?? []
   const isVeneer = isVeneerGroup(door.finishGroup)
   // Для шпона «Отделка» — это базовые названия декоров (Breeze Oak, …)
-  const finishOptions = isVeneer ? SHPON_BASE_NAMES : finishes.map(f => f.name)
+  // Шпон: к базовым названиям декоров добавляем отделки из справочника группы.
+  // Раньше список был только из декоров, и 17 отделок ШПОН, которые есть в Excel
+  // (Faggio, Noce Americano, Rovere Whisky и др.), выбрать было нельзя. Обратное
+  // тоже верно: «Dark Gey Lati» лежит только в группах с толщиной, поэтому берём
+  // объединение, а не одну сторону.
+  const finishOptions = isVeneer
+    ? [...new Set([...finishes.map(f => f.name), ...SHPON_BASE_NAMES])]
+    : finishes.map(f => f.name)
   const decorOptions = getDecorOptions(door.finishName, door.finishGroup)
   const hasDecors = decorOptions.length > 0
   const inOpening = door.mountType === 'В ПРОЕМ'
