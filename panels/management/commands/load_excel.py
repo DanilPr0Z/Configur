@@ -40,6 +40,20 @@ GROUP_MAP = {
     'LACATO_2.5_MM': 'LACATO 2,5 ММ',
 }
 
+# Отделки, у которых в колонке E вместо формулы «=D*J2[*1.12]» осталась
+# константа, и эта константа неверна. Подтверждено Виталием Габбасовым
+# 01.09.2026: «Teak 5 мм формула слетела видимо». Такие строки считаем по
+# формуле группы, а не берём из ячейки.
+#
+# Прочие константы в колонке E трогать НЕЛЬЗЯ, они верные и тем же ответом
+# подтверждены: вся LACATO 2,5 мм = 28300 у всех 22 цветов и ЛДСП = 4900.
+RECOMPUTE_PRICE = {'Teak 5 мм'}
+
+# Множитель к D сверх коэффициента J2. У шпона 1,5 / 2,5 / 5 мм в колонке E
+# формула «=D*$J$2*1.12», у остальных групп — просто «=D*$J$2».
+THICK_VENEER_GROUPS = {'ШПОН 5 ММ', 'ШПОН 2,5 ММ', 'ШПОН 1,5 ММ'}
+THICK_VENEER_FACTOR = 1.12
+
 # Список групп в колонке G листа «Отделки» — диапазон валидации поля
 # «ГРУППА ОТДЕЛОК» (G23:G38); ниже по колонке идут посторонние подписи.
 GROUP_LIST_ROW = 23
@@ -160,8 +174,8 @@ class Command(BaseCommand):
             'G': 'Тип G (дверь, наружу)',
             'H': 'Тип H (дверь, внутрь)',
             'I': 'Тип I',
-            'J': 'Тип J',
-            'K': 'Тип K',
+            'J': 'Теневая коробка Complanar',
+            'K': 'Теневой плинтус',
             'O': 'Без профиля',
             'P': 'Декор',
             'R': 'Подрез',
@@ -242,6 +256,13 @@ class Command(BaseCommand):
         self.stdout.write('\n--- Отделки ---')
         ws = wb['Отделки']
 
+        # Коэффициент опт -> розница: «Отделки!J2», в обеих книгах 8,5.
+        retail_k = ws['J2'].value
+        if not isinstance(retail_k, (int, float)):
+            self.stderr.write('  В «Отделки!J2» нет коэффициента розницы — прерываю')
+            return
+        self.stdout.write(f'  Коэффициент розницы (Отделки!J2): {retail_k}')
+
         finish_count = 0
         seen_ids = set()
         group_counts = {}
@@ -277,6 +298,15 @@ class Command(BaseCommand):
                 name = str(name_raw).strip()
                 if not name:
                     continue
+                if name in RECOMPUTE_PRICE:
+                    cost = ws.cell(r, 4).value   # col D — себестоимость
+                    if isinstance(cost, (int, float)):
+                        factor = THICK_VENEER_FACTOR if group_name in THICK_VENEER_GROUPS else 1
+                        fixed = float(cost) * retail_k * factor
+                        self.stdout.write(self.style.WARNING(
+                            f'  ~ {group_name} / {name}: в Excel {price}, '
+                            f'считаю по формуле -> {fixed:.2f}'))
+                        price = fixed
                 obj = self._move_or_create(group, name, round(float(price), 2))
                 seen_ids.add(obj.id)
                 count += 1

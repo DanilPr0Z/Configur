@@ -412,7 +412,7 @@ function buildSpec(
   const panels: PanelSpec[] = []
   const pc: Record<string, number> = {
     '104.256': 0, '104.259': 0, '104.270': 0,
-    'lamelle': 0, 'lamelle_G': 0, 'lamelle_H': 0, 'hanger': 0, 'al_decor': 0,
+    'lamelle': 0, 'hanger': 0, 'al_decor': 0,
   }
   let totalPanels = 0
 
@@ -494,8 +494,9 @@ function buildSpec(
       totalPanels += copies
       addEdge(d.leftNode, copies)
       addEdge(d.rightNode, copies)
-      if (dtype === 'G') pc['lamelle_G'] += copies
-      else pc['lamelle_H'] += copies
+      // Отдельная ламель на узлы G и H не начисляется: их обработка уже
+      // оплачена ценой узла (800 руб/пм), а строка ламели давала вторую
+      // оплату того же. Подтверждено Виталием Габбасовым 01.09.2026.
     }
 
     // Панели добора обрамления (только если hasTrim)
@@ -553,11 +554,6 @@ function buildSpec(
   if (pc['104.259'] > 0)  push('104.259',    'Соединительный профиль',                 2995, Math.ceil(pc['104.259']),  '')
   if (pc['104.270'] > 0)  push('104.270',    'Угловой профиль',                        2995, Math.ceil(pc['104.270']),  '')
   if (pc['lamelle'] > 0)  push('ламель',   'Ламель соединительная (тип B)',          2995, Math.ceil(pc['lamelle']),   '')
-  // Размер в названии ламели — та же константа, что и в высоте панели над дверью,
-  // а она у 50 и 60 разная (33/46 против 43/51,5).
-  const mm = (n: number) => String(n).replace('.', ',')
-  if (pc['lamelle_H'] > 0) push('ламель', `Ламель стыковочная ${mm(geom.hH)} мм (тип H)`, 2000, Math.ceil(pc['lamelle_H']), 'Для дверных проёмов')
-  if (pc['lamelle_G'] > 0) push('ламель', `Ламель стыковочная ${mm(geom.hG)} мм (тип G)`, 2000, Math.ceil(pc['lamelle_G']), 'Для дверных проёмов')
   if (pc['hanger'] > 0)   push('МДФ 10',  'Навес стеновой панели',                 900,  pc['hanger'],              '4 шт на каждую панель')
   if (pc['al_decor'] > 0) push('П 6x6',      'Алюминиевый декоративный профиль П 6×6', 2995, Math.ceil(pc['al_decor']), 'Декоративный алюминий')
 

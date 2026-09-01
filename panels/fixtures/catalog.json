@@ -243,7 +243,7 @@
   "fields": {
     "series": "60",
     "code": "J",
-    "name": "Тип J",
+    "name": "Теневая коробка Complanar",
     "offset_mm": 0.0,
     "price_per_meter": 0.0,
     "profile_article": "",
@@ -257,7 +257,7 @@
   "fields": {
     "series": "60",
     "code": "K",
-    "name": "Тип K",
+    "name": "Теневой плинтус",
     "offset_mm": 0.0,
     "price_per_meter": 0.0,
     "profile_article": "",
@@ -2320,7 +2320,7 @@
   "fields": {
     "group": 13,
     "name": "Teak 5 мм",
-    "price_sqm": 30480.0,
+    "price_sqm": 64790.74,
     "decor_name": ""
   }
 },
@@ -4808,7 +4808,7 @@
 },
 {
   "model": "panels.aluminumprofile",
-  "pk": 42,
+  "pk": 50,
   "fields": {
     "article": "104.256",
     "name": "Торцевой профиль (финишный) Арт. 104.256",
@@ -4821,7 +4821,7 @@
 },
 {
   "model": "panels.aluminumprofile",
-  "pk": 43,
+  "pk": 51,
   "fields": {
     "article": "104.259",
     "name": "Соединительный профиль Арт. 104.259",
@@ -4834,7 +4834,7 @@
 },
 {
   "model": "panels.aluminumprofile",
-  "pk": 44,
+  "pk": 52,
   "fields": {
     "article": "104.270",
     "name": "Угловой профиль Арт. 104.270",
@@ -4847,7 +4847,7 @@
 },
 {
   "model": "panels.aluminumprofile",
-  "pk": 45,
+  "pk": 53,
   "fields": {
     "article": "104.270",
     "name": "Угловой профиль Арт. 104.270",
@@ -4860,7 +4860,7 @@
 },
 {
   "model": "panels.aluminumprofile",
-  "pk": 46,
+  "pk": 54,
   "fields": {
     "article": "104.270",
     "name": "Угловой профиль Арт. 104.270",
@@ -4873,7 +4873,7 @@
 },
 {
   "model": "panels.aluminumprofile",
-  "pk": 47,
+  "pk": 55,
   "fields": {
     "article": "ламель",
     "name": "Ламель соединительная (тип B)",
@@ -4886,7 +4886,7 @@
 },
 {
   "model": "panels.aluminumprofile",
-  "pk": 48,
+  "pk": 56,
   "fields": {
     "article": "МДФ 10",
     "name": "Навес стеновой панели",
@@ -4899,7 +4899,7 @@
 },
 {
   "model": "panels.aluminumprofile",
-  "pk": 49,
+  "pk": 57,
   "fields": {
     "article": "П 6x6",
     "name": "Алюминиевый декоративный профиль П 6×6",
