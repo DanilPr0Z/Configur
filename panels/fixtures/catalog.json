@@ -440,7 +440,7 @@
     "series": "50",
     "code": "K",
     "name": "Теневой плинтус",
-    "offset_mm": 0.0,
+    "offset_mm": -23.0,
     "price_per_meter": 0.0,
     "profile_article": "",
     "profile_count": 0.0,
@@ -529,6 +529,62 @@
     "profile_article": "104.256",
     "profile_count": 0.0,
     "image": "joints/joint_I_50.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 41,
+  "fields": {
+    "series": "50",
+    "code": "L",
+    "name": "Коробка Complanar 50 + наличник Shade, наружу",
+    "offset_mm": 56.8,
+    "price_per_meter": 0.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": "joints/joint_L_50.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 42,
+  "fields": {
+    "series": "50",
+    "code": "M",
+    "name": "Коробка Complanar 50 + наличник Shade, внутрь",
+    "offset_mm": 40.4,
+    "price_per_meter": 0.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": "joints/joint_M_50.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 43,
+  "fields": {
+    "series": "50",
+    "code": "N",
+    "name": "Стык панели с коробкой (Shade)",
+    "offset_mm": -18.8,
+    "price_per_meter": 0.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": "joints/joint_N_50.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 44,
+  "fields": {
+    "series": "50",
+    "code": "Z",
+    "name": "Угол Z (теневой)",
+    "offset_mm": 47.0,
+    "price_per_meter": 0.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": "joints/joint_Z_50.png"
   }
 },
 {
