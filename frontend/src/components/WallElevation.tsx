@@ -18,8 +18,13 @@ export interface ElevWall {
   gapBottom: number
   widths: number[]         // ширина каждого столбца, мм
   colRows: number[][]      // [столбец][ряд сверху вниз] — высоты рядов этого столбца
-  labels: string[][]       // [столбец][ряд] — номер панели из спецификации (1.1, 1.2…)
-  drawLabels: string[][]   // [столбец][ряд] — обозначение на чертеже (А1, А2…)
+  // Панели стены: span > 1 — объединённые (шов убран), ширина уже с учётом шва.
+  cells: {
+    row: number; col: number; span: number
+    width: number; height: number
+    label: string          // номер панели из спецификации (1.1, 1.2…)
+    drawLabel: string      // обозначение на чертеже (А1, А2…)
+  }[]
   topEdge: string          // узел верха верхнего ряда
   bottomEdge: string       // узел низа нижнего ряда
   leftNode: string
@@ -232,6 +237,20 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
               return c
             })
 
+            // Геометрия панелей с учётом объединений: ячейка занимает span столбцов.
+            const cells = it.cells.map(cl => {
+              const c0 = cols[cl.col]
+              const rowGeom = c0?.rows[cl.row]
+              const wpx = it.widths.slice(cl.col, cl.col + cl.span)
+                .reduce((s2, mm) => s2 + mm * scale, 0)
+              return {
+                ...cl,
+                x: c0?.x ?? x, w: wpx,
+                y: rowGeom?.y ?? blockTop, h: rowGeom?.h ?? 0,
+                lastCol: cl.col + cl.span - 1,
+              }
+            })
+
             return (
               <g key={it.id}>
                 {/* Контур стены (габарит участка) */}
@@ -239,24 +258,24 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
                   fill="#f8fafc" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="4 3" />
 
                 {/* Панели */}
-                {cols.map((c, ci) => c.rows.map((r, ri) => (
-                  <g key={`${ri}-${ci}`}>
-                    <rect x={c.x} y={r.y} width={c.w} height={r.h}
+                {cells.map((c, k) => (
+                  <g key={k}>
+                    <rect x={c.x} y={c.y} width={c.w} height={c.h}
                       fill="#dbeafe" stroke="#60a5fa" strokeWidth="1" />
-                    {c.w >= 30 && r.h >= 18 && (
-                      <text x={c.x + c.w / 2} y={r.y + r.h / 2 - 5} textAnchor="middle"
+                    {c.w >= 30 && c.h >= 18 && (
+                      <text x={c.x + c.w / 2} y={c.y + c.h / 2 - 5} textAnchor="middle"
                         dominantBaseline="central" fontSize="11" fill="#1e40af" fontWeight="700">
-                        {it.drawLabels[ci]?.[ri] ?? ''}
+                        {c.drawLabel}
                       </text>
                     )}
-                    {c.w >= 52 && r.h >= 32 && (
-                      <text x={c.x + c.w / 2} y={r.y + r.h / 2 + 8} textAnchor="middle"
+                    {c.w >= 52 && c.h >= 32 && (
+                      <text x={c.x + c.w / 2} y={c.y + c.h / 2 + 8} textAnchor="middle"
                         dominantBaseline="central" fontSize="7" fill="#3b5bdb">
-                        {r.mm} × {c.mm}
+                        {c.height} × {c.width}
                       </text>
                     )}
                   </g>
-                )))}
+                ))}
 
                 {/* Недобор: ширины введены вручную и не дотягивают до длины по узлам.
                     С длиной стены не сравниваем — панели штатно короче неё на поправки
@@ -285,25 +304,26 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
 
                 {/* Узлы на швах каждой панели — как на чертеже СП: вертикальные кромки
                     подписаны у левого и правого края панели, горизонтальные — у верха и низа. */}
-                {cols.map((c, ci) => c.rows.map((r, ri) => {
-                  const left = ci === 0 ? it.leftNode : it.connType
-                  const right = ci === cols.length - 1 ? it.rightNode : it.connType
-                  const top = ri === 0 ? it.topEdge : it.rowConn
-                  const bottom = ri === c.rows.length - 1 ? it.bottomEdge : it.rowConn
+                {cells.map((c, k) => {
+                  const rowsOfCol = cols[c.col]?.rows ?? []
+                  const left = c.col === 0 ? it.leftNode : it.connType
+                  const right = c.lastCol === cols.length - 1 ? it.rightNode : it.connType
+                  const top = c.row === 0 ? it.topEdge : it.rowConn
+                  const bottom = c.row === rowsOfCol.length - 1 ? it.bottomEdge : it.rowConn
                   return (
-                    <g key={`n${ri}-${ci}`}>
-                      {c.w >= 46 && r.h >= 26 && <>
-                        <EdgeTag x={c.x + 12} y={r.y + r.h / 2} code={left} />
+                    <g key={`n${k}`}>
+                      {c.w >= 46 && c.h >= 26 && <>
+                        <EdgeTag x={c.x + 12} y={c.y + c.h / 2} code={left} />
                         {/* у последнего столбца метку сдвигаем внутрь: снаружи идёт цепочка высот */}
-                        <EdgeTag x={c.x + c.w - (ci === cols.length - 1 ? 22 : 12)} y={r.y + r.h / 2} code={right} />
+                        <EdgeTag x={c.x + c.w - (c.lastCol === cols.length - 1 ? 22 : 12)} y={c.y + c.h / 2} code={right} />
                       </>}
-                      {r.h >= 40 && c.w >= 34 && <>
-                        <EdgeTag x={c.x + c.w / 2} y={r.y + 9} code={top} />
-                        <EdgeTag x={c.x + c.w / 2} y={r.y + r.h - 9} code={bottom} />
+                      {c.h >= 40 && c.w >= 34 && <>
+                        <EdgeTag x={c.x + c.w / 2} y={c.y + 9} code={top} />
+                        <EdgeTag x={c.x + c.w / 2} y={c.y + c.h - 9} code={bottom} />
                       </>}
                     </g>
                   )
-                }))}
+                })}
 
                 {/* Размеры столбцов по низу */}
                 {cols.map((c, i) => (
@@ -572,22 +592,20 @@ export function elevationRows(items: ElevItem[]): ElevRow[] {
   for (const it of items) {
     if (it.kind === 'wall') {
       const N = it.widths.length
-      for (let i = 0; i < N; i++) {
-        const colRows = it.colRows[i] ?? []
-        for (let r = 0; r < colRows.length; r++) {
-          rows.push({
-            no: rows.length + 1,
-            name: it.drawLabels[i]?.[r] ?? '',
-            height: colRows[r],
-            width: it.widths[i],
-            qty: it.copies,
-            edgeA: r === 0 ? it.topEdge : it.rowConn,
-            edgeB: i === N - 1 ? it.rightNode : it.connType,
-            edgeC: r === colRows.length - 1 ? it.bottomEdge : it.rowConn,
-            edgeD: i === 0 ? it.leftNode : it.connType,
-            specLabel: it.labels[i]?.[r] ?? '',
-          })
-        }
+      for (const c of it.cells) {
+        const colRows = it.colRows[c.col] ?? []
+        rows.push({
+          no: rows.length + 1,
+          name: c.drawLabel,
+          height: c.height,
+          width: c.width,
+          qty: it.copies,
+          edgeA: c.row === 0 ? it.topEdge : it.rowConn,
+          edgeB: c.col + c.span - 1 === N - 1 ? it.rightNode : it.connType,
+          edgeC: c.row === colRows.length - 1 ? it.bottomEdge : it.rowConn,
+          edgeD: c.col === 0 ? it.leftNode : it.connType,
+          specLabel: c.label,
+        })
       }
     } else {
       if (it.panelH !== null && it.panelW !== null) {

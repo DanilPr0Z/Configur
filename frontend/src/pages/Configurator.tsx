@@ -40,6 +40,9 @@ interface WallSeg {
   // Столбец со своей разбивкой по рядам (как П52/П53 в СП): [столбец] → высоты
   // рядов сверху вниз. Пустой элемент — столбец режется общими rowHeights.
   colRowHeights: number[][]
+  // Объединение соседних панелей в ряду: со столбца col на span столбцов
+  // (шов между ними убирается, панель становится одной). Как объединение ячеек.
+  merges: { row: number; col: number; span: number }[]
   finishGroup: string
   finishName: string
   veneerDirection: string
@@ -299,7 +302,7 @@ function makeWall(n: number): WallSeg {
     numPanels: 0, connType: 'C',
     widthMode: 'auto', panelWidths: [],
     gapTop: DEFAULT_GAP_TOP, gapBottom: DEFAULT_GAP_BOTTOM,
-    numRows: 1, rowConn: 'S', heightMode: 'auto', rowHeights: [], colRowHeights: [],
+    numRows: 1, rowConn: 'S', heightMode: 'auto', rowHeights: [], colRowHeights: [], merges: [],
     finishGroup: '', finishName: '',
     veneerDirection: '', decor3d: '',
     copies: 1,
@@ -350,6 +353,7 @@ function migrateWalls(raw: any[]): WallSeg[] {
     heightMode: wa.heightMode === 'manual' ? 'manual' : 'auto',
     rowHeights: Array.isArray(wa.rowHeights) ? wa.rowHeights : [],
     colRowHeights: Array.isArray(wa.colRowHeights) ? wa.colRowHeights : [],
+    merges: Array.isArray(wa.merges) ? wa.merges : [],
     leftNode: wa.leftNode ?? 'A',
     rightNode: wa.rightNode ?? 'A',
     topEdge: wa.topEdge ?? '',
@@ -422,11 +426,22 @@ interface WallCalc {
   rowHeights: number[]         // высота каждого ряда (авто поровну или вручную)
   rowHeightsSum: number
   colRows: number[][]          // [столбец][ряд] — фактическая разбивка столбца
+  cells: WallCell[]            // панели стены с учётом объединений
+}
+
+// Одна панель стены. span > 1 — объединённая: занимает несколько столбцов,
+// её ширина включает убранные швы.
+export interface WallCell {
+  row: number
+  col: number
+  span: number
+  width: number
+  height: number
 }
 
 const EMPTY_CALC: WallCalc = {
   valid: false, wallLengthByPanels: 0, panelHeight: 0, panelWidth: 0,
-  widths: [], widthsSum: 0, rowHeights: [], rowHeightsSum: 0, colRows: [],
+  widths: [], widthsSum: 0, rowHeights: [], rowHeightsSum: 0, colRows: [], cells: [],
 }
 
 function calcWall(w: WallSeg, off: OffsetMap): WallCalc {
@@ -464,11 +479,45 @@ function calcWall(w: WallSeg, off: OffsetMap): WallCalc {
     return own && own.length ? own.map(v => v || 0) : rowHeights
   })
 
+  // Панели с учётом объединений. Объединять можно только соседние столбцы, у
+  // которых этот ряд лежит на той же высоте и той же толщины — иначе шов убрать
+  // нельзя. Ширина объединённой панели включает убранные швы: соединительный
+  // профиль C съедал 4 мм на стык, П-образный R — 6 мм.
+  const seam = Math.max(0, -offsetOf(off, w.connType))
+  const rowTop = (col: number, row: number) =>
+    (colRows[col] ?? []).slice(0, row).reduce((s, v) => s + v, 0)
+  const mergeAt = new Map<string, number>()
+  for (const m of w.merges ?? []) {
+    const span = Math.max(2, Math.round(m.span))
+    if (m.col < 0 || m.col + span > widths.length) continue
+    const rows0 = colRows[m.col] ?? []
+    if (m.row < 0 || m.row >= rows0.length) continue
+    const ok = Array.from({ length: span }, (_, k) => m.col + k).every(ci => {
+      const rs = colRows[ci] ?? []
+      return m.row < rs.length && rs[m.row] === rows0[m.row] && rowTop(ci, m.row) === rowTop(m.col, m.row)
+    })
+    if (ok) mergeAt.set(`${m.row}:${m.col}`, span)
+  }
+
+  const cells: WallCell[] = []
+  const maxRows = Math.max(...colRows.map(rs => rs.length), 0)
+  for (let r = 0; r < maxRows; r++) {
+    let i = 0
+    while (i < widths.length) {
+      const rows = colRows[i] ?? []
+      if (r >= rows.length) { i++; continue }
+      const span = mergeAt.get(`${r}:${i}`) ?? 1
+      const width = widths.slice(i, i + span).reduce((s, v) => s + v, 0) + (span - 1) * seam
+      cells.push({ row: r, col: i, span, width: Math.round(width * 10) / 10, height: rows[r] })
+      i += span
+    }
+  }
+
   return {
     valid: true,
     wallLengthByPanels: Math.round(wlbp * 10) / 10,
     panelHeight: ph, panelWidth: pw,
-    widths, widthsSum, rowHeights, rowHeightsSum, colRows,
+    widths, widthsSum, rowHeights, rowHeightsSum, colRows, cells,
   }
 }
 
@@ -537,20 +586,22 @@ function buildSpec(
     const copies = Math.max(1, w.copies)
     const N = w.numPanels
     const maxR = Math.max(...c.colRows.map(rs => rs.length), 1)
-    totalPanels += c.colRows.reduce((s, rs) => s + rs.length, 0) * copies
+    totalPanels += c.cells.length * copies
     // Ряды сверху вниз, в ряду слева направо: схема раскладки берёт первые N
-    // панелей стены как верхний ряд. Столбцы могут делиться по-разному.
-    for (let r = 0; r < maxR; r++) {
-      for (let i = 0; i < N; i++) {
+    // панелей стены как верхний ряд. Столбцы могут делиться по-разному,
+    // соседние панели ряда — объединяться.
+    {
+      for (const cell of c.cells) {
+        const r = cell.row, i = cell.col
         const colRows = c.colRows[i] ?? []
-        if (r >= colRows.length) continue
+        const last = i + cell.span - 1
         panels.push({
           panelLabel: maxR > 1 ? `${wi + 1}.${r + 1}.${i + 1}` : `${wi + 1}.${i + 1}`,
           wallName: w.name,
-          height: colRows[r],
-          width: c.widths[i],
-          leftNode:  i === 0     ? w.leftNode  : w.connType,
-          rightNode: i === N - 1 ? w.rightNode : w.connType,
+          height: cell.height,
+          width: cell.width,
+          leftNode:  i === 0        ? w.leftNode  : w.connType,
+          rightNode: last === N - 1 ? w.rightNode : w.connType,
           topEdge:    r === 0     ? w.topEdge    : w.rowConn,
           bottomEdge: r === colRows.length - 1 ? w.bottomEdge : w.rowConn,
           quantity: copies,
@@ -567,14 +618,16 @@ function buildSpec(
       }
     }
     // Профили считаем по кромкам каждой панели: у общей раскладки результат тот
-    // же, но столбцы с разным числом рядов учитываются верно.
-    c.colRows.forEach((colRows, i) => {
-      const rn = colRows.length
-      if (rn === 0) return
-      addEdge(i === 0 ? w.leftNode : w.connType, copies * rn)
-      addEdge(i === N - 1 ? w.rightNode : w.connType, copies * rn)
-      if (rn > 1) addEdge(w.rowConn, 2 * (rn - 1) * copies)
-    })
+    // же, но столбцы с разным числом рядов и объединённые панели (шов убран,
+    // профиля на нём нет) учитываются верно.
+    for (const cell of c.cells) {
+      const last = cell.col + cell.span - 1
+      addEdge(cell.col === 0 ? w.leftNode : w.connType, copies)
+      addEdge(last === N - 1 ? w.rightNode : w.connType, copies)
+      const rows = c.colRows[cell.col] ?? []
+      if (cell.row > 0) addEdge(w.rowConn, copies)
+      if (cell.row < rows.length - 1) addEdge(w.rowConn, copies)
+    }
     if (w.aluminumVertical > 0 || w.aluminumHorizontal > 0) {
       const alV = Math.ceil(c.panelHeight / 2995) * w.aluminumVertical
       const alH = Math.ceil(c.panelWidth / 2995) * w.aluminumHorizontal
@@ -721,25 +774,19 @@ function buildElevation(
       if (!c.valid) continue
       const wi = walls.indexOf(w)
       const maxR = Math.max(...c.colRows.map(rs => rs.length), 1)
-      const N = w.numPanels
       // Обозначения на чертеже идут в том же порядке, что и строки спецификации:
-      // ряд сверху вниз, в ряду слева направо.
-      const draw: string[][] = Array.from({ length: N }, () => [])
-      for (let r = 0; r < maxR; r++) {
-        for (let i = 0; i < N; i++) {
-          if (r < (c.colRows[i]?.length ?? 0)) draw[i].push(nextDraw())
-        }
-      }
+      // ряд сверху вниз, в ряду слева направо (объединённая панель — одна).
+      const cells = c.cells.map(cl => ({
+        ...cl,
+        label: maxR > 1 ? `${wi + 1}.${cl.row + 1}.${cl.col + 1}` : `${wi + 1}.${cl.col + 1}`,
+        drawLabel: nextDraw(),
+      }))
       items.push({
         kind: 'wall', id: w.id, name: w.name,
         wallLength: w.wallLength, wallHeight: w.wallHeight,
         lengthByNodes: c.wallLengthByPanels,
         gapTop: w.gapTop ?? DEFAULT_GAP_TOP, gapBottom: w.gapBottom ?? DEFAULT_GAP_BOTTOM,
-        widths: c.widths, colRows: c.colRows,
-        labels: Array.from({ length: N }, (_, i) =>
-          Array.from({ length: c.colRows[i]?.length ?? 0 },
-            (_, r) => maxR > 1 ? `${wi + 1}.${r + 1}.${i + 1}` : `${wi + 1}.${i + 1}`)),
-        drawLabels: draw,
+        widths: c.widths, colRows: c.colRows, cells,
         leftNode: w.leftNode, rightNode: w.rightNode,
         topEdge: w.topEdge, bottomEdge: w.bottomEdge,
         connType: w.connType, rowConn: w.rowConn || 'S',
@@ -913,8 +960,7 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
   const is3d = isVeneerGroup(wall.finishGroup) && !!wall.decor3d
   const R = calc.rowHeights.length
   const limitWarnings = calc.valid
-    ? [...new Set(calc.widths.flatMap((w, i) =>
-        (calc.colRows[i] ?? []).map(h => panelLimitWarning(w, h, is3d))).filter(Boolean))] as string[]
+    ? [...new Set(calc.cells.map(c => panelLimitWarning(c.width, c.height, is3d)).filter(Boolean))] as string[]
     : []
   const hasColRows = (wall.colRowHeights ?? []).some(rs => rs && rs.length > 0)
   const setColRows = (i: number, rs: number[]) => {
@@ -922,6 +968,18 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
     arr[i] = rs
     onChange({ colRowHeights: arr })
   }
+  // Объединение соседних панелей в ряду: клик по ячейке присоединяет её к
+  // соседней слева, повторный клик по объединённой — разбирает обратно.
+  const mergeWithLeft = (row: number, col: number) => {
+    const cell = calc.cells.find(c => c.row === row && c.col === col)
+    if (!cell) return
+    const left = calc.cells.filter(c => c.row === row && c.col + c.span === col).pop()
+    if (!left) return
+    const rest = (wall.merges ?? []).filter(m => !(m.row === row && (m.col === left.col || m.col === col)))
+    onChange({ merges: [...rest, { row, col: left.col, span: left.span + cell.span }] })
+  }
+  const splitCell = (row: number, col: number) =>
+    onChange({ merges: (wall.merges ?? []).filter(m => !(m.row === row && m.col === col)) })
   const widthDiff = Math.round((calc.widthsSum - calc.wallLengthByPanels) * 10) / 10
   const heightDiff = Math.round((calc.rowHeightsSum - calc.panelHeight) * 10) / 10
   const setWidth = (i: number, v: number) => {
@@ -1190,6 +1248,51 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
                 </div>
               </>
             )}
+          </div>
+        )}
+
+        {/* Объединение панелей: карта стены, клик по «+» убирает шов между соседями */}
+        {calc.valid && wall.numPanels > 1 && (
+          <div style={{ marginBottom: 10, padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 7 }}>
+            <div style={{ fontSize: '.78rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.04em' }}>
+              Объединение панелей
+              <span style={{ textTransform: 'none', fontWeight: 400, color: '#94a3b8', letterSpacing: 0 }}>
+                {' '}— «+» убирает шов между соседними панелями ряда, «×» возвращает
+              </span>
+            </div>
+            <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {Array.from({ length: Math.max(...calc.colRows.map(rs => rs.length), 1) }, (_, r) => {
+                const rowCells = calc.cells.filter(c => c.row === r)
+                if (rowCells.length === 0) return null
+                return (
+                  <div key={r} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                    <span style={{ fontSize: '.72rem', color: '#94a3b8', width: 52 }}>Ряд {r + 1}</span>
+                    {rowCells.map((c, k) => (
+                      <span key={c.col} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                        {k > 0 && (
+                          <button type="button" className="btn btn-ghost btn-sm"
+                            style={{ padding: '0 6px', lineHeight: 1.6 }}
+                            title="Объединить с панелью слева"
+                            onClick={() => mergeWithLeft(r, c.col)}>+</button>
+                        )}
+                        <span style={{
+                          padding: '3px 8px', borderRadius: 5, fontSize: '.75rem',
+                          border: '1px solid ' + (c.span > 1 ? '#f59e0b' : '#cbd5e1'),
+                          background: c.span > 1 ? '#fffbeb' : '#fff',
+                        }}>
+                          {c.width} мм
+                          {c.span > 1 && (
+                            <button type="button" className="btn btn-ghost btn-sm"
+                              style={{ padding: '0 4px', marginLeft: 4, lineHeight: 1.4 }}
+                              title="Разъединить" onClick={() => splitCell(r, c.col)}>×</button>
+                          )}
+                        </span>
+                      </span>
+                    ))}
+                  </div>
+                )
+              })}
+            </div>
           </div>
         )}
 
