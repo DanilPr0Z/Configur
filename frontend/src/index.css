@@ -33,48 +33,50 @@ body {
 .app-content { flex: 1 1 auto; display: flex; flex-direction: column; min-width: 0; }
 .app-content .app-main { flex: 1 0 auto; }
 
+/* Сайдбар в цветах футера (--footer-bg): один тон на всю страницу */
 .sidebar {
   width: 232px; flex-shrink: 0;
-  background: #1a1a2e; color: #fff;
+  background: var(--footer-bg); color: var(--text-dark);
+  border-right: 1px solid #c4c3bd;
   padding: 20px 14px; position: sticky; top: 0; height: 100vh;
   overflow-y: auto; display: flex; flex-direction: column;
 }
 .sidebar-brand {
-  display: block; color: #fff; font-weight: 800; font-size: 1.3rem;
+  display: block; color: var(--text-dark); font-weight: 800; font-size: 1.3rem;
   letter-spacing: .06em; text-decoration: none; padding: 4px 10px 18px;
 }
 .sidebar-nav { display: flex; flex-direction: column; gap: 3px; }
 .sidebar-group {
   font-size: .68rem; text-transform: uppercase; letter-spacing: .12em;
-  color: #6b74a0; padding: 16px 10px 6px;
+  color: #7d7c75; padding: 16px 10px 6px;
 }
 .sidebar-link {
-  color: #aab4d4; text-decoration: none; font-size: .9rem; font-weight: 600;
+  color: #4a4a46; text-decoration: none; font-size: .9rem; font-weight: 600;
   padding: 9px 10px; border-radius: 7px; transition: background .15s, color .15s;
 }
-.sidebar-link:hover { color: #fff; background: rgba(255,255,255,.07); }
-.sidebar-link.active { color: #fff; background: rgba(255,255,255,.14); }
+.sidebar-link:hover { color: #1a1a1a; background: rgba(0,0,0,.06); }
+.sidebar-link.active { color: #1a1a1a; background: rgba(0,0,0,.12); }
 
 /* Низ сайдбара: вход / профиль */
 .sidebar-foot {
-  margin-top: auto; padding-top: 16px; border-top: 1px solid rgba(255,255,255,.1);
+  margin-top: auto; padding-top: 16px; border-top: 1px solid rgba(0,0,0,.12);
   display: flex; flex-direction: column; gap: 8px;
 }
 .sidebar-user { display: flex; align-items: center; padding: 2px 10px 4px; min-width: 0; }
-.sidebar-user-name { font-size: .82rem; color: #dfe3f0; min-width: 0; overflow-wrap: anywhere; }
+.sidebar-user-name { font-size: .82rem; color: #4a4a46; min-width: 0; overflow-wrap: anywhere; }
 .sidebar-auth-btn {
   width: 100%; padding: 9px 10px; border-radius: 7px; border: none; cursor: pointer;
-  font-size: .88rem; font-weight: 700; background: #4c6ef5; color: #fff; transition: opacity .15s;
+  font-size: .88rem; font-weight: 700; background: var(--primary-color); color: #fff; transition: opacity .15s;
 }
 .sidebar-auth-btn:hover { opacity: .9; }
-.sidebar-auth-btn.ghost { background: transparent; border: 1px solid rgba(255,255,255,.2); color: #aab4d4; font-weight: 600; }
-.sidebar-auth-btn.ghost:hover { color: #fff; background: rgba(255,255,255,.07); }
+.sidebar-auth-btn.ghost { background: transparent; border: 1px solid rgba(0,0,0,.2); color: #4a4a46; font-weight: 600; }
+.sidebar-auth-btn.ghost:hover { color: #1a1a1a; background: rgba(0,0,0,.06); }
 .sidebar-auth-link {
   display: block; text-align: center; padding: 8px 10px; border-radius: 7px;
-  font-size: .85rem; font-weight: 600; color: #aab4d4; text-decoration: none;
-  border: 1px solid rgba(255,255,255,.2); transition: all .15s;
+  font-size: .85rem; font-weight: 600; color: #4a4a46; text-decoration: none;
+  border: 1px solid rgba(0,0,0,.2); transition: all .15s;
 }
-.sidebar-auth-link:hover { color: #fff; background: rgba(255,255,255,.07); }
+.sidebar-auth-link:hover { color: #1a1a1a; background: rgba(0,0,0,.06); }
 
 /* Модалка */
 .modal-overlay {
@@ -370,6 +372,23 @@ td input:focus, td select:focus { border-color: #4c6ef5; outline: none; }
   .footer-info-row { flex-direction: column; align-items: flex-start; gap: 8px; }
   .footer-right { justify-content: flex-start; }
 }
+
+/* Сетка раскладки стены: столбцы × ряды с размерами панелей */
+.layout-grid { border-collapse: separate; border-spacing: 3px; font-size: .78rem; }
+.layout-grid th { padding: 2px 4px; text-align: center; font-weight: 600; color: #475569; white-space: nowrap; }
+.layout-grid td {
+  padding: 6px 8px; text-align: center; background: #fff;
+  border: 1px solid #cbd5e1; border-radius: 5px; color: #1e40af; white-space: nowrap;
+}
+.layout-grid td.lg-merged { border-color: #f59e0b; background: #fffbeb; color: #92400e; }
+.layout-grid td.lg-empty { background: transparent; border: 1px dashed #e2e8f0; }
+.layout-grid td.lg-covered { display: none; }
+.layout-grid input { padding: 3px 4px; font-size: .78rem; }
+.lg-btn {
+  border: 1px solid #cbd5e1; background: #f8fafc; border-radius: 4px;
+  padding: 0 5px; font-size: .75rem; line-height: 1.5; color: #475569; cursor: pointer;
+}
+.lg-btn:hover { background: #e2e8f0; color: #1e293b; }
 
 /* Print */
 .print-only { display: none; }

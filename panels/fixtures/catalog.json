@@ -24,7 +24,7 @@
     "price_per_meter": 350.0,
     "profile_article": "ламель",
     "profile_count": 0.5,
-    "image": ""
+    "image": "joints/joint_B.png"
   }
 },
 {
@@ -290,7 +290,7 @@
     "price_per_meter": 350.0,
     "profile_article": "ламель",
     "profile_count": 0.5,
-    "image": ""
+    "image": "joints/joint_B_50.png"
   }
 },
 {
@@ -598,7 +598,7 @@
     "price_per_meter": 100.0,
     "profile_article": "",
     "profile_count": 0.0,
-    "image": ""
+    "image": "joints/joint_STEP.png"
   }
 },
 {
@@ -612,7 +612,7 @@
     "price_per_meter": 100.0,
     "profile_article": "",
     "profile_count": 0.0,
-    "image": ""
+    "image": "joints/joint_STEP_50.png"
   }
 },
 {

@@ -1159,203 +1159,200 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
           </div>
         </div>
 
-        {/* Ширины панелей: авто поровну или вручную */}
+        {/* ── Раскладка панелей: одна сетка вместо отдельных блоков ширин,
+             высот, разбивки по столбцам и объединения ─────────────────────── */}
         {calc.valid && (
-          <div style={{ marginBottom: 10, padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 7 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '.78rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.04em' }}>
-                Ширины панелей
+          <div style={{ marginBottom: 10, padding: '10px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 7 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', marginBottom: 10 }}>
+              <span style={{ fontSize: '.78rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.04em' }}>
+                Раскладка панелей
               </span>
-              <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
-                <input type="radio" checked={wall.widthMode !== 'manual'}
-                  onChange={() => onChange({ widthMode: 'auto' })} />
-                авто — поровну ({calc.panelWidth} мм)
-              </label>
-              <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
-                <input type="radio" checked={wall.widthMode === 'manual'} onChange={toManualWidths} />
-                вручную — разные ширины
-              </label>
-              {wall.widthMode === 'manual' && wall.numPanels > 1 && (
-                <button type="button" className="btn btn-ghost btn-sm" onClick={fillLastWidth}
-                  title="Последняя панель добирает длину по узлам">
-                  остаток → последняя
-                </button>
+
+              <span style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ color: '#94a3b8' }}>ширины:</span>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+                  <input type="radio" checked={wall.widthMode !== 'manual'}
+                    onChange={() => onChange({ widthMode: 'auto' })} />
+                  поровну ({calc.panelWidth} мм)
+                </label>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+                  <input type="radio" checked={wall.widthMode === 'manual'} onChange={toManualWidths} />
+                  свои
+                </label>
+              </span>
+
+              {R > 1 && (
+                <span style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ color: '#94a3b8' }}>высоты:</span>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+                    <input type="radio" checked={wall.heightMode !== 'manual' && !hasColRows}
+                      onChange={() => onChange({ heightMode: 'auto', colRowHeights: [] })} />
+                    поровну ({calc.rowHeights[0]} мм)
+                  </label>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: 4, cursor: 'pointer' }}>
+                    <input type="radio" checked={wall.heightMode === 'manual' && !hasColRows} onChange={toManualHeights} />
+                    свои
+                  </label>
+                </span>
+              )}
+
+              {wall.numPanels > 1 && (
+                <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}
+                  title="У каждого столбца своё число рядов — верхний ряд-добор и т.п.">
+                  <input type="checkbox" checked={hasColRows}
+                    onChange={e => onChange({
+                      colRowHeights: e.target.checked ? calc.widths.map(() => [...calc.rowHeights]) : [],
+                    })} />
+                  свои ряды у столбцов
+                </label>
               )}
             </div>
-            {wall.widthMode === 'manual' && (
-              <>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
-                  {calc.widths.map((wv, i) => {
-                    // Подсвечиваем панели, ширина которых отличается от авторасчёта.
-                    const custom = Math.abs(wv - calc.panelWidth) > 0.05
-                    return (
-                      <div className="field" key={i} style={{ width: 110 }}>
-                        <label style={custom ? { color: '#b45309' } : undefined}>
-                          Панель {i + 1}, мм{custom ? ' •' : ''}
-                        </label>
-                        <input type="number" min={0} step={0.5} value={wv || ''}
-                          onChange={e => setWidth(i, +e.target.value)}
-                          title={custom ? `Задано вручную · авто — ${calc.panelWidth} мм` : undefined}
-                          style={custom ? { borderColor: '#f59e0b', background: '#fffbeb' } : undefined} />
-                      </div>
-                    )
-                  })}
-                </div>
-                <div style={{ fontSize: '.78rem', marginTop: 6, color: widthDiff === 0 ? '#166534' : '#b45309' }}>
-                  Сумма <strong>{calc.widthsSum} мм</strong>, длина по узлам <strong>{calc.wallLengthByPanels} мм</strong>
-                  {widthDiff !== 0 && <> — расхождение <strong>{widthDiff > 0 ? '+' : ''}{widthDiff} мм</strong></>}
-                  {' '}· в ручном режиме поправки узлов к ширинам не применяются — вводите готовый размер панели
-                </div>
-              </>
-            )}
-          </div>
-        )}
 
-        {/* Высоты рядов: авто поровну или вручную */}
-        {calc.valid && R > 1 && (
-          <div style={{ marginBottom: 10, padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 7 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '.78rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.04em' }}>
-                Высоты рядов
-              </span>
-              <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
-                <input type="radio" checked={wall.heightMode !== 'manual'}
-                  onChange={() => onChange({ heightMode: 'auto' })} />
-                авто — поровну ({calc.rowHeights[0]} мм)
-              </label>
-              <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
-                <input type="radio" checked={wall.heightMode === 'manual'} onChange={toManualHeights} />
-                вручную
-              </label>
-              {wall.heightMode === 'manual' && (
-                <button type="button" className="btn btn-ghost btn-sm" onClick={fillLastHeight}
-                  title="Нижний ряд добирает высоту панели">
-                  остаток → нижний
-                </button>
-              )}
-            </div>
-            {wall.heightMode === 'manual' && (
-              <>
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
-                  {calc.rowHeights.map((hv, i) => (
-                    <div className="field" key={i} style={{ width: 130 }}>
-                      <label>Ряд {i + 1} (сверху), мм</label>
-                      <input type="number" min={0} step={0.5} value={hv || ''}
-                        onChange={e => setRowHeight(i, +e.target.value)} />
-                    </div>
-                  ))}
-                </div>
-                <div style={{ fontSize: '.78rem', marginTop: 6, color: heightDiff === 0 ? '#166534' : '#b45309' }}>
-                  Сумма <strong>{calc.rowHeightsSum} мм</strong>, высота панели <strong>{calc.panelHeight} мм</strong>
-                  {heightDiff !== 0 && <> — расхождение <strong>{heightDiff > 0 ? '+' : ''}{heightDiff} мм</strong></>}
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Своя разбивка столбца по рядам — как П52/П53 в СП */}
-        {calc.valid && wall.numPanels > 1 && (
-          <div style={{ marginBottom: 10, padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 7 }}>
-            <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
-              <input type="checkbox" checked={hasColRows}
-                onChange={e => onChange({
-                  colRowHeights: e.target.checked
-                    ? calc.widths.map(() => [...calc.rowHeights])
-                    : [],
-                })} />
-              <span style={{ fontWeight: 600, color: '#64748b' }}>Разбивка по столбцам</span>
-              <span style={{ color: '#94a3b8' }}>— у столбца свои ряды (верхний добор и т.п.)</span>
-            </label>
-            {hasColRows && (
-              <>
-                <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 8 }}>
-                  {calc.widths.map((wv, i) => {
-                    const rs = calc.colRows[i] ?? []
-                    const sum = Math.round(rs.reduce((s, v) => s + v, 0) * 10) / 10
-                    return (
-                      <div key={i} style={{ border: '1px solid #e2e8f0', borderRadius: 6, padding: 8, background: '#fff' }}>
-                        <div style={{ fontSize: '.78rem', fontWeight: 600, marginBottom: 6 }}>
-                          Столбец {i + 1} · {wv} мм
-                          <button type="button" className="btn btn-ghost btn-sm" style={{ marginLeft: 6 }}
-                            onClick={() => setColRows(i, [...rs, 0])}>+ ряд</button>
-                          {rs.length > 1 && (
-                            <button type="button" className="btn btn-ghost btn-sm"
-                              onClick={() => setColRows(i, rs.slice(0, -1))}>− ряд</button>
+            {/* Сетка стены: шапка — ширины столбцов, слева — высоты рядов,
+                в ячейке — размер панели и кнопки объединения. */}
+            <div style={{ overflowX: 'auto' }}>
+              <table className="layout-grid">
+                <thead>
+                  <tr>
+                    <th style={{ width: 92 }}></th>
+                    {calc.widths.map((wv, i) => {
+                      const custom = Math.abs(wv - calc.panelWidth) > 0.05
+                      return (
+                        <th key={i}>
+                          <div style={{ fontSize: '.7rem', color: '#94a3b8', fontWeight: 500 }}>Столбец {i + 1}</div>
+                          {wall.widthMode === 'manual' ? (
+                            <input type="number" min={0} step={0.5} value={wv || ''}
+                              onChange={e => setWidth(i, +e.target.value)}
+                              title={custom ? `Задано вручную · поровну — ${calc.panelWidth} мм` : undefined}
+                              style={{
+                                width: 88, textAlign: 'center',
+                                ...(custom ? { borderColor: '#f59e0b', background: '#fffbeb' } : {}),
+                              }} />
+                          ) : (
+                            <span style={{ fontWeight: 600 }}>{wv} мм</span>
                           )}
-                        </div>
-                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                          {rs.map((hv, r) => (
-                            <div className="field" key={r} style={{ width: 96 }}>
-                              <label>Ряд {r + 1}, мм</label>
-                              <input type="number" min={0} step={0.5} value={hv || ''}
-                                onChange={e => {
-                                  const next = [...rs]
-                                  next[r] = +e.target.value
-                                  setColRows(i, next)
-                                }} />
-                            </div>
-                          ))}
-                        </div>
-                        <div style={{ fontSize: '.74rem', marginTop: 4, color: sum === calc.panelHeight ? '#166534' : '#b45309' }}>
-                          Сумма {sum} из {calc.panelHeight} мм
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Объединение панелей: карта стены, клик по «+» убирает шов между соседями */}
-        {calc.valid && wall.numPanels > 1 && (
-          <div style={{ marginBottom: 10, padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 7 }}>
-            <div style={{ fontSize: '.78rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.04em' }}>
-              Объединение панелей
-              <span style={{ textTransform: 'none', fontWeight: 400, color: '#94a3b8', letterSpacing: 0 }}>
-                {' '}— «+» убирает шов с панелью слева, «↑» — с панелью сверху, «×» возвращает
-              </span>
-            </div>
-            <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {Array.from({ length: Math.max(...calc.colRows.map(rs => rs.length), 1) }, (_, r) => {
-                const rowCells = calc.cells.filter(c => c.row === r)
-                if (rowCells.length === 0) return null
-                return (
-                  <div key={r} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                    <span style={{ fontSize: '.72rem', color: '#94a3b8', width: 52 }}>Ряд {r + 1}</span>
-                    {rowCells.map((c, k) => (
-                      <span key={c.col} style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                        {k > 0 && (
-                          <button type="button" className="btn btn-ghost btn-sm"
-                            style={{ padding: '0 6px', lineHeight: 1.6 }}
-                            title="Объединить с панелью слева"
-                            onClick={() => mergeWithLeft(r, c.col)}>+</button>
+                        </th>
+                      )
+                    })}
+                  </tr>
+                </thead>
+                <tbody>
+                  {Array.from({ length: Math.max(...calc.colRows.map(rs => rs.length), 1) }, (_, r) => (
+                    <tr key={r}>
+                      <th>
+                        <div style={{ fontSize: '.7rem', color: '#94a3b8', fontWeight: 500 }}>Ряд {r + 1}</div>
+                        {!hasColRows && R > 1 && wall.heightMode === 'manual' ? (
+                          <input type="number" min={0} step={0.5} value={calc.rowHeights[r] || ''}
+                            onChange={e => setRowHeight(r, +e.target.value)}
+                            style={{ width: 84, textAlign: 'center' }} />
+                        ) : (
+                          <span style={{ fontWeight: 600 }}>{hasColRows ? '—' : `${calc.rowHeights[r]} мм`}</span>
                         )}
-                        <span style={{
-                          padding: '3px 8px', borderRadius: 5, fontSize: '.75rem',
-                          border: '1px solid ' + (c.span > 1 || c.rowSpan > 1 ? '#f59e0b' : '#cbd5e1'),
-                          background: c.span > 1 || c.rowSpan > 1 ? '#fffbeb' : '#fff',
-                        }}>
-                          {r > 0 && calc.cells.some(a => a.col === c.col && a.row + a.rowSpan === r && a.span === c.span) && (
-                            <button type="button" className="btn btn-ghost btn-sm"
-                              style={{ padding: '0 4px', marginRight: 4, lineHeight: 1.4 }}
-                              title="Объединить с панелью сверху"
-                              onClick={() => mergeWithAbove(r, c.col)}>↑</button>
-                          )}
-                          {c.width}×{c.height} мм
-                          {(c.span > 1 || c.rowSpan > 1) && (
-                            <button type="button" className="btn btn-ghost btn-sm"
-                              style={{ padding: '0 4px', marginLeft: 4, lineHeight: 1.4 }}
-                              title="Разъединить" onClick={() => splitCell(r, c.col)}>×</button>
-                          )}
-                        </span>
+                      </th>
+                      {calc.widths.map((_, i) => {
+                        const cell = calc.cells.find(c => c.row === r && c.col === i)
+                        if (!cell) {
+                          // ячейка поглощена объединением или столбец кончился
+                          const covered = calc.cells.some(c =>
+                            i >= c.col && i < c.col + c.span && r >= c.row && r < c.row + c.rowSpan)
+                          return <td key={i} className={covered ? 'lg-covered' : 'lg-empty'} />
+                        }
+                        const merged = cell.span > 1 || cell.rowSpan > 1
+                        const canLeft = calc.cells.some(a => a.row === r && a.col + a.span === i && a.rowSpan === cell.rowSpan)
+                        const canUp = calc.cells.some(a => a.col === i && a.row + a.rowSpan === r && a.span === cell.span)
+                        const ownRows = wall.colRowHeights?.[i] ?? []
+                        return (
+                          <td key={i} colSpan={cell.span} rowSpan={cell.rowSpan}
+                            className={merged ? 'lg-merged' : undefined}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4 }}>
+                              {canLeft && (
+                                <button type="button" className="lg-btn" title="Объединить с панелью слева"
+                                  onClick={() => mergeWithLeft(r, i)}>+</button>
+                              )}
+                              {canUp && (
+                                <button type="button" className="lg-btn" title="Объединить с панелью сверху"
+                                  onClick={() => mergeWithAbove(r, i)}>↑</button>
+                              )}
+                              {hasColRows ? (
+                                <input type="number" min={0} step={0.5} value={ownRows[r] ?? cell.height}
+                                  title="Высота этой панели"
+                                  onChange={e => {
+                                    const next = [...(ownRows.length ? ownRows : calc.colRows[i] ?? [])]
+                                    next[r] = +e.target.value
+                                    setColRows(i, next)
+                                  }}
+                                  style={{ width: 76, textAlign: 'center' }} />
+                              ) : (
+                                <span>{cell.height} × {cell.width}</span>
+                              )}
+                              {merged && (
+                                <button type="button" className="lg-btn" title="Разъединить"
+                                  onClick={() => splitCell(r, i)}>×</button>
+                              )}
+                            </div>
+                            {hasColRows && (
+                              <div style={{ fontSize: '.68rem', color: '#94a3b8' }}>ширина {cell.width}</div>
+                            )}
+                          </td>
+                        )
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Управление числом рядов у столбца — только в режиме своих рядов */}
+            {hasColRows && (
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 8 }}>
+                {calc.widths.map((_, i) => {
+                  const rs = calc.colRows[i] ?? []
+                  const sum = Math.round(rs.reduce((s2, v) => s2 + v, 0) * 10) / 10
+                  return (
+                    <span key={i} style={{ fontSize: '.75rem', display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span style={{ color: '#94a3b8' }}>столбец {i + 1}:</span>
+                      <button type="button" className="lg-btn" title="Добавить ряд"
+                        onClick={() => setColRows(i, [...rs, 0])}>+ ряд</button>
+                      {rs.length > 1 && (
+                        <button type="button" className="lg-btn" title="Убрать нижний ряд"
+                          onClick={() => setColRows(i, rs.slice(0, -1))}>− ряд</button>
+                      )}
+                      <span style={{ color: sum === calc.panelHeight ? '#166534' : '#b45309' }}>
+                        Σ {sum} из {calc.panelHeight}
                       </span>
-                    ))}
-                  </div>
-                )
-              })}
+                    </span>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Итоги: расхождения по длине и высоте + подсказка про объединение */}
+            <div style={{ fontSize: '.78rem', marginTop: 8, display: 'flex', gap: 18, flexWrap: 'wrap' }}>
+              <span style={{ color: widthDiff === 0 ? '#166534' : '#b45309' }}>
+                Ширины: Σ <strong>{calc.widthsSum}</strong> из <strong>{calc.wallLengthByPanels} мм</strong> по узлам
+                {widthDiff !== 0 && <> — расхождение <strong>{widthDiff > 0 ? '+' : ''}{widthDiff}</strong></>}
+                {wall.widthMode === 'manual' && (
+                  <button type="button" className="btn btn-ghost btn-sm" style={{ marginLeft: 6 }}
+                    onClick={fillLastWidth} title="Последняя панель добирает длину по узлам">
+                    остаток → последняя
+                  </button>
+                )}
+              </span>
+              {R > 1 && !hasColRows && (
+                <span style={{ color: heightDiff === 0 ? '#166534' : '#b45309' }}>
+                  Высоты: Σ <strong>{calc.rowHeightsSum}</strong> из <strong>{calc.panelHeight} мм</strong> панели
+                  {heightDiff !== 0 && <> — расхождение <strong>{heightDiff > 0 ? '+' : ''}{heightDiff}</strong></>}
+                  {wall.heightMode === 'manual' && (
+                    <button type="button" className="btn btn-ghost btn-sm" style={{ marginLeft: 6 }}
+                      onClick={fillLastHeight} title="Нижний ряд добирает высоту панели">
+                      остаток → нижний
+                    </button>
+                  )}
+                </span>
+              )}
+              <span style={{ color: '#94a3b8' }}>
+                «+» и «↑» убирают шов между панелями, «×» возвращает
+              </span>
             </div>
           </div>
         )}
@@ -2528,11 +2525,13 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
                 }
               })}
 
-              <div className="no-print" style={{ textAlign: 'right', marginTop: 16 }}>
-                <button className="btn btn-primary" onClick={() => setActiveStep(2)}>
-                  Далее: Отделки →
-                </button>
-              </div>
+              {itemOrder.length > 0 && (
+                <div className="no-print" style={{ textAlign: 'right', marginTop: 16 }}>
+                  <button className="btn btn-primary" onClick={() => setActiveStep(2)}>
+                    Далее: Отделки →
+                  </button>
+                </div>
+              )}
 
               {spec.panels.length > 0 && (
                 <div className="card" style={{ marginTop: 24 }}>
@@ -2611,11 +2610,13 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
                 }
               })}
 
-              <div className="no-print" style={{ textAlign: 'right', marginTop: 16 }}>
-                <button className="btn btn-primary" onClick={() => setActiveStep(3)}>
-                  Далее: Спецификация →
-                </button>
-              </div>
+              {itemOrder.length > 0 && (
+                <div className="no-print" style={{ textAlign: 'right', marginTop: 16 }}>
+                  <button className="btn btn-primary" onClick={() => setActiveStep(3)}>
+                    Далее: Спецификация →
+                  </button>
+                </div>
+              )}
             </>
           )}
 
