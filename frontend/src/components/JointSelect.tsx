@@ -2,6 +2,9 @@ import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import type { JointType } from '../api'
 
+// Ширина карточки превью узла — нужна, чтобы решить, с какой стороны её показать
+const PREVIEW_W = 230
+
 interface Props {
   value: number | null
   jointTypes: JointType[]
@@ -141,7 +144,7 @@ export function JointSelectCode({ value, codes, jointTypes, onChange, allowEmpty
 export default function JointSelect({ value, jointTypes, onChange, allowEmpty: _allowEmpty = true }: Props) {
   const [open, setOpen] = useState(false)
   const [hovered, setHovered] = useState<JointType | null>(null)
-  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 0 })
+  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 0, flip: false })
   const btnRef = useRef<HTMLButtonElement>(null)
   const dropRef = useRef<HTMLDivElement>(null)
 
@@ -150,10 +153,17 @@ export default function JointSelect({ value, jointTypes, onChange, allowEmpty: _
   const openDropdown = () => {
     if (btnRef.current) {
       const r = btnRef.current.getBoundingClientRect()
+      const width = Math.max(r.width, 160)
+      // Превью (230 px) по умолчанию справа от списка. У правого края экрана
+      // места нет — тогда показываем слева, иначе картинка уезжает за поле.
+      const flip = r.left + width + 10 + PREVIEW_W > window.innerWidth - 8
+      // Сам список тоже прижимаем внутрь окна.
+      const maxLeft = window.innerWidth - width - 8
       setDropPos({
         top: r.bottom + window.scrollY + 4,
-        left: r.left + window.scrollX,
-        width: Math.max(r.width, 160),
+        left: Math.max(8, Math.min(r.left, maxLeft)) + window.scrollX,
+        width,
+        flip,
       })
     }
     setOpen(true)
@@ -319,7 +329,9 @@ export default function JointSelect({ value, jointTypes, onChange, allowEmpty: _
           {/* Превью справа */}
           {hovered && (
             <div style={{
-              marginLeft: 10,
+              order: dropPos.flip ? -1 : 0,
+              marginLeft: dropPos.flip ? 0 : 10,
+              marginRight: dropPos.flip ? 10 : 0,
               background: '#fff',
               border: '1.5px solid #d0d7e3',
               borderRadius: 12,

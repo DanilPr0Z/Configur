@@ -3,6 +3,8 @@
 // Схема раскладки (WallScheme) показывает вид СВЕРХУ и повороты на углах;
 // здесь углы разворачиваются в одну плоскость, как на чертеже развёртки.
 
+import { useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { JointType } from '../api'
 
 // ── Данные для отрисовки ─────────────────────────────────────────────────────
@@ -20,7 +22,7 @@ export interface ElevWall {
   colRows: number[][]      // [столбец][ряд сверху вниз] — высоты рядов этого столбца
   // Панели стены: span > 1 — объединённые (шов убран), ширина уже с учётом шва.
   cells: {
-    row: number; col: number; span: number
+    row: number; col: number; span: number; rowSpan: number
     width: number; height: number
     label: string          // номер панели из спецификации (1.1, 1.2…)
     drawLabel: string      // обозначение на чертеже (А1, А2…)
@@ -91,10 +93,19 @@ const nodeColor = (code: string): string => {
 const itemWidth = (it: ElevItem) => it.kind === 'wall' ? it.wallLength : it.openingW
 const itemHeight = (it: ElevItem) => it.kind === 'wall' ? it.wallHeight : it.ceilingH
 
+interface HoverState { code: string; jt: JointType | null; x: number; y: number }
+
 export default function WallElevation({ items, jointTypes = [], sections = true }: Props) {
+  const [hover, setHover] = useState<HoverState | null>(null)
   if (items.length === 0) return null
 
   const jtByCode = new Map(jointTypes.map(j => [j.code, j]))
+  const hoverProps = (code: string) => ({
+    style: { cursor: 'pointer' as const },
+    onMouseEnter: (e: React.MouseEvent) =>
+      setHover({ code, jt: jtByCode.get(code) ?? null, x: e.clientX, y: e.clientY }),
+    onMouseLeave: () => setHover(null),
+  })
   const totalMm = items.reduce((s, it) => s + itemWidth(it), 0)
   const maxHmm = Math.max(...items.map(itemHeight), 1)
   if (totalMm <= 0) return null
@@ -124,7 +135,7 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
     const w = 7 + code.length * 4.5
     const jt = jtByCode.get(code)
     return (
-      <g>
+      <g {...hoverProps(code)}>
         <title>{jt ? `${code} — ${jt.name}` : code}</title>
         <rect x={x - w / 2} y={y - 6} width={w} height={12} rx={1.5}
           fill="#fff" stroke={nodeColor(code)} strokeWidth="0.9" />
@@ -141,7 +152,7 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
     const r = code.length > 2 ? 9 : 7.5
     const jt = jtByCode.get(code)
     return (
-      <g>
+      <g {...hoverProps(code)}>
         <title>{jt ? `${code} — ${jt.name}` : code}</title>
         <circle cx={x} cy={y} r={r} fill={nodeColor(code)} opacity={0.92} />
         <text x={x} y={y + 0.5} textAnchor="middle" dominantBaseline="central"
@@ -243,11 +254,14 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
               const rowGeom = c0?.rows[cl.row]
               const wpx = it.widths.slice(cl.col, cl.col + cl.span)
                 .reduce((s2, mm) => s2 + mm * scale, 0)
+              const spanRows = (c0?.rows ?? []).slice(cl.row, cl.row + cl.rowSpan)
+              const hpx = spanRows.reduce((s2, rr) => s2 + rr.h, 0)
               return {
                 ...cl,
                 x: c0?.x ?? x, w: wpx,
-                y: rowGeom?.y ?? blockTop, h: rowGeom?.h ?? 0,
+                y: rowGeom?.y ?? blockTop, h: hpx,
                 lastCol: cl.col + cl.span - 1,
+                lastRow: cl.row + cl.rowSpan - 1,
               }
             })
 
@@ -309,7 +323,7 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
                   const left = c.col === 0 ? it.leftNode : it.connType
                   const right = c.lastCol === cols.length - 1 ? it.rightNode : it.connType
                   const top = c.row === 0 ? it.topEdge : it.rowConn
-                  const bottom = c.row === rowsOfCol.length - 1 ? it.bottomEdge : it.rowConn
+                  const bottom = c.lastRow === rowsOfCol.length - 1 ? it.bottomEdge : it.rowConn
                   return (
                     <g key={`n${k}`}>
                       {c.w >= 46 && c.h >= 26 && <>
@@ -479,6 +493,48 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
       </svg>
 
       {sections && <DoorSections items={items} />}
+
+      {/* Превью узла при наведении — рядом с курсором, с зажимом в окно */}
+      {hover && createPortal(
+        <div style={{
+          position: 'fixed',
+          top: Math.min(hover.y + 16, window.innerHeight - 232),
+          left: Math.min(hover.x + 16, window.innerWidth - 248),
+          zIndex: 99999, pointerEvents: 'none', background: '#fff',
+          border: '1.5px solid #d0d7e3', borderRadius: 12, overflow: 'hidden',
+          boxShadow: '0 8px 32px rgba(0,0,0,.16)', width: 230,
+        }}>
+          {hover.jt?.image_url ? (
+            <img src={hover.jt.image_url} alt={hover.code}
+              style={{ display: 'block', width: 230, height: 172, objectFit: 'contain' }} />
+          ) : (
+            <div style={{
+              width: 230, height: 172,
+              background: 'linear-gradient(135deg, #e8f0fe 0%, #d0dcf5 100%)',
+              display: 'flex', flexDirection: 'column', alignItems: 'center',
+              justifyContent: 'center', gap: 8,
+            }}>
+              <span style={{ fontSize: 48, fontWeight: 900, color: '#1a4d8a', opacity: .25, lineHeight: 1 }}>
+                {hover.code}
+              </span>
+              <span style={{ fontSize: 11, color: '#888' }}>фото не загружено</span>
+            </div>
+          )}
+          <div style={{
+            padding: '8px 12px', background: '#f4f8ff', borderTop: '1px solid #e0e8f5',
+            display: 'flex', alignItems: 'baseline', gap: 8,
+          }}>
+            <span style={{ fontWeight: 800, fontSize: 14, color: '#1a4d8a' }}>{hover.code}</span>
+            {hover.jt?.name && <span style={{ fontSize: 12, color: '#666' }}>{hover.jt.name}</span>}
+            {hover.jt && hover.jt.offset_mm !== 0 && (
+              <span style={{ fontSize: 11, color: '#999', marginLeft: 'auto' }}>
+                {hover.jt.offset_mm > 0 ? '+' : ''}{hover.jt.offset_mm} мм
+              </span>
+            )}
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   )
 }
@@ -602,7 +658,7 @@ export function elevationRows(items: ElevItem[]): ElevRow[] {
           qty: it.copies,
           edgeA: c.row === 0 ? it.topEdge : it.rowConn,
           edgeB: c.col + c.span - 1 === N - 1 ? it.rightNode : it.connType,
-          edgeC: c.row === colRows.length - 1 ? it.bottomEdge : it.rowConn,
+          edgeC: c.row + c.rowSpan === colRows.length ? it.bottomEdge : it.rowConn,
           edgeD: c.col === 0 ? it.leftNode : it.connType,
           specLabel: c.label,
         })
