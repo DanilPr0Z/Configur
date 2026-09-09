@@ -14,7 +14,7 @@ import { printSpec } from '../components/FinalSpec'
 
 type ConnType = 'B' | 'C'
 
-interface WallSeg {
+export interface WallSeg {
   id: string
   name: string
   // Обозначение участка на чертеже, как в СП («П50»). Пусто — панели этой стены
@@ -46,6 +46,8 @@ interface WallSeg {
   // Объединение соседних панелей: прямоугольник от (row, col) на span столбцов
   // и rowSpan рядов — швы внутри убираются, панель становится одной.
   merges: { row: number; col: number; span: number; rowSpan?: number }[]
+  // Отделка берётся с первого участка раскладки и держится синхронной
+  finishFromFirst: boolean
   finishGroup: string
   finishName: string
   veneerDirection: string
@@ -59,7 +61,7 @@ interface WallSeg {
   wallFacing: 'front' | 'back'
 }
 
-interface DoorSeg {
+export interface DoorSeg {
   id: string
   label: string
   doorRef: string
@@ -87,6 +89,8 @@ interface DoorSeg {
   trimTopH: number     // высота верхнего добора (= wallDepth по умолч.)
   trimLeftWallNode: string   // узел внешнего (к стене) края левого добора
   trimRightWallNode: string  // узел внешнего (к стене) края правого добора
+  // Отделка берётся с первого участка раскладки и держится синхронной
+  finishFromFirst: boolean
   finishGroup: string
   finishName: string
   veneerDirection: string
@@ -172,7 +176,7 @@ const NODE_MAP = new Map<string, NodeDef>(NODES.map(n => [n.code, n]))
 // узла TC, которого в справочнике нет.
 type OffsetMap = Map<string, number>
 
-function offsetsOf(jointTypes: JointType[]): OffsetMap {
+export function offsetsOf(jointTypes: JointType[]): OffsetMap {
   return new Map(jointTypes.map(j => [j.code, j.offset_mm]))
 }
 
@@ -296,9 +300,9 @@ const uid = () => `id${++_seq}`
 
 // ─── Factories ────────────────────────────────────────────────────────────────
 
-function makeWall(n: number): WallSeg {
+export function makeWall(n: number): WallSeg {
   return {
-    id: uid(), name: `Стена ${n}`, drawCode: '',
+    id: uid(), name: `Стена ${n}`, drawCode: '', finishFromFirst: false,
     wallHeight: 2700, wallLength: 3000,
     leftNode: 'A', rightNode: 'A',
     topEdge: '', bottomEdge: '',
@@ -315,7 +319,7 @@ function makeWall(n: number): WallSeg {
   }
 }
 
-function makeDoor(n: number): DoorSeg {
+export function makeDoor(n: number): DoorSeg {
   return {
     id: uid(), label: `Дверной проём ${n}`,
     doorRef: '', openingW: 900, openingH: 2100, ceilingH: 2700,
@@ -326,6 +330,7 @@ function makeDoor(n: number): DoorSeg {
     trimRightNode: 'A', trimRightW: 200, trimRightH: 2100,
     trimTopLeftNode: 'A', trimTopRightNode: 'A', trimTopW: 900, trimTopH: 200,
     trimLeftWallNode: 'A', trimRightWallNode: 'A',
+    finishFromFirst: false,
     finishGroup: '', finishName: '',
     veneerDirection: '', decor3d: '',
     copies: 1, hasTrim: false, notes: '',
@@ -358,6 +363,7 @@ function migrateWalls(raw: any[]): WallSeg[] {
     rowHeights: Array.isArray(wa.rowHeights) ? wa.rowHeights : [],
     colRowHeights: Array.isArray(wa.colRowHeights) ? wa.colRowHeights : [],
     merges: Array.isArray(wa.merges) ? wa.merges : [],
+    finishFromFirst: wa.finishFromFirst === true,
     leftNode: wa.leftNode ?? 'A',
     rightNode: wa.rightNode ?? 'A',
     topEdge: wa.topEdge ?? '',
@@ -391,6 +397,7 @@ function migrateDoors(raw: any[]): DoorSeg[] {
     hingeDir: da.hingeDir ?? 'СЛЕВА',
     topEdge: da.topEdge ?? '',
     bottomEdge: da.bottomEdge ?? '',
+    finishFromFirst: da.finishFromFirst === true,
     finishGroup: da.finishGroup ?? '',
     finishName: da.finishName ?? '',
     veneerDirection: da.veneerDirection ?? '',
@@ -449,7 +456,7 @@ const EMPTY_CALC: WallCalc = {
   widths: [], widthsSum: 0, rowHeights: [], rowHeightsSum: 0, colRows: [], cells: [],
 }
 
-function calcWall(w: WallSeg, off: OffsetMap): WallCalc {
+export function calcWall(w: WallSeg, off: OffsetMap): WallCalc {
   if (!w.wallHeight || !w.wallLength || !w.numPanels || w.numPanels < 1) return EMPTY_CALC
   const N = w.numPanels
   const R = Math.max(1, w.numRows || 1)
@@ -587,7 +594,7 @@ function suggestPanels(w: WallSeg, off: OffsetMap, maxW = 1200): number {
   return n
 }
 
-function buildSpec(
+export function buildSpec(
   walls: WallSeg[],
   doors: DoorSeg[],
   off: OffsetMap,
@@ -984,9 +991,10 @@ interface WallCardProps {
   onRemove: () => void
   canRemove: boolean
   phase?: 'geometry' | 'finish'
+  isFirst?: boolean      // первый участок раскладки — образец отделки для остальных
 }
 
-function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, onChange, onRemove, canRemove, phase }: WallCardProps) {
+function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, onChange, onRemove, canRemove, phase, isFirst }: WallCardProps) {
   const wallOffsets = useMemo(() => offsetsOf(jointTypes), [jointTypes])
   const calc = calcWall(wall, wallOffsets)
   const is3d = isVeneerGroup(wall.finishGroup) && !!wall.decor3d
@@ -1390,6 +1398,14 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
 
       {/* ── Отделка (шаг 2) ──────────────────────────────── */}
       {(!phase || phase === 'finish') && <>
+      {phase === 'finish' && !isFirst && (
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '.82rem', marginBottom: 10, cursor: 'pointer', color: '#475569' }}>
+          <input type="checkbox" checked={wall.finishFromFirst === true}
+            onChange={e => onChange({ finishFromFirst: e.target.checked })} />
+          Отделка как на 1-й панели
+          <span style={{ color: '#94a3b8' }}>— поля ниже подставятся и будут держаться синхронными</span>
+        </label>
+      )}
       {/* Отделка */}
       <div className="grid-4" style={{ marginBottom: 10 }}>
         <div className="field">
@@ -1544,9 +1560,10 @@ interface DoorCardProps {
   onChange: (u: Partial<DoorSeg>) => void
   onRemove: () => void
   phase?: 'geometry' | 'finish'
+  isFirst?: boolean      // первый участок раскладки — образец отделки для остальных
 }
 
-function DoorCard({ door, series, jointTypes, finishGroups, onChange, onRemove, phase }: DoorCardProps) {
+function DoorCard({ door, series, jointTypes, finishGroups, onChange, onRemove, phase, isFirst }: DoorCardProps) {
   const doorGeom = DOOR_GEOM[series]
   const selectedGroup = finishGroups.find(g => g.name === door.finishGroup)
   const finishes: Finish[] = (selectedGroup?.finishes as Finish[]) ?? []
@@ -1805,6 +1822,14 @@ function DoorCard({ door, series, jointTypes, finishGroups, onChange, onRemove, 
       </div>
 
       {(!phase || phase === 'finish') && <>
+      {phase === 'finish' && !isFirst && (
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '.82rem', marginBottom: 10, cursor: 'pointer', color: '#475569' }}>
+          <input type="checkbox" checked={door.finishFromFirst === true}
+            onChange={e => onChange({ finishFromFirst: e.target.checked })} />
+          Отделка как на 1-й панели
+          <span style={{ color: '#94a3b8' }}>— поля ниже подставятся и будут держаться синхронными</span>
+        </label>
+      )}
       {/* Отделка */}
       <div className="grid-4" style={{ marginBottom: 10 }}>
         <div className="field">
@@ -2219,7 +2244,6 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
   const [doorSeq, setDoorSeq] = useState(0)
   const [itemOrder, setItemOrder] = useState<ItemOrder>([])
   const [activeStep, setActiveStep] = useState<number>(1)
-  const [sameFinish, setSameFinish] = useState(false)
   // Виды спереди и сверху показываем вместе; кнопкой включаются разрезы дверей.
   const [showSections, setShowSections] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -2386,16 +2410,18 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
   })()
 
   useEffect(() => {
-    if (!sameFinish || !firstFinish) return
+    if (!firstFinish) return
     const firstId = itemOrder[0]?.id
     const same = (x: { finishGroup: string; finishName: string; veneerDirection: string; decor3d: string }) =>
       x.finishGroup === firstFinish.finishGroup && x.finishName === firstFinish.finishName &&
       x.veneerDirection === firstFinish.veneerDirection && x.decor3d === firstFinish.decor3d
-    setWalls(prev => prev.some(w => w.id !== firstId && !same(w))
-      ? prev.map(w => w.id === firstId ? w : { ...w, ...firstFinish }) : prev)
-    setDoors(prev => prev.some(d => d.id !== firstId && !same(d))
-      ? prev.map(d => d.id === firstId ? d : { ...d, ...firstFinish }) : prev)
-  }, [sameFinish, firstFinish?.finishGroup, firstFinish?.finishName,
+    const follows = (x: { id: string; finishFromFirst?: boolean }) =>
+      x.id !== firstId && x.finishFromFirst === true
+    setWalls(prev => prev.some(w => follows(w) && !same(w))
+      ? prev.map(w => follows(w) ? { ...w, ...firstFinish } : w) : prev)
+    setDoors(prev => prev.some(d => follows(d) && !same(d))
+      ? prev.map(d => follows(d) ? { ...d, ...firstFinish } : d) : prev)
+  }, [walls, doors, firstFinish?.finishGroup, firstFinish?.finishName,
       firstFinish?.veneerDirection, firstFinish?.decor3d, itemOrder])
 
   const copySpec = () => {
@@ -2549,10 +2575,6 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
             <>
               <div className="flex gap-2 no-print" style={{ marginBottom: 20 }}>
                 <button className="btn btn-ghost" onClick={() => setActiveStep(1)}>← Назад</button>
-                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '.85rem', cursor: 'pointer' }}>
-                  <input type="checkbox" checked={sameFinish} onChange={e => setSameFinish(e.target.checked)} />
-                  Отделка как на 1-й панели
-                </label>
                 <div style={{ marginLeft: 'auto' }}>
                   <button className="btn btn-primary" onClick={() => setActiveStep(3)}>
                     Далее: Спецификация →
@@ -2560,7 +2582,13 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
                 </div>
               </div>
 
-              {itemOrder.map(item => {
+              {itemOrder.length === 0 && (
+                <div className="alert alert-info">
+                  Пока нечего отделывать: вернитесь на шаг «Стены и узлы» и добавьте стену или дверной проём.
+                </div>
+              )}
+
+              {itemOrder.map((item, idx) => {
                 if (item.type === 'wall') {
                   const w = walls.find(w => w.id === item.id)
                   if (!w) return null
@@ -2569,7 +2597,7 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
                       onChange={u => updateWall(w.id, u)}
                       onRemove={() => removeWall(w.id)}
                       canRemove={walls.length > 1}
-                      phase="finish" />
+                      phase="finish" isFirst={idx === 0} />
                   )
                 } else {
                   const d = doors.find(d => d.id === item.id)
@@ -2578,7 +2606,7 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
                     <DoorCard key={d.id} door={d} series={series} jointTypes={jointTypes} finishGroups={finishGroups}
                       onChange={u => updateDoor(d.id, u)}
                       onRemove={() => removeDoor(d.id)}
-                      phase="finish" />
+                      phase="finish" isFirst={idx === 0} />
                   )
                 }
               })}

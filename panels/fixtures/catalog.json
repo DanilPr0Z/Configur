@@ -593,9 +593,9 @@
   "fields": {
     "series": "60",
     "code": "STEP",
-    "name": "Полка Step",
-    "offset_mm": 0.0,
-    "price_per_meter": 0.0,
+    "name": "Полка Step (паз 3,5 мм)",
+    "offset_mm": -3.5,
+    "price_per_meter": 100.0,
     "profile_article": "",
     "profile_count": 0.0,
     "image": ""
@@ -607,9 +607,9 @@
   "fields": {
     "series": "50",
     "code": "STEP",
-    "name": "Полка Step",
-    "offset_mm": 0.0,
-    "price_per_meter": 0.0,
+    "name": "Полка Step (паз 3,5 мм)",
+    "offset_mm": -3.5,
+    "price_per_meter": 100.0,
     "profile_article": "",
     "profile_count": 0.0,
     "image": ""
