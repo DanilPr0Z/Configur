@@ -371,6 +371,41 @@ td input:focus, td select:focus { border-color: #4c6ef5; outline: none; }
 /* Print */
 .print-only { display: none; }
 
+/* Шапка бланка заказа (лого + поля + № заказа) — печатается вверху листа */
+.print-header {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  border-bottom: 1.5px solid #111;
+  padding-bottom: 8px;
+  margin-bottom: 14px;
+}
+.print-header-logo { height: 44px; width: auto; }
+.print-header-fields {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px 18px;
+  flex: 1;
+}
+.print-header-fields .ph-value {
+  font-size: 12px;
+  min-height: 15px;
+  border-bottom: 1px solid #111;
+  padding-bottom: 1px;
+}
+.print-header-fields .ph-label {
+  font-size: 6.5px;
+  letter-spacing: .06em;
+  color: #555;
+  padding-top: 2px;
+}
+.print-header-order { text-align: right; font-size: 12px; white-space: nowrap; }
+.print-header-order .ph-chip {
+  background: #333; color: #fff; padding: 1px 4px; font-weight: 600;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.print-header-order .ph-cp { margin-top: 6px; font-weight: 600; }
+
 /* Альбомный лист нужен только спецификации стеновых панелей — там 22 колонки.
    Остальное (обрамление, заказы) печатаем книжным. Именованная страница вместо
    инъекции стиля из printSpec(): иначе Ctrl+P и «Печать» из меню браузера
@@ -382,6 +417,7 @@ td input:focus, td select:focus { border-color: #4c6ef5; outline: none; }
 @media print {
   .no-print { display: none !important; }
   .print-only { display: block !important; }
+  .print-header { display: flex !important; break-inside: avoid; break-after: avoid; }
   body { background: white !important; min-height: 0 !important; }
   .navbar { display: none !important; }
   /* Разворачиваем flex-обёртки с min-height:100vh в обычный поток —

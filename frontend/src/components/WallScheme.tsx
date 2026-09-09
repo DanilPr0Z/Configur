@@ -45,12 +45,19 @@ interface Props {
   panels: P[]
   itemOrder: OrderItem[]
   jointTypes?: JointType[]
+  compact?: boolean   // мини-схема в карточке стены: без легенды, меньше отступы
 }
 
 // ── Углы, вызывающие поворот ─────────────────────────────────────────────────
 
-const CORNER_OUTER = new Set(['D'])         // +90° (по часовой) — наружный угол
-const CORNER_INNER = new Set(['DG', 'DH'])  // −90° (против часовой) — внутренний угол
+// Лицевая сторона полосы — снизу (синяя кромка, туда же открывается дверь
+// «наружу»). Наружный угол D — панели огибают выступ, следующая стена
+// поворачивает ОТ лица (против часовой, вверх). Внутренний угол DG/DH — панели
+// вдоль стен комнаты, следующая стена поворачивает К лицу (по часовой, вниз).
+// Раньше было наоборот, и D на схеме читался как внутренний угол
+// (замечание Виталия Габбасова 02.09.2026).
+const CORNER_OUTER = new Set(['D'])         // −90° (против часовой) — наружный угол
+const CORNER_INNER = new Set(['DG', 'DH'])  // +90° (по часовой) — внутренний угол
 // G и H — просто профили, НЕ вызывают поворот схемы
 
 // ── Цвета узлов ──────────────────────────────────────────────────────────────
@@ -72,7 +79,7 @@ function nodeColor(code: string): string {
 
 interface HoverState { code: string; jt: JointType | null; x: number; y: number }
 
-export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes = [] }: Props) {
+export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes = [], compact = false }: Props) {
   if (walls.length === 0) return null
 
   // Карта код → узел справочника (для превью фото при наведении)
@@ -102,7 +109,7 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
     )
   }
 
-  const PAD      = 70    // отступ вокруг схемы
+  const PAD      = compact ? 24 : 70    // отступ вокруг схемы
   const ITEM_GAP = 52    // px между элементами — достаточно чтобы значки не касались
   const BAR_H    = 44    // высота полосы (две строки внутри)
 
@@ -138,8 +145,8 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
       cx += Math.cos(rad) * (pxLen + ITEM_GAP)
       cy += Math.sin(rad) * (pxLen + ITEM_GAP)
 
-      if (CORNER_OUTER.has(wall.rightNode))      curAngle = (curAngle + 90) % 360
-      else if (CORNER_INNER.has(wall.rightNode)) curAngle = (curAngle - 90 + 360) % 360
+      if (CORNER_OUTER.has(wall.rightNode))      curAngle = (curAngle - 90 + 360) % 360
+      else if (CORNER_INNER.has(wall.rightNode)) curAngle = (curAngle + 90) % 360
 
     } else {
       const door = doors.find(d => d.id === item.id)
@@ -151,14 +158,14 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
       cx += Math.cos(rad) * (pxLen + ITEM_GAP)
       cy += Math.sin(rad) * (pxLen + ITEM_GAP)
 
-      if (CORNER_OUTER.has(door.rightNode))      curAngle = (curAngle + 90) % 360
-      else if (CORNER_INNER.has(door.rightNode)) curAngle = (curAngle - 90 + 360) % 360
+      if (CORNER_OUTER.has(door.rightNode))      curAngle = (curAngle - 90 + 360) % 360
+      else if (CORNER_INNER.has(door.rightNode)) curAngle = (curAngle + 90) % 360
     }
   }
 
   // ── Вычисление bounding box ──────────────────────────────────────────────
   const maxDoorPx = doors.length > 0 ? Math.max(...doors.map(d => d.openingW * scale)) : 0
-  const LABEL_SPACE = BAR_H / 2 + maxDoorPx + 110
+  const LABEL_SPACE = compact ? BAR_H / 2 + 64 : BAR_H / 2 + maxDoorPx + 110
   const allPts: [number, number][] = []
 
   for (const seg of segs) {
@@ -214,7 +221,7 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
         style={{ display: 'block', fontFamily: 'system-ui, sans-serif' }}
       >
         {/* ── Легенда ── */}
-        {[
+        {!compact && [
           { code: 'A', label: 'Торцевой',  fill: '#3b82f6' },
           { code: 'C', label: 'Соединит.', fill: '#22c55e' },
           { code: 'B', label: 'Ламель',    fill: '#f97316' },
@@ -310,6 +317,36 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
                         {w.wallLength} × {w.wallHeight} мм
                       </tspan>
                     </HText>
+                  )
+                })()}
+
+                {/* Размерная цепочка по низу полосы: ширина каждой панели и общая
+                    длина участка — как на планах СП. */}
+                {(() => {
+                  const yChain = BAR_H / 2 + 16
+                  const yTotal = BAR_H / 2 + 34
+                  const tick = (x: number, y: number) => (
+                    <line x1={x} y1={y - 3} x2={x} y2={y + 3} stroke="#94a3b8" strokeWidth="0.8" />
+                  )
+                  return (
+                    <g>
+                      <line x1={0} y1={yChain} x2={seg.pxLen} y2={yChain} stroke="#94a3b8" strokeWidth="0.8" />
+                      {Array.from({ length: N + 1 }, (_, i) => (
+                        <g key={i}>{tick(px * i, yChain)}</g>
+                      ))}
+                      {px >= 30 && Array.from({ length: N }, (_, i) => (
+                        <HText key={i} lx={px * i + px / 2} ly={yChain - 5} angle={a}
+                          textAnchor="middle" fontSize="7" fill="#64748b">
+                          {wPanels[i]?.width ?? ''}
+                        </HText>
+                      ))}
+                      <line x1={0} y1={yTotal} x2={seg.pxLen} y2={yTotal} stroke="#cbd5e1" strokeWidth="0.8" />
+                      {tick(0, yTotal)}{tick(seg.pxLen, yTotal)}
+                      <HText lx={seg.pxLen / 2} ly={yTotal - 5} angle={a}
+                        textAnchor="middle" fontSize="7.5" fill="#94a3b8">
+                        {w.wallLength}
+                      </HText>
+                    </g>
                   )
                 })()}
 

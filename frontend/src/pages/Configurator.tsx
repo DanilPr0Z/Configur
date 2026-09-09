@@ -5,6 +5,8 @@ import type { AluminumProfile, ProfileColor, JointType, FinishGroup, Finish, Ord
 import { visibleFinishGroups } from '../api'
 import { JointSelectCode, StringSelect } from '../components/JointSelect'
 import WallScheme from '../components/WallScheme'
+import WallElevation, { ElevationTable } from '../components/WallElevation'
+import type { ElevItem } from '../components/WallElevation'
 import FinishBreakdown, { groupByFinish } from '../components/FinishBreakdown'
 import { printSpec } from '../components/FinalSpec'
 
@@ -23,6 +25,21 @@ interface WallSeg {
   bottomEdge: string
   numPanels: number
   connType: ConnType
+  // Ширины панелей: авто — поровну от длины по узлам; вручную — свои значения
+  // (например 664 / 597 / 597 / 664 или наличник 796,2 между узлами DG).
+  widthMode: 'auto' | 'manual'
+  panelWidths: number[]
+  // Зазоры сверху/снизу (по умолчанию 7 и 5 мм) — вычитаются из высоты стены.
+  gapTop: number
+  gapBottom: number
+  // Ряды по высоте: панели одна над другой (лист до 3000 мм, стена выше).
+  numRows: number
+  rowConn: string          // узел горизонтального стыка рядов (S/B/C/T…)
+  heightMode: 'auto' | 'manual'
+  rowHeights: number[]
+  // Столбец со своей разбивкой по рядам (как П52/П53 в СП): [столбец] → высоты
+  // рядов сверху вниз. Пустой элемент — столбец режется общими rowHeights.
+  colRowHeights: number[][]
   finishGroup: string
   finishName: string
   veneerDirection: string
@@ -72,6 +89,8 @@ interface DoorSeg {
   hasTrim: boolean
   notes: string
 }
+
+type ItemOrder = { type: 'wall' | 'door'; id: string }[]
 
 interface PanelSpec {
   panelLabel: string
@@ -128,9 +147,12 @@ const NODES: NodeDef[] = [
   { code: 'G',  label: 'G — Стык с коробкой (НАРУЖУ)',  offset: 50.1, article: null, ppe: 0 },
   { code: 'H',  label: 'H — Стык с коробкой (ВНУТРЬ)', offset: 58.5, article: null, ppe: 0 },
   { code: 'O',  label: 'O — Без профиля',          offset: -27.1, article: null,      ppe: 0   },
-  { code: 'P',  label: 'P — Декор',               offset: 0,     article: null,      ppe: 0   },
-  { code: 'R',  label: 'R — Подрез',              offset: -6,    article: null,      ppe: 0   },
+  { code: 'P',  label: 'P — Профиль-декор П-обр 6×6', offset: 0,  article: null,      ppe: 0   },
+  { code: 'R',  label: 'R — Профиль П-обр 6×6 (зазор 6 мм)', offset: -6, article: null, ppe: 0 },
   { code: 'S',  label: 'S — Стык',                offset: 0,     article: null,      ppe: 0   },
+  // Полка Step врезается в панель (лист «Схема сборки … COMPLANAR 60»), размер
+  // панели не меняет — отдельный код, чтобы не путать со стыком рядов S.
+  { code: 'STEP', label: 'S — Полка Step',        offset: 0,     article: null,      ppe: 0   },
   { code: 'T',  label: 'T — Тип T',               offset: 0,     article: null,      ppe: 0   },
   { code: 'I',  label: 'I — Тип I',               offset: -1.2,  article: null,      ppe: 0   },
   // Теневой профиль: уменьшает высоту панели на 12 мм при установке сверху или снизу
@@ -163,9 +185,22 @@ const DOOR_GEOM: Record<Series, DoorGeom> = {
   '60': { hG: 43, hH: 51.5, wOutB: 100.5, wOutC: 108.5, wInB: 117.5, wInC: 125.5 },
   '50': { hG: 33, hH: 46,   wOutB: 80,    wOutC: 88,    wInB: 107,   wInC: 115   },
 }
+// Лист «Ограничения и особенности» Excel NUOVO 60/50: лист 1200 × 3000 мм,
+// минимальная панель 150 × 400 (шпон с 3D-фрезеровкой — 200 × 400), при
+// стыковке по высоте каждая часть не меньше 400 мм, площадь < 0,5 кв.м
+// считается как 0,5 кв.м.
+const LIMITS = { maxW: 1200, maxH: 3000, minW: 150, minW3d: 200, minH: 400, minRowH: 400 }
+const DEFAULT_GAP_TOP = 7
+const DEFAULT_GAP_BOTTOM = 5
+const ROW_CONN_CODES = ['S', 'B', 'C', 'R', 'P', 'T', 'A', 'O', 'I', 'STEP']
+
 const EDGE_NODE_CODES = ['A', 'D', 'DG', 'DH', 'E', 'FL', 'FR', 'G', 'H', 'O', 'P', 'R', 'S', 'T', 'I']
-const EDGE_TOPBOT_CODES = [...EDGE_NODE_CODES, 'TC']  // + теневой профиль для верх/низ
-const CONN_NODE_CODES = ['B', 'C']
+const EDGE_TOPBOT_CODES = [...EDGE_NODE_CODES, 'TC', 'STEP']  // + теневой профиль для верх/низ
+// Узлы вертикальных соединений листа «Схема сборки … COMPLANAR 60»: B, C, R, P
+const CONN_NODE_CODES = ['B', 'C', 'R', 'P']
+// У двери ширина панели над проёмом посчитана только для ламели и соединительного
+// профиля (лист «Ввод данных к заказу»), поэтому выбор здесь уже.
+const DOOR_CONN_CODES = ['B', 'C']
 const VENEER_DIRECTIONS = ['Вертикальное', 'Горизонтальное']
 
 const DECORS_SHPON_15: string[] = [
@@ -262,6 +297,9 @@ function makeWall(n: number): WallSeg {
     leftNode: 'A', rightNode: 'A',
     topEdge: '', bottomEdge: '',
     numPanels: 0, connType: 'C',
+    widthMode: 'auto', panelWidths: [],
+    gapTop: DEFAULT_GAP_TOP, gapBottom: DEFAULT_GAP_BOTTOM,
+    numRows: 1, rowConn: 'S', heightMode: 'auto', rowHeights: [], colRowHeights: [],
     finishGroup: '', finishName: '',
     veneerDirection: '', decor3d: '',
     copies: 1,
@@ -303,6 +341,15 @@ function migrateWalls(raw: any[]): WallSeg[] {
     wallLength: wa.wallLength ?? 3000,
     numPanels: wa.numPanels ?? 0,
     connType: wa.connType ?? 'C',
+    widthMode: wa.widthMode === 'manual' ? 'manual' : 'auto',
+    panelWidths: Array.isArray(wa.panelWidths) ? wa.panelWidths : [],
+    gapTop: wa.gapTop ?? DEFAULT_GAP_TOP,
+    gapBottom: wa.gapBottom ?? DEFAULT_GAP_BOTTOM,
+    numRows: Math.max(1, wa.numRows ?? 1),
+    rowConn: wa.rowConn ?? 'S',
+    heightMode: wa.heightMode === 'manual' ? 'manual' : 'auto',
+    rowHeights: Array.isArray(wa.rowHeights) ? wa.rowHeights : [],
+    colRowHeights: Array.isArray(wa.colRowHeights) ? wa.colRowHeights : [],
     leftNode: wa.leftNode ?? 'A',
     rightNode: wa.rightNode ?? 'A',
     topEdge: wa.topEdge ?? '',
@@ -363,18 +410,77 @@ function migrateDoors(raw: any[]): DoorSeg[] {
 
 // ─── Calculations ─────────────────────────────────────────────────────────────
 
-function calcWall(w: WallSeg, off: OffsetMap) {
-  if (!w.wallHeight || !w.wallLength || !w.numPanels || w.numPanels < 1)
-    return { wallLengthByPanels: 0, panelHeight: 0, panelWidth: 0, valid: false }
+const half = (n: number) => Math.round(n * 2) / 2
+
+interface WallCalc {
+  valid: boolean
+  wallLengthByPanels: number   // длина по узлам (с поправками краёв и стыков)
+  panelHeight: number          // высота панели целиком (все ряды)
+  panelWidth: number           // ширина при авто-раскладке (поровну)
+  widths: number[]             // ширина каждой панели (авто или вручную)
+  widthsSum: number            // сумма ширин (в ручном режиме сверяем с длиной по узлам)
+  rowHeights: number[]         // высота каждого ряда (авто поровну или вручную)
+  rowHeightsSum: number
+  colRows: number[][]          // [столбец][ряд] — фактическая разбивка столбца
+}
+
+const EMPTY_CALC: WallCalc = {
+  valid: false, wallLengthByPanels: 0, panelHeight: 0, panelWidth: 0,
+  widths: [], widthsSum: 0, rowHeights: [], rowHeightsSum: 0, colRows: [],
+}
+
+function calcWall(w: WallSeg, off: OffsetMap): WallCalc {
+  if (!w.wallHeight || !w.wallLength || !w.numPanels || w.numPanels < 1) return EMPTY_CALC
+  const N = w.numPanels
+  const R = Math.max(1, w.numRows || 1)
   const lOff = offsetOf(off, w.leftNode)
   const rOff = offsetOf(off, w.rightNode)
-  const connAdj = w.connType === 'C' ? (w.numPanels - 1) * 4 : 0
+  const connAdj = w.connType === 'C' ? (N - 1) * 4 : 0
   const wlbp = w.wallLength + lOff + rOff - connAdj
   const topOff = NODE_MAP.get(w.topEdge)?.heightOffset ?? 0
   const botOff = NODE_MAP.get(w.bottomEdge)?.heightOffset ?? 0
-  const ph = w.wallHeight + topOff + botOff - 12
-  const pw = Math.round((wlbp / w.numPanels) * 2) / 2
-  return { wallLengthByPanels: Math.round(wlbp * 10) / 10, panelHeight: ph, panelWidth: pw, valid: true }
+  // Зазоры 7 + 5 мм по умолчанию; их можно изменить или обнулить в карточке стены.
+  const gapTop = w.gapTop ?? DEFAULT_GAP_TOP
+  const gapBottom = w.gapBottom ?? DEFAULT_GAP_BOTTOM
+  const ph = w.wallHeight + topOff + botOff - gapTop - gapBottom
+  const pw = half(wlbp / N)
+
+  const widths = w.widthMode === 'manual'
+    ? Array.from({ length: N }, (_, i) => w.panelWidths[i] || 0)
+    : Array.from({ length: N }, () => pw)
+  const widthsSum = Math.round(widths.reduce((s, x) => s + x, 0) * 10) / 10
+
+  // Ряды по высоте: соединительный профиль C съедает 4 мм на стык, как и по ширине.
+  const rowAdj = w.rowConn === 'C' ? (R - 1) * 4 : 0
+  const rh = half((ph - rowAdj) / R)
+  const rowHeights = w.heightMode === 'manual' && R > 1
+    ? Array.from({ length: R }, (_, i) => w.rowHeights[i] || 0)
+    : Array.from({ length: R }, () => R === 1 ? ph : rh)
+  const rowHeightsSum = Math.round(rowHeights.reduce((s, x) => s + x, 0) * 10) / 10
+
+  // Столбец с собственной разбивкой перекрывает общую (верхний ряд-добор и т.п.)
+  const colRows = widths.map((_, i) => {
+    const own = w.colRowHeights?.[i]
+    return own && own.length ? own.map(v => v || 0) : rowHeights
+  })
+
+  return {
+    valid: true,
+    wallLengthByPanels: Math.round(wlbp * 10) / 10,
+    panelHeight: ph, panelWidth: pw,
+    widths, widthsSum, rowHeights, rowHeightsSum, colRows,
+  }
+}
+
+// Ширина/высота панели вне лимитов листа — текст предупреждения или null.
+function panelLimitWarning(width: number, height: number, is3d: boolean): string | null {
+  const problems: string[] = []
+  if (width > LIMITS.maxW) problems.push(`ширина ${width} > ${LIMITS.maxW} мм`)
+  if (height > LIMITS.maxH) problems.push(`высота ${height} > ${LIMITS.maxH} мм`)
+  const minW = is3d ? LIMITS.minW3d : LIMITS.minW
+  if (width > 0 && width < minW) problems.push(`ширина ${width} < ${minW} мм`)
+  if (height > 0 && height < LIMITS.minH) problems.push(`высота ${height} < ${LIMITS.minH} мм`)
+  return problems.length ? problems.join(', ') : null
 }
 
 function calcDoorPanelWidth(d: DoorSeg, g: DoorGeom): number {
@@ -408,6 +514,7 @@ function buildSpec(
   off: OffsetMap,
   geom: DoorGeom,
   priceMap: Record<string, number> = {},
+  itemOrder?: ItemOrder,
 ): { panels: PanelSpec[]; profiles: ProfileSpec[] } {
   const panels: PanelSpec[] = []
   const pc: Record<string, number> = {
@@ -423,45 +530,60 @@ function buildSpec(
     if (key in pc) pc[key] += info.ppe * mult
   }
 
-  walls.forEach((w, wi) => {
+  const addWallPanels = (w: WallSeg) => {
+    const wi = walls.indexOf(w)
     const c = calcWall(w, off)
     if (!c.valid) return
     const copies = Math.max(1, w.copies)
     const N = w.numPanels
-    totalPanels += N * copies
-    for (let i = 0; i < N; i++) {
-      panels.push({
-        panelLabel: `${wi + 1}.${i + 1}`,
-        wallName: w.name,
-        height: c.panelHeight,
-        width: c.panelWidth,
-        leftNode:  i === 0     ? w.leftNode  : w.connType,
-        rightNode: i === N - 1 ? w.rightNode : w.connType,
-        topEdge: w.topEdge,
-        bottomEdge: w.bottomEdge,
-        quantity: copies,
-        finishGroup: w.finishGroup,
-        finishName: w.finishName,
-        veneerDirection: w.veneerDirection,
-        decor3d: w.decor3d,
-        aluminumVertical: w.aluminumVertical,
-        aluminumHorizontal: w.aluminumHorizontal,
-        aluminumColor: w.aluminumColor,
-        markup: w.markup,
-        notes: w.notes,
-      })
+    const maxR = Math.max(...c.colRows.map(rs => rs.length), 1)
+    totalPanels += c.colRows.reduce((s, rs) => s + rs.length, 0) * copies
+    // Ряды сверху вниз, в ряду слева направо: схема раскладки берёт первые N
+    // панелей стены как верхний ряд. Столбцы могут делиться по-разному.
+    for (let r = 0; r < maxR; r++) {
+      for (let i = 0; i < N; i++) {
+        const colRows = c.colRows[i] ?? []
+        if (r >= colRows.length) continue
+        panels.push({
+          panelLabel: maxR > 1 ? `${wi + 1}.${r + 1}.${i + 1}` : `${wi + 1}.${i + 1}`,
+          wallName: w.name,
+          height: colRows[r],
+          width: c.widths[i],
+          leftNode:  i === 0     ? w.leftNode  : w.connType,
+          rightNode: i === N - 1 ? w.rightNode : w.connType,
+          topEdge:    r === 0     ? w.topEdge    : w.rowConn,
+          bottomEdge: r === colRows.length - 1 ? w.bottomEdge : w.rowConn,
+          quantity: copies,
+          finishGroup: w.finishGroup,
+          finishName: w.finishName,
+          veneerDirection: w.veneerDirection,
+          decor3d: w.decor3d,
+          aluminumVertical: w.aluminumVertical,
+          aluminumHorizontal: w.aluminumHorizontal,
+          aluminumColor: w.aluminumColor,
+          markup: w.markup,
+          notes: w.notes,
+        })
+      }
     }
-    addEdge(w.leftNode, copies)
-    addEdge(w.rightNode, copies)
-    if (N > 1) addEdge(w.connType, 2 * (N - 1) * copies)
+    // Профили считаем по кромкам каждой панели: у общей раскладки результат тот
+    // же, но столбцы с разным числом рядов учитываются верно.
+    c.colRows.forEach((colRows, i) => {
+      const rn = colRows.length
+      if (rn === 0) return
+      addEdge(i === 0 ? w.leftNode : w.connType, copies * rn)
+      addEdge(i === N - 1 ? w.rightNode : w.connType, copies * rn)
+      if (rn > 1) addEdge(w.rowConn, 2 * (rn - 1) * copies)
+    })
     if (w.aluminumVertical > 0 || w.aluminumHorizontal > 0) {
       const alV = Math.ceil(c.panelHeight / 2995) * w.aluminumVertical
       const alH = Math.ceil(c.panelWidth / 2995) * w.aluminumHorizontal
       pc['al_decor'] += (alV + alH) * N * copies
     }
-  })
+  }
 
-  doors.forEach((d, di) => {
+  const addDoorPanels = (d: DoorSeg) => {
+    const di = doors.indexOf(d)
     const copies = Math.max(1, d.copies)
     const doorLabel = `Д${di + 1}`
     const doorName = d.label + (d.doorRef ? ` (${d.doorRef})` : '')
@@ -541,7 +663,22 @@ function buildSpec(
       totalPanels += copies
       addEdge(d.trimRightWallNode || 'A', copies)
     }
-  })
+  }
+
+  // Панели идут в порядке карточек на экране: дверной проём, вставленный
+  // после «Стены 1», в спецификации стоит сразу за ней, а не в самом низу.
+  const order: ItemOrder = itemOrder?.length
+    ? itemOrder
+    : [...walls.map(w => ({ type: 'wall' as const, id: w.id })), ...doors.map(d => ({ type: 'door' as const, id: d.id }))]
+  for (const item of order) {
+    if (item.type === 'wall') {
+      const w = walls.find(w => w.id === item.id)
+      if (w) addWallPanels(w)
+    } else {
+      const d = doors.find(d => d.id === item.id)
+      if (d) addDoorPanels(d)
+    }
+  }
 
   pc['hanger'] = totalPanels * 4
 
@@ -560,6 +697,103 @@ function buildSpec(
   return { panels, profiles }
 }
 
+// Развёртка (вид спереди): участки идут слева направо в порядке карточек,
+// углы разворачиваются в одну плоскость. Панели те же, что в спецификации.
+function buildElevation(
+  walls: WallSeg[], doors: DoorSeg[], itemOrder: ItemOrder,
+  off: OffsetMap, geom: DoorGeom,
+): ElevItem[] {
+  const items: ElevItem[] = []
+  // Обозначения панелей на чертеже — сквозные А1, А2, … слева направо, как в
+  // чертеже развёртки Зотова А.М. («Стеновые панели, Выставка, стена 1»):
+  // панель над проёмом получает свой номер в этой же последовательности.
+  let drawSeq = 0
+  const nextDraw = () => `А${++drawSeq}`
+  const order: ItemOrder = itemOrder.length
+    ? itemOrder
+    : [...walls.map(w => ({ type: 'wall' as const, id: w.id })), ...doors.map(d => ({ type: 'door' as const, id: d.id }))]
+
+  for (const item of order) {
+    if (item.type === 'wall') {
+      const w = walls.find(x => x.id === item.id)
+      if (!w) continue
+      const c = calcWall(w, off)
+      if (!c.valid) continue
+      const wi = walls.indexOf(w)
+      const maxR = Math.max(...c.colRows.map(rs => rs.length), 1)
+      const N = w.numPanels
+      // Обозначения на чертеже идут в том же порядке, что и строки спецификации:
+      // ряд сверху вниз, в ряду слева направо.
+      const draw: string[][] = Array.from({ length: N }, () => [])
+      for (let r = 0; r < maxR; r++) {
+        for (let i = 0; i < N; i++) {
+          if (r < (c.colRows[i]?.length ?? 0)) draw[i].push(nextDraw())
+        }
+      }
+      items.push({
+        kind: 'wall', id: w.id, name: w.name,
+        wallLength: w.wallLength, wallHeight: w.wallHeight,
+        lengthByNodes: c.wallLengthByPanels,
+        gapTop: w.gapTop ?? DEFAULT_GAP_TOP, gapBottom: w.gapBottom ?? DEFAULT_GAP_BOTTOM,
+        widths: c.widths, colRows: c.colRows,
+        labels: Array.from({ length: N }, (_, i) =>
+          Array.from({ length: c.colRows[i]?.length ?? 0 },
+            (_, r) => maxR > 1 ? `${wi + 1}.${r + 1}.${i + 1}` : `${wi + 1}.${i + 1}`)),
+        drawLabels: draw,
+        leftNode: w.leftNode, rightNode: w.rightNode,
+        topEdge: w.topEdge, bottomEdge: w.bottomEdge,
+        connType: w.connType, rowConn: w.rowConn || 'S',
+        copies: Math.max(1, w.copies),
+      })
+    } else {
+      const d = doors.find(x => x.id === item.id)
+      if (!d) continue
+      const di = doors.indexOf(d)
+      const inOpening = d.mountType !== 'В ПОТОЛОК'
+      const dtype = inOpening ? (d.openingDir === 'НАРУЖУ' ? 'G' : 'H') : null
+      items.push({
+        kind: 'door', id: d.id,
+        label: d.label + (d.doorRef ? ` (${d.doorRef})` : ''),
+        openingW: d.openingW, openingH: d.openingH, ceilingH: d.ceilingH,
+        panelLabel: `Д${di + 1}`,
+        panelDrawLabel: dtype ? nextDraw() : '',
+        doorLabel: d.doorRef ? `Д-${d.doorRef}` : `Дверь ${di + 1}`,
+        panelW: dtype ? calcDoorPanelWidth(d, geom) : null,
+        panelH: dtype ? half(calcDoorPanelHeight(d, dtype, geom)) : null,
+        leftNode: d.leftNode, rightNode: d.rightNode,
+        topEdge: d.topEdge, bottomEdge: dtype ?? '',
+        hingeLeft: d.hingeDir !== 'СПРАВА',
+        opensOut: d.openingDir === 'НАРУЖУ',
+        copies: Math.max(1, d.copies),
+        trim: d.hasTrim === true ? {
+          label: `Д${di + 1}`,
+          drawLabels: [
+            inOpening ? nextDraw() : '',   // верхний добор только при монтаже в проём
+            nextDraw(), nextDraw(),
+          ],
+          top: inOpening ? {
+            w: d.trimTopW || d.openingW,
+            h: d.trimTopH || d.wallDepth,
+            leftNode: d.trimTopLeftNode || 'A',
+            rightNode: d.trimTopRightNode || 'A',
+          } : null,
+          left: {
+            w: d.trimLeftW || d.wallDepth,
+            h: d.trimLeftH || d.openingH,
+            wallNode: d.trimLeftWallNode || 'A',
+          },
+          right: {
+            w: d.trimRightW || d.wallDepth,
+            h: d.trimRightH || d.openingH,
+            wallNode: d.trimRightWallNode || 'A',
+          },
+        } : null,
+      })
+    }
+  }
+  return items
+}
+
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function isVeneerGroup(name: string) {
@@ -576,20 +810,25 @@ function normDecor(s: string): string {
   return s.toLowerCase().replace('ё', 'е').replace(',', '.').replace(/\s*(мм|mm)/, 'мм').replace(/\s+/g, ' ').trim()
 }
 
-function getFinishPrice(finishGroups: FinishGroup[], groupName: string, finishName: string, decor3d?: string): number {
-  // Шпон: цена зависит от выбранного декора с толщиной (напр. «Breeze Oak 5 мм»),
-  // который лежит в группах ШПОН 1,5/2,5/5 ММ.
+// Отделка, по которой считается цена панели. Шпон: цена зависит от выбранного
+// декора с толщиной (напр. «Breeze Oak 5 мм»), который лежит в группах
+// ШПОН 1,5/2,5/5 ММ. Та же отделка сохраняется в панель заказа — по ней
+// бэкенд считает total_cost для выгрузки в Cascate.
+function findPricedFinish(finishGroups: FinishGroup[], groupName: string, finishName: string, decor3d?: string): Finish | undefined {
   if (isVeneerGroup(groupName) && decor3d) {
     const target = normDecor(decor3d)
     for (const g of finishGroups) {
       const f = (g.finishes as Finish[]).find(f => normDecor(f.name) === target)
-      if (f) return f.price_sqm
+      if (f) return f
     }
-    return 0
+    return undefined
   }
   const g = finishGroups.find(g => g.name === groupName)
-  if (!g) return 0
-  return (g.finishes as Finish[]).find(f => f.name === finishName)?.price_sqm ?? 0
+  return (g?.finishes as Finish[] | undefined)?.find(f => f.name === finishName)
+}
+
+function getFinishPrice(finishGroups: FinishGroup[], groupName: string, finishName: string, decor3d?: string): number {
+  return findPricedFinish(finishGroups, groupName, finishName, decor3d)?.price_sqm ?? 0
 }
 
 function calcPanelCosts(
@@ -658,6 +897,7 @@ function StepNav({ step, onStep }: { step: number; onStep: (s: number) => void }
 
 interface WallCardProps {
   wall: WallSeg
+  panels?: PanelSpec[]   // панели этой стены из спецификации — для мини-схемы
   jointTypes: JointType[]
   finishGroups: FinishGroup[]
   profileColors: ProfileColor[]
@@ -667,9 +907,50 @@ interface WallCardProps {
   phase?: 'geometry' | 'finish'
 }
 
-function WallCard({ wall, jointTypes, finishGroups, profileColors, onChange, onRemove, canRemove, phase }: WallCardProps) {
+function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, onChange, onRemove, canRemove, phase }: WallCardProps) {
   const wallOffsets = useMemo(() => offsetsOf(jointTypes), [jointTypes])
   const calc = calcWall(wall, wallOffsets)
+  const is3d = isVeneerGroup(wall.finishGroup) && !!wall.decor3d
+  const R = calc.rowHeights.length
+  const limitWarnings = calc.valid
+    ? [...new Set(calc.widths.flatMap((w, i) =>
+        (calc.colRows[i] ?? []).map(h => panelLimitWarning(w, h, is3d))).filter(Boolean))] as string[]
+    : []
+  const hasColRows = (wall.colRowHeights ?? []).some(rs => rs && rs.length > 0)
+  const setColRows = (i: number, rs: number[]) => {
+    const arr = Array.from({ length: wall.numPanels }, (_, k) => wall.colRowHeights?.[k] ?? [])
+    arr[i] = rs
+    onChange({ colRowHeights: arr })
+  }
+  const widthDiff = Math.round((calc.widthsSum - calc.wallLengthByPanels) * 10) / 10
+  const heightDiff = Math.round((calc.rowHeightsSum - calc.panelHeight) * 10) / 10
+  const setWidth = (i: number, v: number) => {
+    const arr = Array.from({ length: wall.numPanels }, (_, k) => wall.panelWidths[k] || 0)
+    arr[i] = v
+    onChange({ panelWidths: arr })
+  }
+  const setRowHeight = (i: number, v: number) => {
+    const arr = Array.from({ length: R }, (_, k) => wall.rowHeights[k] || 0)
+    arr[i] = v
+    onChange({ rowHeights: arr })
+  }
+  // Переход в ручной режим: стартуем с авто-значений, чтобы не вводить всё с нуля.
+  const toManualWidths = () => onChange({ widthMode: 'manual', panelWidths: [...calc.widths] })
+  const toManualHeights = () => onChange({ heightMode: 'manual', rowHeights: [...calc.rowHeights] })
+  // «Остаток в последнюю»: все панели кроме последней как введены, последняя добирает длину по узлам.
+  const fillLastWidth = () => {
+    const arr = Array.from({ length: wall.numPanels }, (_, k) => wall.panelWidths[k] || 0)
+    const rest = arr.slice(0, -1).reduce((a, b) => a + b, 0)
+    arr[arr.length - 1] = Math.max(0, half(calc.wallLengthByPanels - rest))
+    onChange({ panelWidths: arr })
+  }
+  const fillLastHeight = () => {
+    const arr = Array.from({ length: R }, (_, k) => wall.rowHeights[k] || 0)
+    const rest = arr.slice(0, -1).reduce((a, b) => a + b, 0)
+    const rowAdj = wall.rowConn === 'C' ? (R - 1) * 4 : 0
+    arr[arr.length - 1] = Math.max(0, half(calc.panelHeight - rowAdj - rest))
+    onChange({ rowHeights: arr })
+  }
   const selectedGroup = finishGroups.find(g => g.name === wall.finishGroup)
   const finishes: Finish[] = (selectedGroup?.finishes as Finish[]) ?? []
   const isVeneer = isVeneerGroup(wall.finishGroup)
@@ -691,8 +972,12 @@ function WallCard({ wall, jointTypes, finishGroups, profileColors, onChange, onR
         <input
           value={wall.name}
           onChange={e => onChange({ name: e.target.value })}
+          title="Название участка стены — можно переименовать (например «Стена 1, справа от двери»)"
           style={{ fontWeight: 700, fontSize: '1rem', border: 'none', background: 'transparent', outline: 'none', padding: 0, color: '#1a1a2e', flex: 1 }}
         />
+        <span className="no-print" style={{ fontSize: '.72rem', color: '#94a3b8', marginRight: 10, whiteSpace: 'nowrap' }}>
+          участок стены · название можно изменить
+        </span>
         {canRemove && <button className="btn btn-danger btn-sm" onClick={onRemove}>✕</button>}
       </div>
 
@@ -728,6 +1013,185 @@ function WallCard({ wall, jointTypes, finishGroups, profileColors, onChange, onR
               onChange={e => onChange({ copies: Math.max(1, +e.target.value) })} />
           </div>
         </div>
+
+        {/* Зазоры по высоте + ряды */}
+        <div className="grid-4" style={{ marginBottom: 10 }}>
+          <div className="field">
+            <label>Зазор сверху, мм</label>
+            <input type="number" min={0} value={wall.gapTop ?? DEFAULT_GAP_TOP}
+              onChange={e => onChange({ gapTop: Math.max(0, +e.target.value) })} />
+          </div>
+          <div className="field">
+            <label>Зазор снизу, мм</label>
+            <input type="number" min={0} value={wall.gapBottom ?? DEFAULT_GAP_BOTTOM}
+              onChange={e => onChange({ gapBottom: Math.max(0, +e.target.value) })} />
+          </div>
+          <div className="field">
+            <label>Рядов по высоте</label>
+            <input type="number" min={1} max={10} value={wall.numRows || 1}
+              onChange={e => onChange({ numRows: Math.max(1, +e.target.value), heightMode: 'auto', rowHeights: [] })} />
+          </div>
+          <div className="field">
+            <label>Стык рядов (верх/низ)</label>
+            {(wall.numRows || 1) > 1 ? (
+              <JointSelectCode value={wall.rowConn || 'S'} codes={ROW_CONN_CODES} jointTypes={jointTypes}
+                onChange={code => onChange({ rowConn: code })}
+                fallback={NODES.map(n => ({ code: n.code, name: n.label }))} />
+            ) : (
+              <input value="один ряд" disabled style={{ background: '#f5f5f5' }} />
+            )}
+          </div>
+        </div>
+
+        {/* Ширины панелей: авто поровну или вручную */}
+        {calc.valid && (
+          <div style={{ marginBottom: 10, padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 7 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '.78rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.04em' }}>
+                Ширины панелей
+              </span>
+              <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
+                <input type="radio" checked={wall.widthMode !== 'manual'}
+                  onChange={() => onChange({ widthMode: 'auto' })} />
+                авто — поровну ({calc.panelWidth} мм)
+              </label>
+              <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
+                <input type="radio" checked={wall.widthMode === 'manual'} onChange={toManualWidths} />
+                вручную — разные ширины
+              </label>
+              {wall.widthMode === 'manual' && wall.numPanels > 1 && (
+                <button type="button" className="btn btn-ghost btn-sm" onClick={fillLastWidth}
+                  title="Последняя панель добирает длину по узлам">
+                  остаток → последняя
+                </button>
+              )}
+            </div>
+            {wall.widthMode === 'manual' && (
+              <>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+                  {calc.widths.map((wv, i) => {
+                    // Подсвечиваем панели, ширина которых отличается от авторасчёта.
+                    const custom = Math.abs(wv - calc.panelWidth) > 0.05
+                    return (
+                      <div className="field" key={i} style={{ width: 110 }}>
+                        <label style={custom ? { color: '#b45309' } : undefined}>
+                          Панель {i + 1}, мм{custom ? ' •' : ''}
+                        </label>
+                        <input type="number" min={0} step={0.5} value={wv || ''}
+                          onChange={e => setWidth(i, +e.target.value)}
+                          title={custom ? `Задано вручную · авто — ${calc.panelWidth} мм` : undefined}
+                          style={custom ? { borderColor: '#f59e0b', background: '#fffbeb' } : undefined} />
+                      </div>
+                    )
+                  })}
+                </div>
+                <div style={{ fontSize: '.78rem', marginTop: 6, color: widthDiff === 0 ? '#166534' : '#b45309' }}>
+                  Сумма <strong>{calc.widthsSum} мм</strong>, длина по узлам <strong>{calc.wallLengthByPanels} мм</strong>
+                  {widthDiff !== 0 && <> — расхождение <strong>{widthDiff > 0 ? '+' : ''}{widthDiff} мм</strong></>}
+                  {' '}· в ручном режиме поправки узлов к ширинам не применяются — вводите готовый размер панели
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Высоты рядов: авто поровну или вручную */}
+        {calc.valid && R > 1 && (
+          <div style={{ marginBottom: 10, padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 7 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '.78rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.04em' }}>
+                Высоты рядов
+              </span>
+              <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
+                <input type="radio" checked={wall.heightMode !== 'manual'}
+                  onChange={() => onChange({ heightMode: 'auto' })} />
+                авто — поровну ({calc.rowHeights[0]} мм)
+              </label>
+              <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer' }}>
+                <input type="radio" checked={wall.heightMode === 'manual'} onChange={toManualHeights} />
+                вручную
+              </label>
+              {wall.heightMode === 'manual' && (
+                <button type="button" className="btn btn-ghost btn-sm" onClick={fillLastHeight}
+                  title="Нижний ряд добирает высоту панели">
+                  остаток → нижний
+                </button>
+              )}
+            </div>
+            {wall.heightMode === 'manual' && (
+              <>
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
+                  {calc.rowHeights.map((hv, i) => (
+                    <div className="field" key={i} style={{ width: 130 }}>
+                      <label>Ряд {i + 1} (сверху), мм</label>
+                      <input type="number" min={0} step={0.5} value={hv || ''}
+                        onChange={e => setRowHeight(i, +e.target.value)} />
+                    </div>
+                  ))}
+                </div>
+                <div style={{ fontSize: '.78rem', marginTop: 6, color: heightDiff === 0 ? '#166534' : '#b45309' }}>
+                  Сумма <strong>{calc.rowHeightsSum} мм</strong>, высота панели <strong>{calc.panelHeight} мм</strong>
+                  {heightDiff !== 0 && <> — расхождение <strong>{heightDiff > 0 ? '+' : ''}{heightDiff} мм</strong></>}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Своя разбивка столбца по рядам — как П52/П53 в СП */}
+        {calc.valid && wall.numPanels > 1 && (
+          <div style={{ marginBottom: 10, padding: '8px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 7 }}>
+            <label style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' }}>
+              <input type="checkbox" checked={hasColRows}
+                onChange={e => onChange({
+                  colRowHeights: e.target.checked
+                    ? calc.widths.map(() => [...calc.rowHeights])
+                    : [],
+                })} />
+              <span style={{ fontWeight: 600, color: '#64748b' }}>Разбивка по столбцам</span>
+              <span style={{ color: '#94a3b8' }}>— у столбца свои ряды (верхний добор и т.п.)</span>
+            </label>
+            {hasColRows && (
+              <>
+                <div style={{ display: 'flex', gap: 14, flexWrap: 'wrap', marginTop: 8 }}>
+                  {calc.widths.map((wv, i) => {
+                    const rs = calc.colRows[i] ?? []
+                    const sum = Math.round(rs.reduce((s, v) => s + v, 0) * 10) / 10
+                    return (
+                      <div key={i} style={{ border: '1px solid #e2e8f0', borderRadius: 6, padding: 8, background: '#fff' }}>
+                        <div style={{ fontSize: '.78rem', fontWeight: 600, marginBottom: 6 }}>
+                          Столбец {i + 1} · {wv} мм
+                          <button type="button" className="btn btn-ghost btn-sm" style={{ marginLeft: 6 }}
+                            onClick={() => setColRows(i, [...rs, 0])}>+ ряд</button>
+                          {rs.length > 1 && (
+                            <button type="button" className="btn btn-ghost btn-sm"
+                              onClick={() => setColRows(i, rs.slice(0, -1))}>− ряд</button>
+                          )}
+                        </div>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                          {rs.map((hv, r) => (
+                            <div className="field" key={r} style={{ width: 96 }}>
+                              <label>Ряд {r + 1}, мм</label>
+                              <input type="number" min={0} step={0.5} value={hv || ''}
+                                onChange={e => {
+                                  const next = [...rs]
+                                  next[r] = +e.target.value
+                                  setColRows(i, next)
+                                }} />
+                            </div>
+                          ))}
+                        </div>
+                        <div style={{ fontSize: '.74rem', marginTop: 4, color: sum === calc.panelHeight ? '#166534' : '#b45309' }}>
+                          Сумма {sum} из {calc.panelHeight} мм
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Узлы */}
         <div className="grid-3" style={{ marginBottom: 10 }}>
@@ -866,17 +1330,46 @@ function WallCard({ wall, jointTypes, finishGroups, profileColors, onChange, onR
 
       {/* Результат расчёта */}
       {(!phase || phase === 'geometry') && calc.valid && (
-        <div className="calc-result">
-          <strong>Расчёт:</strong>{' '}
-          длина по панелям <strong>{calc.wallLengthByPanels} мм</strong>
-          {' '}&nbsp;|&nbsp;{' '}
-          размер панели <strong>{calc.panelHeight} × {calc.panelWidth} мм</strong>
-          {wall.numPanels > 1 && (
-            <span style={{ color: '#6366f1', marginLeft: 10 }}>
-              ({wall.numPanels} шт. по {calc.panelWidth} мм)
+        <>
+          <div className="calc-result">
+            <strong>Расчёт:</strong>{' '}
+            длина по узлам <strong>{calc.wallLengthByPanels} мм</strong>
+            {' '}&nbsp;|&nbsp;{' '}
+            высота панели <strong>{calc.panelHeight} мм</strong>
+            <span style={{ color: '#6366f1', marginLeft: 6, fontSize: '.85em' }}>
+              (стена {wall.wallHeight} − зазоры {wall.gapTop ?? DEFAULT_GAP_TOP} + {wall.gapBottom ?? DEFAULT_GAP_BOTTOM})
             </span>
+            {R > 1 && (
+              <span style={{ color: '#6366f1', marginLeft: 10 }}>
+                · {R} ряда по высоте: {calc.rowHeights.join(' / ')} мм
+              </span>
+            )}
+            {' '}&nbsp;|&nbsp;{' '}
+            {wall.widthMode === 'manual' ? (
+              <>ширины <strong>{calc.widths.join(' / ')} мм</strong> (вручную)</>
+            ) : (
+              <>размер панели <strong>{calc.rowHeights[0]} × {calc.panelWidth} мм</strong>
+                {wall.numPanels > 1 && (
+                  <span style={{ color: '#6366f1', marginLeft: 10 }}>
+                    ({wall.numPanels} шт. по {calc.panelWidth} мм)
+                  </span>
+                )}</>
+            )}
+          </div>
+          {limitWarnings.length > 0 && (
+            <div style={{ marginTop: 8, background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca', borderRadius: 7, padding: '8px 12px', fontSize: '.85rem' }}>
+              <strong>Вне лимитов листа:</strong> {limitWarnings.join('; ')}.
+              {' '}Лист {LIMITS.maxW} × {LIMITS.maxH} мм — увеличьте число панелей или рядов по высоте.
+            </div>
           )}
-        </div>
+          {panels.length > 0 && (
+            <div className="no-print" style={{ marginTop: 10, borderTop: '1px dashed #e2e8f0', paddingTop: 6 }}>
+              <div style={{ fontSize: '.72rem', color: '#94a3b8', marginBottom: 2 }}>Вид сверху — узлы этого участка</div>
+              <WallScheme walls={[wall]} doors={[]} panels={panels}
+                itemOrder={[{ type: 'wall', id: wall.id }]} jointTypes={jointTypes} compact />
+            </div>
+          )}
+        </>
       )}
     </div>
   )
@@ -940,12 +1433,12 @@ function DoorCard({ door, series, jointTypes, finishGroups, onChange, onRemove, 
         <div className="field">
           <label>Ширина проёма, мм</label>
           <input type="number" value={door.openingW || ''} min={0}
-            onChange={e => onChange({ openingW: +e.target.value })} />
+            onChange={e => { const v = +e.target.value; onChange({ openingW: v, trimTopW: v }) }} />
         </div>
         <div className="field">
           <label>Высота проёма, мм</label>
           <input type="number" value={door.openingH || ''} min={0}
-            onChange={e => onChange({ openingH: +e.target.value })} />
+            onChange={e => { const v = +e.target.value; onChange({ openingH: v, trimLeftH: v, trimRightH: v }) }} />
         </div>
         <div className="field">
           <label>Высота потолка, мм</label>
@@ -991,12 +1484,12 @@ function DoorCard({ door, series, jointTypes, finishGroups, onChange, onRemove, 
       <div className="grid-2" style={{ marginBottom: 10 }}>
         <div className="field">
           <label>Узел левого края (только B/C)</label>
-          <JointSelectCode value={door.leftNode} codes={CONN_NODE_CODES} jointTypes={jointTypes}
+          <JointSelectCode value={door.leftNode} codes={DOOR_CONN_CODES} jointTypes={jointTypes}
             onChange={code => onChange({ leftNode: code })} />
         </div>
         <div className="field">
           <label>Узел правого края (только B/C)</label>
-          <JointSelectCode value={door.rightNode} codes={CONN_NODE_CODES} jointTypes={jointTypes}
+          <JointSelectCode value={door.rightNode} codes={DOOR_CONN_CODES} jointTypes={jointTypes}
             onChange={code => onChange({ rightNode: code })} />
         </div>
       </div>
@@ -1024,6 +1517,22 @@ function DoorCard({ door, series, jointTypes, finishGroups, onChange, onRemove, 
         </div>
       </div>
 
+      {/* Расчёт панели над дверью — сразу под её узлами, до добора */}
+      {dtype !== null && panelH !== null && (
+        <div className="calc-result" style={{ background: '#f0fdf4', color: '#166534', borderColor: '#bbf7d0', marginBottom: 10 }}>
+          <strong>Расчёт панели над дверью</strong>:{' '}
+          <strong>{panelH} × {panelW} мм</strong>
+          {' '}· нижняя кромка:{' '}
+          <span style={{ background: '#ef4444', color: '#fff', borderRadius: 3, padding: '0 5px', fontSize: '0.8rem', fontWeight: 700 }}>{dtype}</span>
+          {' '}(авто)
+        </div>
+      )}
+      {door.mountType === 'В ПОТОЛОК' && (
+        <div style={{ background: '#fef9c3', color: '#854d0e', borderRadius: 7, padding: '10px 14px', fontSize: '.87rem', marginBottom: 10 }}>
+          Монтаж «В ПОТОЛОК» — панель над дверью не создаётся.
+        </div>
+      )}
+
       {/* Добор обрамления */}
       <div style={{ borderTop: '1px solid #e2e8f0', paddingTop: 10, marginBottom: 10 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
@@ -1038,6 +1547,14 @@ function DoorCard({ door, series, jointTypes, finishGroups, onChange, onRemove, 
         </div>
 
         {door.hasTrim === true && <>
+        <div style={{ fontSize: '.8rem', color: '#64748b', lineHeight: 1.5, marginBottom: 10, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 7, padding: '8px 12px' }}>
+          Размеры доборов подставляются автоматически: ширина боковых и высота верхнего = глубина стены,
+          высота боковых = высота проёма, ширина верхнего = ширина проёма. Любое значение можно поправить вручную.
+          <br />
+          <strong>Узел к стене</strong> — узел внешнего края бокового добора, где он стыкуется со стеновой панелью
+          (внутренний край к коробке всегда O — без профиля).
+          {' '}<strong>Узел лев. / пр.</strong> — узлы торцов верхнего добора, где он стыкуется с левым и правым доборами.
+        </div>
         <div className="field" style={{ maxWidth: 180, marginBottom: 10 }}>
           <label>Глубина стены, мм</label>
           <input type="number" value={door.wallDepth ?? 200} min={0}
@@ -1062,7 +1579,7 @@ function DoorCard({ door, series, jointTypes, finishGroups, onChange, onRemove, 
               </div>
             </div>
             <div className="field">
-              <label>Узел к стене</label>
+              <label title="Узел внешнего края добора — стык со стеновой панелью">Узел к стене</label>
               <JointSelectCode value={door.trimLeftWallNode ?? 'A'} codes={EDGE_NODE_CODES} jointTypes={jointTypes}
                 onChange={code => onChange({ trimLeftWallNode: code })} />
             </div>
@@ -1087,7 +1604,7 @@ function DoorCard({ door, series, jointTypes, finishGroups, onChange, onRemove, 
               </div>
             </div>
             <div className="field">
-              <label>Узел к стене</label>
+              <label title="Узел внешнего края добора — стык со стеновой панелью">Узел к стене</label>
               <JointSelectCode value={door.trimRightWallNode ?? 'A'} codes={EDGE_NODE_CODES} jointTypes={jointTypes}
                 onChange={code => onChange({ trimRightWallNode: code })} />
             </div>
@@ -1113,12 +1630,12 @@ function DoorCard({ door, series, jointTypes, finishGroups, onChange, onRemove, 
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
               <div className="field">
-                <label>Узел лев.</label>
+                <label title="Левый торец верхнего добора — стык с левым добором">Узел лев.</label>
                 <JointSelectCode value={door.trimTopLeftNode ?? 'A'} codes={EDGE_NODE_CODES} jointTypes={jointTypes}
                   onChange={code => onChange({ trimTopLeftNode: code })} />
               </div>
               <div className="field">
-                <label>Узел пр.</label>
+                <label title="Правый торец верхнего добора — стык с правым добором">Узел пр.</label>
                 <JointSelectCode value={door.trimTopRightNode ?? 'A'} codes={EDGE_NODE_CODES} jointTypes={jointTypes}
                   onChange={code => onChange({ trimTopRightNode: code })} />
               </div>
@@ -1190,20 +1707,6 @@ function DoorCard({ door, series, jointTypes, finishGroups, onChange, onRemove, 
       </div>
       </>}
 
-      {dtype !== null && panelH !== null && (
-        <div className="calc-result" style={{ background: '#f0fdf4', color: '#166534', borderColor: '#bbf7d0' }}>
-          <strong>Расчёт панели над дверью</strong>:{' '}
-          <strong>{panelH} × {panelW} мм</strong>
-          {' '}· нижняя кромка:{' '}
-          <span style={{ background: '#ef4444', color: '#fff', borderRadius: 3, padding: '0 5px', fontSize: '0.8rem', fontWeight: 700 }}>{dtype}</span>
-          {' '}(авто)
-        </div>
-      )}
-      {door.mountType === 'В ПОТОЛОК' && (
-        <div style={{ background: '#fef9c3', color: '#854d0e', borderRadius: 7, padding: '10px 14px', fontSize: '.87rem' }}>
-          Монтаж «В ПОТОЛОК» — панель над дверью не создаётся.
-        </div>
-      )}
     </div>
   )
 }
@@ -1245,6 +1748,23 @@ function SchemeHint({ series }: { series: Series }) {
           />
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── LimitsBanner ─────────────────────────────────────────────────────────────
+
+function LimitsBanner() {
+  return (
+    <div className="no-print" style={{
+      marginBottom: 16, padding: '10px 16px', borderRadius: 10,
+      background: '#fffbeb', border: '1px solid #fde68a', color: '#78350f', fontSize: '.85rem', lineHeight: 1.55,
+    }}>
+      <strong>Ограничения по размерам панелей.</strong>{' '}
+      Лист — не более <strong>{LIMITS.maxW} × {LIMITS.maxH} мм</strong> (ширина × высота).
+      Минимальная панель <strong>{LIMITS.minW} × {LIMITS.minH} мм</strong>, шпон с 3D-фрезеровкой — <strong>{LIMITS.minW3d} × {LIMITS.minH} мм</strong>.
+      Стена выше {LIMITS.maxH} мм набирается рядами по высоте, каждая часть не меньше {LIMITS.minRowH} мм (раскрой из цельного листа).
+      Панель площадью меньше 0,5 кв.м считается как 0,5 кв.м.
     </div>
   )
 }
@@ -1367,7 +1887,11 @@ function SaveOrderModal({
       const pos = (wallPositions.get(wallNum) ?? 0) + 1
       wallPositions.set(wallNum, pos)
       const fg = finishGroups.find(g => g.name === p.finishGroup)
-      const fin = (fg?.finishes as Finish[] | undefined)?.find(f => f.name === p.finishName)
+      // Шпон с 3D-декором стоит по прайсу декора (группы ШПОН 1,5/2,5/5 ММ), а не
+      // базовой отделки: иначе бэкенд (и выгрузка в Cascate) считал Walnut Flamed
+      // 1,5/2,5/5 мм по одной цене гладкого шпона. Ищем ту же отделку, что и
+      // getFinishPrice во фронтовом расчёте.
+      const fin = findPricedFinish(finishGroups, p.finishGroup, p.finishName, p.decor3d)
       await createPanel({
         order: orderId,
         position: pos,
@@ -1522,8 +2046,6 @@ function SaveOrderModal({
 
 // ─── Configurator ─────────────────────────────────────────────────────────────
 
-type ItemOrder = { type: 'wall' | 'door'; id: string }[]
-
 const snapshotOf = (walls: WallSeg[], doors: DoorSeg[], itemOrder: ItemOrder) =>
   JSON.stringify({ walls, doors, itemOrder })
 
@@ -1538,6 +2060,9 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
   const [doorSeq, setDoorSeq] = useState(0)
   const [itemOrder, setItemOrder] = useState<ItemOrder>([])
   const [activeStep, setActiveStep] = useState<number>(1)
+  const [sameFinish, setSameFinish] = useState(false)
+  // Виды спереди и сверху показываем вместе; кнопкой включаются разрезы дверей.
+  const [showSections, setShowSections] = useState(false)
   const [copied, setCopied] = useState(false)
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [editOrder, setEditOrder] = useState<Order | null>(null)
@@ -1621,8 +2146,13 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
   const jointOffsets = useMemo(() => offsetsOf(jointTypes), [jointTypes])
   const doorGeom = DOOR_GEOM[series]
   const spec = useMemo(
-    () => buildSpec(walls, doors, jointOffsets, doorGeom, priceMap),
-    [walls, doors, jointOffsets, doorGeom, priceMap],
+    () => buildSpec(walls, doors, jointOffsets, doorGeom, priceMap, itemOrder),
+    [walls, doors, jointOffsets, doorGeom, priceMap, itemOrder],
+  )
+
+  const elevation = useMemo(
+    () => buildElevation(walls, doors, itemOrder, jointOffsets, doorGeom),
+    [walls, doors, itemOrder, jointOffsets, doorGeom],
   )
 
   const totalPanels = spec.panels.reduce((s, p) => s + p.quantity, 0)
@@ -1646,6 +2176,22 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
   const addWall = () => {
     const n = wallSeq + 1; setWallSeq(n)
     const w = makeWall(n)
+    // Стена после дверного проёма — продолжение той же стены, а не «Стена 2»:
+    // «Стена 1 — за проёмом». В спецификации такие панели попадают под тот же
+    // заголовок «СТЕНА 1» (заголовок берётся до « — »).
+    const last = itemOrder[itemOrder.length - 1]
+    if (last?.type === 'door') {
+      const prevWallItem = [...itemOrder].reverse().find(i => i.type === 'wall')
+      const prevWall = prevWallItem ? walls.find(x => x.id === prevWallItem.id) : undefined
+      if (prevWall) {
+        const base = prevWall.name.split(' — ')[0]
+        const k = walls.filter(x => x.name.split(' — ')[0] === base).length
+        w.name = `${base} — за проёмом${k > 1 ? ` ${k}` : ''}`
+        w.wallHeight = prevWall.wallHeight
+        w.gapTop = prevWall.gapTop
+        w.gapBottom = prevWall.gapBottom
+      }
+    }
     setWalls(prev => [...prev, w])
     setItemOrder(prev => [...prev, { type: 'wall', id: w.id }])
   }
@@ -1666,6 +2212,32 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
     setItemOrder(prev => prev.filter(item => !(item.type === 'door' && item.id === id)))
   }
   const updateDoor = (id: string, u: Partial<DoorSeg>) => setDoors(prev => prev.map(d => d.id === id ? { ...d, ...u } : d))
+
+  // Галочка «Отделка как на 1-й панели»: отделка первого участка раскладки
+  // копируется на все остальные и держится синхронной, пока галочка стоит.
+  const firstFinish = (() => {
+    const first = itemOrder[0]
+    if (!first) return null
+    const src = first.type === 'wall'
+      ? walls.find(w => w.id === first.id)
+      : doors.find(d => d.id === first.id)
+    if (!src) return null
+    const { finishGroup, finishName, veneerDirection, decor3d } = src
+    return { finishGroup, finishName, veneerDirection, decor3d }
+  })()
+
+  useEffect(() => {
+    if (!sameFinish || !firstFinish) return
+    const firstId = itemOrder[0]?.id
+    const same = (x: { finishGroup: string; finishName: string; veneerDirection: string; decor3d: string }) =>
+      x.finishGroup === firstFinish.finishGroup && x.finishName === firstFinish.finishName &&
+      x.veneerDirection === firstFinish.veneerDirection && x.decor3d === firstFinish.decor3d
+    setWalls(prev => prev.some(w => w.id !== firstId && !same(w))
+      ? prev.map(w => w.id === firstId ? w : { ...w, ...firstFinish }) : prev)
+    setDoors(prev => prev.some(d => d.id !== firstId && !same(d))
+      ? prev.map(d => d.id === firstId ? d : { ...d, ...firstFinish }) : prev)
+  }, [sameFinish, firstFinish?.finishGroup, firstFinish?.finishName,
+      firstFinish?.veneerDirection, firstFinish?.decor3d, itemOrder])
 
   const copySpec = () => {
     let text = `СПЕЦИФИКАЦИЯ СТЕНОВЫХ ПАНЕЛЕЙ NUOVO ${series}\n\n`
@@ -1736,8 +2308,9 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
           {activeStep === 1 && (
             <>
               <SchemeHint series={series} />
+              <LimitsBanner />
               <div className="flex gap-2 no-print" style={{ marginBottom: 20 }}>
-                <button className="btn btn-primary" onClick={addWall}>+ Добавить стену</button>
+                <button className="btn btn-primary" onClick={addWall} title="Участок стены: панели в один ряд между узлами. Стена с дверью посередине = участок + проём + участок">+ Добавить стену</button>
                 <button className="btn btn-ghost" onClick={addDoor}>+ Дверной проём</button>
                 <div style={{ marginLeft: 'auto' }}>
                   <button className="btn btn-primary" onClick={() => setActiveStep(2)}>
@@ -1752,6 +2325,7 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
                   if (!w) return null
                   return (
                     <WallCard key={w.id} wall={w} jointTypes={jointTypes} finishGroups={finishGroups} profileColors={profileColors}
+                      panels={spec.panels.filter(p => p.wallName === w.name)}
                       onChange={u => updateWall(w.id, u)}
                       onRemove={() => removeWall(w.id)}
                       canRemove={walls.length > 1}
@@ -1777,8 +2351,35 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
 
               {spec.panels.length > 0 && (
                 <div className="card" style={{ marginTop: 24 }}>
-                  <h2 style={{ margin: '0 0 16px' }}>Схема раскладки</h2>
+                  <div className="flex gap-2" style={{ alignItems: 'center', marginBottom: 4 }}>
+                    <h2 style={{ margin: 0 }}>Раскладка</h2>
+                    <button type="button"
+                      className={`btn btn-sm no-print ${showSections ? 'btn-primary' : 'btn-ghost'}`}
+                      style={{ marginLeft: 'auto' }}
+                      onClick={() => setShowSections(v => !v)}>Разрез</button>
+                  </div>
+
+                  <h3 className="spec-section-title">Вид спереди</h3>
+                  <div style={{ fontSize: '.8rem', color: '#94a3b8', marginBottom: 12 }}>
+                    Развёртка стены: участки слева направо, углы развёрнуты в плоскость.
+                    Жёлтым — зазоры сверху и снизу и доборы проёма, зелёным — панель над проёмом.
+                  </div>
+                  <WallElevation items={elevation} jointTypes={jointTypes} sections={showSections} />
+
+                  <h3 className="spec-section-title" style={{ marginTop: 22 }}>Вид сверху</h3>
+                  <div style={{ fontSize: '.8rem', color: '#94a3b8', marginBottom: 12 }}>
+                    План: повороты на угловых узлах D (наружный) и DG/DH (внутренний).
+                  </div>
                   <WallScheme walls={walls} doors={doors} panels={spec.panels} itemOrder={itemOrder} jointTypes={jointTypes} />
+
+                  <h3 className="spec-section-title" style={{ marginTop: 22 }}>
+                    Панели и типы кромок
+                  </h3>
+                  <div style={{ fontSize: '.8rem', color: '#94a3b8', marginBottom: 10 }}>
+                    Кромки по кругу от верха по часовой стрелке: А — верх, В — правая, С — низ, D — левая.
+                    Обозначения панелей сквозные слева направо, как в чертеже развёртки.
+                  </div>
+                  <ElevationTable items={elevation} />
                 </div>
               )}
             </>
@@ -1789,6 +2390,10 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
             <>
               <div className="flex gap-2 no-print" style={{ marginBottom: 20 }}>
                 <button className="btn btn-ghost" onClick={() => setActiveStep(1)}>← Назад</button>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '.85rem', cursor: 'pointer' }}>
+                  <input type="checkbox" checked={sameFinish} onChange={e => setSameFinish(e.target.checked)} />
+                  Отделка как на 1-й панели
+                </label>
                 <div style={{ marginLeft: 'auto' }}>
                   <button className="btn btn-primary" onClick={() => setActiveStep(3)}>
                     Далее: Спецификация →
@@ -1865,13 +2470,56 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
               </div>
             </div>
 
+            {/* Шапка бланка Cascate — печатается первой на листе */}
+            <div className="print-only print-header">
+              <img src="/logo-footer.png" alt="Cascate Porte e mobile" className="print-header-logo" />
+              <div className="print-header-fields">
+                <div>
+                  <div className="ph-value">{editOrder?.customer_name || ' '}</div>
+                  <div className="ph-label">ФИО / ЗАКАЗЧИК</div>
+                </div>
+                <div>
+                  <div className="ph-value">{editOrder?.agent_name || ' '}</div>
+                  <div className="ph-label">АГЕНТ</div>
+                </div>
+                <div>
+                  <div className="ph-value">{editOrder?.city || ' '}</div>
+                  <div className="ph-label">ГОРОД</div>
+                </div>
+                <div>
+                  <div className="ph-value">&nbsp;</div>
+                  <div className="ph-label">ПОДПИСЬ ЗАКАЗЧИКА</div>
+                </div>
+                <div>
+                  <div className="ph-value">&nbsp;</div>
+                  <div className="ph-label">ПОДПИСЬ АГЕНТА</div>
+                </div>
+                <div>
+                  <div className="ph-value">{editOrder?.order_date || ' '}</div>
+                  <div className="ph-label">ДАТА ПРИНЯТИЯ ЗАКАЗА</div>
+                </div>
+                <div>
+                  <div className="ph-value">{editOrder?.order_number || ' '}</div>
+                  <div className="ph-label">НОМЕР ЗАКАЗА</div>
+                </div>
+              </div>
+              <div className="print-header-order">
+                <div><span className="ph-chip">№ заказа:</span> {editOrder?.order_number || '—'}</div>
+                <div className="ph-cp">{editOrder?.counterparty || ''}</div>
+              </div>
+            </div>
+
             <div className="print-only" style={{ marginBottom: 16, fontSize: '1.1rem', fontWeight: 700 }}>
               СПЕЦИФИКАЦИЯ СТЕНОВЫХ ПАНЕЛЕЙ NUOVO {series}
             </div>
 
             {spec.panels.length > 0 && (
               <div className="print-only" style={{ marginBottom: 24 }}>
-                <div style={{ fontWeight: 600, marginBottom: 8 }}>Схема раскладки</div>
+                <div style={{ fontWeight: 600, marginBottom: 8 }}>Раскладка спереди</div>
+                <WallElevation items={elevation} jointTypes={jointTypes} />
+                <div style={{ fontWeight: 600, margin: '16px 0 8px' }}>Панели и типы кромок</div>
+                <ElevationTable items={elevation} />
+                <div style={{ fontWeight: 600, margin: '16px 0 8px' }}>Схема раскладки — вид сверху</div>
                 <WallScheme walls={walls} doors={doors} panels={spec.panels} itemOrder={itemOrder} jointTypes={jointTypes} />
               </div>
             )}

@@ -19,7 +19,7 @@
   "fields": {
     "series": "60",
     "code": "B",
-    "name": "Ламель (соединение)",
+    "name": "Ламель соединительная (без зазора)",
     "offset_mm": 0.0,
     "price_per_meter": 350.0,
     "profile_article": "ламель",
@@ -33,7 +33,7 @@
   "fields": {
     "series": "60",
     "code": "C",
-    "name": "Соединительный",
+    "name": "Профиль соединительный (зазор 4 мм)",
     "offset_mm": -4.0,
     "price_per_meter": 500.0,
     "profile_article": "104.259",
@@ -201,7 +201,7 @@
   "fields": {
     "series": "60",
     "code": "R",
-    "name": "Подрез",
+    "name": "Профиль П-обр 6×6 (зазор 6 мм)",
     "offset_mm": -6.0,
     "price_per_meter": 350.0,
     "profile_article": "",
@@ -229,7 +229,7 @@
   "fields": {
     "series": "60",
     "code": "P",
-    "name": "Декор",
+    "name": "Профиль-декор алюм. П-обр 6×6",
     "offset_mm": 0.0,
     "price_per_meter": 500.0,
     "profile_article": "",
@@ -585,6 +585,34 @@
     "profile_article": "",
     "profile_count": 0.0,
     "image": "joints/joint_Z_50.png"
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 45,
+  "fields": {
+    "series": "60",
+    "code": "STEP",
+    "name": "Полка Step",
+    "offset_mm": 0.0,
+    "price_per_meter": 0.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 46,
+  "fields": {
+    "series": "50",
+    "code": "STEP",
+    "name": "Полка Step",
+    "offset_mm": 0.0,
+    "price_per_meter": 0.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": ""
   }
 },
 {
@@ -5148,10 +5176,10 @@
   "fields": {
     "name": "PASSO",
     "subtitle": "Широкий",
-    "nH": 105.0,
-    "nL": 210.0,
-    "dH": -22.0,
-    "dL": -25.0,
+    "nH": 110.0,
+    "nL": 220.0,
+    "dH": -17.0,
+    "dL": -15.0,
     "depth_mode": "fixed",
     "depth_delta": 0.0,
     "profile_count": 2,
