@@ -704,10 +704,8 @@ export function elevationRows(items: ElevItem[]): ElevRow[] {
       }
     }
   }
-  // Строки идут в порядке обозначений чертежа (А1, А2…), а не по столбцам.
-  const num = (s: string) => parseInt(s.replace(/\D+/g, ''), 10) || 0
-  rows.sort((a, b) => num(a.name) - num(b.name))
-  rows.forEach((r, i) => { r.no = i + 1 })
+  // Строки уже идут в порядке обозначений: панели участка сверху вниз и слева
+  // направо, участки — как на развёртке.
   return rows
 }
 

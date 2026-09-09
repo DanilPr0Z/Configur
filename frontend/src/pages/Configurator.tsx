@@ -17,6 +17,9 @@ type ConnType = 'B' | 'C'
 interface WallSeg {
   id: string
   name: string
+  // Обозначение участка на чертеже, как в СП («П50»). Пусто — панели этой стены
+  // нумеруются сквозной чертёжной нумерацией А1, А2…
+  drawCode: string
   wallHeight: number
   wallLength: number
   leftNode: string
@@ -295,7 +298,7 @@ const uid = () => `id${++_seq}`
 
 function makeWall(n: number): WallSeg {
   return {
-    id: uid(), name: `Стена ${n}`,
+    id: uid(), name: `Стена ${n}`, drawCode: '',
     wallHeight: 2700, wallLength: 3000,
     leftNode: 'A', rightNode: 'A',
     topEdge: '', bottomEdge: '',
@@ -340,6 +343,7 @@ function migrateWalls(raw: any[]): WallSeg[] {
     ...wa,
     id: wa.id ?? uid(),
     name: wa.name ?? 'Стена',
+    drawCode: wa.drawCode ?? '',
     wallHeight: wa.wallHeight ?? 2700,
     wallLength: wa.wallLength ?? 3000,
     numPanels: wa.numPanels ?? 0,
@@ -802,13 +806,15 @@ function buildElevation(
       const maxR = Math.max(...c.colRows.map(rs => rs.length), 1)
       // Обозначения на чертеже идут в том же порядке, что и строки спецификации:
       // ряд сверху вниз, в ряду слева направо (объединённая панель — одна).
-      const cells = c.cells.map(cl => ({
+      // С обозначением участка панели нумеруются внутри него как в СП (п.1, п.2…),
+      // без него — сквозной чертёжной нумерацией по всей развёртке (А1, А2…).
+      const cells = c.cells.map((cl, k) => ({
         ...cl,
         label: maxR > 1 ? `${wi + 1}.${cl.row + 1}.${cl.col + 1}` : `${wi + 1}.${cl.col + 1}`,
-        drawLabel: nextDraw(),
+        drawLabel: w.drawCode ? `п.${k + 1}` : nextDraw(),
       }))
       items.push({
-        kind: 'wall', id: w.id, name: w.name,
+        kind: 'wall', id: w.id, name: w.drawCode ? `${w.drawCode} · ${w.name}` : w.name,
         wallLength: w.wallLength, wallHeight: w.wallHeight,
         lengthByNodes: c.wallLengthByPanels,
         gapTop: w.gapTop ?? DEFAULT_GAP_TOP, gapBottom: w.gapBottom ?? DEFAULT_GAP_BOTTOM,
@@ -1064,6 +1070,13 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
   return (
     <div className="card" style={{ borderLeft: '3px solid #4c6ef5' }}>
       <div className="flex justify-between flex-center" style={{ marginBottom: 12 }}>
+        <input
+          value={wall.drawCode}
+          onChange={e => onChange({ drawCode: e.target.value })}
+          placeholder="П50"
+          title="Обозначение участка на чертеже, как в СП. Задано — панели нумеруются внутри участка (п.1, п.2…), пусто — сквозной нумерацией А1, А2…"
+          style={{ fontWeight: 700, fontSize: '.9rem', width: 62, marginRight: 8, padding: '2px 6px', borderRadius: 5, border: '1px dashed #cbd5e1', background: '#f8fafc', color: '#1a4d8a' }}
+        />
         <input
           value={wall.name}
           onChange={e => onChange({ name: e.target.value })}
