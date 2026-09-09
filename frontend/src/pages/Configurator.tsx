@@ -2258,7 +2258,7 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
   const [profileColors, setProfileColors] = useState<ProfileColor[]>([])
 
   useEffect(() => {
-    document.title = `NUOVO ${series} — Конфигуратор стеновых панелей`
+    document.title = `NUOVO ${series} — Конфигуратор панелей`
     fetchJointTypes(series).then(setJointTypes).catch(() => {})
     fetchFinishGroups(series).then(setFinishGroups).catch(() => {})
     fetchAluminumProfiles().then(setAluminumProfiles).catch(() => {})
@@ -2482,7 +2482,7 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
       )}
       <div className="page">
         <div className="container">
-          <h1 className="page-title no-print">Конфигуратор стеновых панелей — NUOVO {series}</h1>
+          <h1 className="page-title no-print">Конфигуратор панелей — NUOVO {series}</h1>
 
           <StepNav step={activeStep} onStep={setActiveStep} />
 
