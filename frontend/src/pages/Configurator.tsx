@@ -1246,7 +1246,7 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
                             onChange={e => setRowHeight(r, +e.target.value)}
                             style={{ width: 84, textAlign: 'center' }} />
                         ) : (
-                          <span style={{ fontWeight: 600 }}>{hasColRows ? '—' : `${calc.rowHeights[r]} мм`}</span>
+                          !hasColRows && <span style={{ fontWeight: 600 }}>{calc.rowHeights[r]} мм</span>
                         )}
                       </th>
                       {calc.widths.map((_, i) => {
@@ -1283,7 +1283,7 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
                                   }}
                                   style={{ width: 76, textAlign: 'center' }} />
                               ) : (
-                                <span>{cell.height} × {cell.width}</span>
+                                <span style={{ marginRight: merged ? 2 : 0 }}>{cell.height} × {cell.width}</span>
                               )}
                               {merged && (
                                 <button type="button" className="lg-btn" title="Разъединить"
@@ -1328,9 +1328,12 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
 
             {/* Итоги: расхождения по длине и высоте + подсказка про объединение */}
             <div style={{ fontSize: '.78rem', marginTop: 8, display: 'flex', gap: 18, flexWrap: 'wrap' }}>
-              <span style={{ color: widthDiff === 0 ? '#166534' : '#b45309' }}>
+              <span style={{ color: (widthDiff === 0 || wall.widthMode !== 'manual') ? '#166534' : '#b45309' }}>
                 Ширины: Σ <strong>{calc.widthsSum}</strong> из <strong>{calc.wallLengthByPanels} мм</strong> по узлам
-                {widthDiff !== 0 && <> — расхождение <strong>{widthDiff > 0 ? '+' : ''}{widthDiff}</strong></>}
+                {/* В авто-режиме ±0,5 мм — это округление половинок, не ошибка ввода */}
+                {widthDiff !== 0 && wall.widthMode === 'manual' && (
+                  <> — расхождение <strong>{widthDiff > 0 ? '+' : ''}{widthDiff}</strong></>
+                )}
                 {wall.widthMode === 'manual' && (
                   <button type="button" className="btn btn-ghost btn-sm" style={{ marginLeft: 6 }}
                     onClick={fillLastWidth} title="Последняя панель добирает длину по узлам">
