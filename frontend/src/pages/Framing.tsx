@@ -472,8 +472,9 @@ function IzmerScheme({ model, H, L, C }: { model: { nH: number; nL: number }; H:
     { id: 'Hp', left: '8%', top: '45%', v: H, vert: true },
     { id: 'Cp', left: '19.5%', top: '59%', v: C },
     { id: 'Ln', left: '77%', top: '22.5%', v: L + model.nL },
-    { id: 'Ls', left: '76.5%', top: '29%', v: L - 50 },
-    { id: 'Hs', left: '63.5%', top: '47%', v: H - 25, vert: true },
+    // «L свет.» и «H свет.» убраны 09.09.2026: формула −50 / −25 верна только для
+    // моделей с добором 25 мм, у MINI/TRIANGLE/PASSO он 20, у TERZO/DORA — 24,
+    // правильного размера на заводских чертежах нет. На цену не влияло.
     { id: 'Hn', left: '94%', top: '48%', v: H + model.nH, vert: true },
   ]
   return (

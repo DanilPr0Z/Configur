@@ -186,7 +186,8 @@ export function computeSpec(st: FramingState, cat: FramingCatalog): SpecResult {
   const total = rNV + rNH + rDV + rDH + sur + rGV + rGH + rShV + rShH
 
   const cN = cat.colors[st.ci] || '—'
-  const dN = dob ? dob.name : '—'
+  // В спецификации добор пишем как «ГРУППА · Отделка» — как в эталонном калькуляторе.
+  const dN = dob ? `${dob.group} · ${dob.name}` : '— · —'
   const veneerName = venActive ? (cat.veneerItems[st.vi]?.name || '') : ''
   const cLabel = veneerName ? `${cN} · шпон ${veneerName}` : cN
   const rows: SpecRow[] = []
@@ -195,7 +196,7 @@ export function computeSpec(st: FramingState, cat: FramingCatalog): SpecResult {
     rows.push({ nm: `Наличник горизонтальный, ${m.name} · ${cLabel}`, dm: `${nH2} мм`, qt: qh, pr: rNH })
   }
   if (hasGlass) {
-    const glassName = [st.glassGroup || '—', st.glassInsert, st.glassColor.trim()]
+    const glassName = [st.glassGroup || '—', st.glassInsert || '—', st.glassColor.trim()]
       .filter(Boolean).join(' · ')
     rows.push({ nm: `Вставка наличника верт., ${glassName}`, dm: `${gV} мм`, qt: qv, pr: rGV, cl: 'glass' })
     rows.push({ nm: `Вставка наличника гориз., ${glassName}`, dm: `${gH2} мм`, qt: qh, pr: rGH, cl: 'glass' })
