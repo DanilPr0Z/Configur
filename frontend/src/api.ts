@@ -3,8 +3,9 @@ import axios from 'axios'
 const api = axios.create({ baseURL: import.meta.env.VITE_API_URL ?? '/api/' })
 
 // ─── Вход в cascate.ru → доступ к записи заказов ──────────────────────────────
-// SidebarAuth после входа кладёт { id_person, login } в localStorage['cascate_user'].
-// Прикрепляем id_person к каждому запросу — по нему бэкенд пускает сохранение.
+// SidebarAuth после входа кладёт { id_person, login, token } в localStorage.
+// К каждому запросу цепляем token: по нему бэкенд узнаёт кабинет. Сам id_person
+// не секрет, поэтому как пропуск он не годится.
 const CASCATE_USER_KEY = 'cascate_user'
 export const LOGIN_REQUIRED_MSG =
   'Войдите через cascate.ru (кнопка «Войти» в меню слева), чтобы сохранять заказы.'
@@ -12,7 +13,7 @@ export const LOGIN_REQUIRED_MSG =
 export function isCascateLoggedIn(): boolean {
   try {
     const raw = localStorage.getItem(CASCATE_USER_KEY)
-    return !!(raw && JSON.parse(raw)?.id_person)
+    return !!(raw && JSON.parse(raw)?.token)
   } catch { return false }
 }
 
@@ -20,7 +21,7 @@ api.interceptors.request.use(config => {
   try {
     const raw = localStorage.getItem(CASCATE_USER_KEY)
     const u = raw ? JSON.parse(raw) : null
-    if (u?.id_person) config.headers['X-Cascate-Id'] = u.id_person
+    if (u?.token) config.headers['X-Cascate-Token'] = u.token
   } catch { /* пустой/битый localStorage — просто без заголовка */ }
   return config
 })
@@ -353,7 +354,13 @@ export const fetchFramingLead = (id: number) =>
 
 // ─── Вход через cascate.ru ────────────────────────────────────────────────────
 
-export interface CascateUser { id_person: string; login: string }
+export interface CascateUser { id_person: string; login: string; token: string }
 
 export const cascateLogin = (login: string, password: string) =>
   api.post<CascateUser>('auth/cascate-login/', { login, password }).then(r => r.data)
+
+// Гасим сессию на сервере, чтобы токен нельзя было использовать после выхода.
+// Токен передаём явно: localStorage к моменту отправки уже может быть очищен.
+export const cascateLogout = (token: string) =>
+  api.post('auth/cascate-logout/', null, { headers: { 'X-Cascate-Token': token } })
+    .then(r => r.data).catch(() => null)

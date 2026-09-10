@@ -97,8 +97,8 @@ from corsheaders.defaults import default_headers
 
 CORS_ALLOW_ALL_ORIGINS = DEBUG
 CORS_ALLOWED_ORIGINS = os.environ.get('CORS_ALLOWED_ORIGINS', '').split(',') if not DEBUG else []
-# Заголовок входа в cascate.ru, по которому бэкенд пускает запись заказов.
-CORS_ALLOW_HEADERS = (*default_headers, 'x-cascate-id')
+# Токен сессии cascate.ru, по которому бэкенд узнаёт кабинет.
+CORS_ALLOW_HEADERS = (*default_headers, 'x-cascate-token')
 
 # ── Внешний API cascate.ru ────────────────────────────────────────────────────
 CASCATE_BASE_URL = os.environ.get('CASCATE_BASE_URL', 'https://cascate.ru/Api')

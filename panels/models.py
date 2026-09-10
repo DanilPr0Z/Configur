@@ -253,6 +253,29 @@ class FramingLead(models.Model):
         return f'Заявка обрамления #{self.pk} — {self.name} ({self.total} ₽)'
 
 
+class CascateSession(models.Model):
+    """Сессия входа через cascate.ru.
+
+    id_person сам по себе — не секрет (его знает и показывает cascate), поэтому
+    доверять ему из заголовка нельзя: подставив чужой, можно было бы читать чужие
+    заказы. При входе выдаём случайный токен, по нему и узнаём пользователя.
+    """
+    token = models.CharField(max_length=64, unique=True, verbose_name='Токен')
+    id_person = models.CharField(max_length=64, db_index=True,
+                                 verbose_name='id_person в cascate.ru')
+    login = models.CharField(max_length=200, blank=True, verbose_name='Логин')
+    created_at = models.DateTimeField(auto_now_add=True)
+    last_seen = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Сессия cascate.ru'
+        verbose_name_plural = 'Сессии cascate.ru'
+        ordering = ['-last_seen']
+
+    def __str__(self):
+        return f'{self.login or self.id_person} (до {self.last_seen:%d.%m.%Y})'
+
+
 # ─── Заказ ───────────────────────────────────────────────────────────────────
 
 class Order(models.Model):

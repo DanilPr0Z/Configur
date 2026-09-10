@@ -353,9 +353,12 @@ cd frontend && npm run build
 ## Доступ и разделение по аккаунтам
 
 Весь API закрыт: `DEFAULT_PERMISSION_CLASSES = panels.permissions.RequireCascateLogin`.
-Вошедшим считается тот, кто прислал непустой заголовок `X-Cascate-Id` (фронт
-кладёт `id_person` после входа через cascate.ru и цепляет его axios-интерцептором).
-Открыты только вход (`auth/cascate-login/`) и выгрузка заказа в cascate
+Вход через cascate.ru создаёт `CascateSession` (случайный токен + id_person), фронт
+хранит токен в localStorage и шлёт в заголовке `X-Cascate-Token`; по нему бэкенд и
+узнаёт кабинет. Сам `id_person` пропуском НЕ является — он не секрет, подставив
+чужой, можно было бы читать чужие заказы. Сессия живёт 30 дней без активности
+(`SESSION_TTL`), выход (`auth/cascate-logout/`) её удаляет.
+Открыты только вход, выход и выгрузка заказа в cascate
 (`orders/{id}/export_cascate/` — там своя проверка логина).
 
 Заказы и заявки обрамления принадлежат аккаунту: при создании в
@@ -364,9 +367,14 @@ cd frontend && npm run build
 всем. Панели фильтруются через `order__cascate_id_person`, поэтому чужой заказ
 даёт 404, а не 403.
 
-Важно: заголовок не проверяется на стороне cascate.ru — любой, кто подставит
-чужой id_person, получит доступ к его заказам. Для реальной защиты нужна
-проверка id_person через API cascate или собственные сессии.
+Разобрать старые заказы по кабинетам:
+
+```bash
+python manage.py orders_owner --list                          # сводка по агентам
+python manage.py orders_owner --agent "Иванов И. И." --assign-to 777
+python manage.py orders_owner --all --assign-to 777
+python manage.py orders_owner --leads --list                  # то же для заявок
+```
 
 На фронте маршруты обёрнуты в `AuthGate` (`components/AuthGate.tsx`): без входа
 показывается экран «Нужен вход», а не пустые страницы с ошибками.

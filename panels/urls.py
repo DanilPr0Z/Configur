@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     JointTypeViewSet, FinishGroupViewSet, ProfileColorViewSet,
     AluminumProfileViewSet, OrderViewSet, PanelViewSet, DoorPanelViewSet,
-    FramingConfigView, FramingLeadViewSet, CascateLoginView,
+    FramingConfigView, FramingLeadViewSet, CascateLoginView, CascateLogoutView,
 )
 
 router = DefaultRouter()
@@ -19,4 +19,5 @@ router.register(r'framing-leads', FramingLeadViewSet, basename='framinglead')
 urlpatterns = router.urls + [
     path('framing/config/', FramingConfigView.as_view()),
     path('auth/cascate-login/', CascateLoginView.as_view()),
+    path('auth/cascate-logout/', CascateLogoutView.as_view()),
 ]

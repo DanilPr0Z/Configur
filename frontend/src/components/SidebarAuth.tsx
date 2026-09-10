@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { cascateLogin, type CascateUser } from '../api'
+import { cascateLogin, cascateLogout, type CascateUser } from '../api'
 import { AUTH_EVENT, OPEN_LOGIN_EVENT } from './AuthGate'
 
 const STORE_KEY = 'cascate_user'
@@ -38,6 +38,7 @@ export default function SidebarAuth() {
   }
 
   function logout() {
+    if (user?.token) cascateLogout(user.token)
     localStorage.removeItem(STORE_KEY)
     setUser(null)
     window.dispatchEvent(new Event(AUTH_EVENT))

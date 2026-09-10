@@ -1963,6 +1963,15 @@ interface LeaveGuardProps {
   onCancel: () => void
 }
 
+// «1 панель», «2 панели», «5 панелей»
+function panelsWord(n: number): string {
+  const t = n % 100, o = n % 10
+  if (t >= 11 && t <= 14) return 'панелей'
+  if (o === 1) return 'панель'
+  if (o >= 2 && o <= 4) return 'панели'
+  return 'панелей'
+}
+
 function LeaveGuard({ panelCount, isEdit, onSave, onLeave, onCancel }: LeaveGuardProps) {
   return (
     <div
@@ -1974,28 +1983,30 @@ function LeaveGuard({ panelCount, isEdit, onSave, onLeave, onCancel }: LeaveGuar
       onMouseDown={e => { if (e.target === e.currentTarget) onCancel() }}
     >
       <div style={{
-        background: '#fff', borderRadius: 16, width: 460, maxWidth: '95vw',
+        background: '#fff', borderRadius: 16, width: 520, maxWidth: '95vw',
         boxShadow: '0 20px 60px rgba(0,0,0,0.22)', padding: '26px 30px',
       }}>
         <h2 style={{ margin: '0 0 12px', fontSize: '1.12rem', color: '#1a1a2e' }}>
           {isEdit ? 'Сохранить изменения заказа?' : 'Сохранить набранное как заказ?'}
         </h2>
         <p style={{ margin: '0 0 8px', fontSize: 14, color: '#444', lineHeight: 1.5 }}>
-          В конфигураторе есть несохранённые данные{panelCount > 0 ? <> — <strong>{panelCount} панел.</strong></> : null}.
+          В конфигураторе есть несохранённые данные{panelCount > 0
+            ? <> — <strong>{panelCount} {panelsWord(panelCount)}</strong></> : null}.
           Если уйти, они пропадут.
         </p>
         <p style={{ margin: '0 0 22px', fontSize: 13, color: '#777', lineHeight: 1.5 }}>
           Сохранение локальное — заказ появится в разделе «Заказы» с номером,
           который вы укажете. Выгрузка в cascate.ru при этом не выполняется.
         </p>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        {/* Отмена слева, действия справа — в один ряд, без переносов */}
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+          <button className="btn btn-ghost" onClick={onCancel} style={{ marginRight: 'auto' }}>
+            Отмена
+          </button>
+          <button className="btn btn-ghost" onClick={onLeave}>Не сохранять</button>
           <button className="btn btn-primary" onClick={onSave}>
             {isEdit ? 'Сохранить изменения' : 'Сохранить заказ'}
           </button>
-          <button className="btn btn-ghost" onClick={onLeave}>Выйти без сохранения</button>
-          <div style={{ marginLeft: 'auto' }}>
-            <button className="btn btn-ghost" onClick={onCancel}>Отмена</button>
-          </div>
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@ from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from collections import Counter
+import secrets
 import openpyxl
 from io import BytesIO
 from datetime import datetime, date
@@ -21,7 +22,7 @@ from .models import (
     JointType, FinishGroup, Finish, ProfileColor,
     AluminumProfile, Order, DoorPanel, Panel,
     FramingModel, FramingColor, FramingProfilePrice,
-    FramingDoborGroup, FramingDobor, FramingLead,
+    FramingDoborGroup, FramingDobor, FramingLead, CascateSession,
 )
 from .serializers import (
     JointTypeSerializer, FinishGroupSerializer, ProfileColorSerializer,
@@ -523,4 +524,17 @@ class CascateLoginView(APIView):
             return Response({'error': 'Неверная почта или пароль'}, status=401)
         except CascateError as exc:
             return Response({'error': str(exc)}, status=502)
-        return Response({'id_person': id_person, 'login': login})
+        session = CascateSession.objects.create(
+            token=secrets.token_urlsafe(32), id_person=id_person, login=login)
+        return Response({'id_person': id_person, 'login': login, 'token': session.token})
+
+
+class CascateLogoutView(APIView):
+    """Выход: гасим сессию, чтобы токен нельзя было использовать дальше."""
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        token = (request.headers.get('X-Cascate-Token') or '').strip()
+        if token:
+            CascateSession.objects.filter(token=token).delete()
+        return Response({'ok': True})
