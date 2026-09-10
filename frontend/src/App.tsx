@@ -9,6 +9,7 @@ import JointImages from './pages/JointImages'
 import Footer from './components/Footer'
 import SidebarAuth from './components/SidebarAuth'
 import ErrorBoundary from './components/ErrorBoundary'
+import AuthGate from './components/AuthGate'
 import './index.css'
 
 const navCls = ({ isActive }: { isActive: boolean }) =>
@@ -34,7 +35,9 @@ function Layout() {
       <div className="app-content">
         <main className="app-main">
           <ErrorBoundary>
-            <Outlet />
+            <AuthGate>
+              <Outlet />
+            </AuthGate>
           </ErrorBoundary>
         </main>
         <Footer />

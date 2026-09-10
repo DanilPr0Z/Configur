@@ -14,7 +14,7 @@ router.register(r'aluminum-profiles', AluminumProfileViewSet)
 router.register(r'orders', OrderViewSet)
 router.register(r'panels', PanelViewSet, basename='panel')
 router.register(r'door-panels', DoorPanelViewSet, basename='doorpanel')
-router.register(r'framing-leads', FramingLeadViewSet)
+router.register(r'framing-leads', FramingLeadViewSet, basename='framinglead')
 
 urlpatterns = router.urls + [
     path('framing/config/', FramingConfigView.as_view()),

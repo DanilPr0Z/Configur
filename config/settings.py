@@ -110,6 +110,11 @@ REST_FRAMEWORK = {
     'DEFAULT_RENDERER_CLASSES': [
         'rest_framework.renderers.JSONRenderer',
     ],
+    # Весь API — только для вошедших через cascate.ru. Исключения объявляют сами
+    # вьюхи: вход (CascateLoginView) и выгрузка заказа в cascate (свой логин).
+    'DEFAULT_PERMISSION_CLASSES': [
+        'panels.permissions.RequireCascateLogin',
+    ],
 }
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

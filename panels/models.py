@@ -239,6 +239,11 @@ class FramingLead(models.Model):
     spec = models.JSONField(null=True, blank=True, verbose_name='Спецификация (строки)')
     total = models.FloatField(default=0, verbose_name='Итого, руб')
 
+    # Кабинет, из которого оставлена заявка: в ЛК каждый видит свои.
+    # Пусто — заявка с публичной страницы или из версии до разделения.
+    cascate_id_person = models.CharField(max_length=64, blank=True, db_index=True,
+                                         verbose_name='id_person в cascate.ru')
+
     class Meta:
         verbose_name = 'Обрамление: заявка'
         verbose_name_plural = 'Обрамление: заявки'
@@ -268,7 +273,7 @@ class Order(models.Model):
     notes = models.TextField(blank=True, verbose_name='Примечания')
     configurator_state = models.JSONField(null=True, blank=True, verbose_name='Состояние конфигуратора')
 
-    cascate_id_person = models.CharField(max_length=64, blank=True,
+    cascate_id_person = models.CharField(max_length=64, blank=True, db_index=True,
                                          verbose_name='id_person в cascate.ru')
     cascate_synced_at = models.DateTimeField(null=True, blank=True,
                                              verbose_name='Выгружен в cascate.ru')

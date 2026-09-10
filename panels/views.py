@@ -4,7 +4,8 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .permissions import RequireCascateLogin
+from .permissions import RequireCascateLogin, cascate_id
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from collections import Counter
@@ -95,18 +96,24 @@ class OrderViewSet(viewsets.ModelViewSet):
     permission_classes = [RequireCascateLogin]
 
     def get_permissions(self):
-        # Калькулятор раскладки ничего не сохраняет, а выгрузка в cascate имеет
-        # собственную проверку (id_person / логин-пароль в теле) — их не гейтим.
-        if self.action in ('calculate_wall', 'export_cascate'):
+        # Выгрузка в cascate проверяет себя сама (id_person или логин-пароль в теле).
+        if self.action == 'export_cascate':
             return [AllowAny()]
         return super().get_permissions()
 
     def get_queryset(self):
-        qs = Order.objects.all()
+        # Каждый видит только свои заказы. Заказы без владельца — из версии до
+        # разделения по аккаунтам, они остаются общими, чтобы не потерять доступ.
+        qs = Order.objects.filter(
+            Q(cascate_id_person=cascate_id(self.request)) | Q(cascate_id_person='')
+        )
         series = self.request.query_params.get('series')
         if series:
             qs = qs.filter(series=series)
         return qs
+
+    def perform_create(self, serializer):
+        serializer.save(cascate_id_person=cascate_id(self.request))
 
     def get_serializer_class(self):
         if self.action in ('retrieve', 'create', 'update', 'partial_update'):
@@ -433,10 +440,12 @@ class PanelViewSet(viewsets.ModelViewSet):
     permission_classes = [RequireCascateLogin]
 
     def get_queryset(self):
+        # Панели доступны только внутри своих заказов.
         qs = Panel.objects.select_related(
             'joint_left', 'joint_right', 'joint_top', 'joint_bottom',
             'finish', 'finish_group', 'aluminum_color',
-        )
+        ).filter(Q(order__cascate_id_person=cascate_id(self.request))
+                 | Q(order__cascate_id_person=''))
         order_id = self.request.query_params.get('order')
         if order_id:
             qs = qs.filter(order_id=order_id)
@@ -451,7 +460,8 @@ class DoorPanelViewSet(viewsets.ModelViewSet):
         qs = DoorPanel.objects.select_related(
             'joint_top_left', 'joint_top_right', 'joint_bottom',
             'finish', 'finish_group',
-        )
+        ).filter(Q(order__cascate_id_person=cascate_id(self.request))
+                 | Q(order__cascate_id_person=''))
         order_id = self.request.query_params.get('order')
         if order_id:
             qs = qs.filter(order_id=order_id)
@@ -479,12 +489,22 @@ class FramingConfigView(APIView):
 class FramingLeadViewSet(mixins.CreateModelMixin, mixins.ListModelMixin,
                          mixins.RetrieveModelMixin, viewsets.GenericViewSet):
     """Заявки из калькулятора обрамления. Создание — из калькулятора, список — в ЛК."""
-    queryset = FramingLead.objects.all()
     serializer_class = FramingLeadSerializer
+
+    def get_queryset(self):
+        # В кабинете видны свои заявки и заявки без владельца (публичная
+        # страница, версии до разделения по аккаунтам).
+        return FramingLead.objects.filter(
+            Q(cascate_id_person=cascate_id(self.request)) | Q(cascate_id_person='')
+        )
+
+    def perform_create(self, serializer):
+        serializer.save(cascate_id_person=cascate_id(self.request))
 
 
 class CascateLoginView(APIView):
     """Вход через API cascate.ru. Логин/пароль не сохраняются — меняются на id_person."""
+    permission_classes = [AllowAny]
 
     def post(self, request):
         login = (request.data.get('login') or '').strip()

@@ -1,17 +1,20 @@
-from rest_framework.permissions import BasePermission, SAFE_METHODS
+from rest_framework.permissions import BasePermission
+
+
+def cascate_id(request) -> str:
+    """id_person вошедшего пользователя из заголовка (пусто — не вошёл).
+
+    Фронт после успешного входа кладёт id_person в localStorage и присылает его
+    в заголовке X-Cascate-Id на каждом запросе (axios-интерцептор).
+    """
+    return (request.headers.get('X-Cascate-Id') or '').strip()
 
 
 class RequireCascateLogin(BasePermission):
-    """Чтение открыто, запись (создание/изменение/удаление заказов и панелей)
-    требует входа через cascate.ru.
-
-    Фронт после успешного входа кладёт id_person в localStorage и присылает его
-    в заголовке X-Cascate-Id на каждом запросе (axios-интерцептор). Наличие
-    непустого id_person = пользователь вошёл в cascate.ru.
+    """Весь API — только для вошедших через cascate.ru, и на чтение, и на запись.
+    Свои заказы и заявки каждый видит через фильтр в get_queryset вьюсета.
     """
-    message = 'Войдите через cascate.ru, чтобы сохранять заказы.'
+    message = 'Войдите через cascate.ru, чтобы пользоваться конфигуратором.'
 
     def has_permission(self, request, view):
-        if request.method in SAFE_METHODS:
-            return True
-        return bool((request.headers.get('X-Cascate-Id') or '').strip())
+        return bool(cascate_id(request))

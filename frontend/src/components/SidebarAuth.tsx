@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { cascateLogin, type CascateUser } from '../api'
+import { AUTH_EVENT, OPEN_LOGIN_EVENT } from './AuthGate'
 
 const STORE_KEY = 'cascate_user'
 const CASCATE_URL = 'https://cascate.ru/cabinet/'
@@ -27,6 +28,7 @@ export default function SidebarAuth() {
       const u = await cascateLogin(login.trim(), password)
       localStorage.setItem(STORE_KEY, JSON.stringify(u))
       setUser(u)
+      window.dispatchEvent(new Event(AUTH_EVENT))
       setOpen(false); setLogin(''); setPassword('')
     } catch (e: any) {
       setErr(e?.response?.data?.error || 'Не удалось войти. Проверьте почту и пароль.')
@@ -38,7 +40,15 @@ export default function SidebarAuth() {
   function logout() {
     localStorage.removeItem(STORE_KEY)
     setUser(null)
+    window.dispatchEvent(new Event(AUTH_EVENT))
   }
+
+  // Кнопка «Войти» с экрана-заглушки открывает эту же форму
+  useEffect(() => {
+    const open = () => setOpen(true)
+    window.addEventListener(OPEN_LOGIN_EVENT, open)
+    return () => window.removeEventListener(OPEN_LOGIN_EVENT, open)
+  }, [])
 
   return (
     <div className="sidebar-foot no-print">
