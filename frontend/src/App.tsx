@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider, Outlet, NavLink } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Outlet, NavLink, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
 import Configurator from './pages/Configurator'
 import Framing from './pages/Framing'
@@ -6,6 +6,7 @@ import FramingLeads from './pages/FramingLeads'
 import OrdersList from './pages/OrdersList'
 import OrderDetail from './pages/OrderDetail'
 import JointImages from './pages/JointImages'
+import Help from './pages/Help'
 import Footer from './components/Footer'
 import SidebarAuth from './components/SidebarAuth'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -15,7 +16,16 @@ import './index.css'
 const navCls = ({ isActive }: { isActive: boolean }) =>
   'sidebar-link' + (isActive ? ' active' : '')
 
+// Инструкция открыта без входа — она нужна как раз тому, кто ещё не разобрался,
+// и никаких данных с бэкенда не запрашивает.
+const PUBLIC_PATHS = ['/help']
+
 function Layout() {
+  const { pathname } = useLocation()
+  const content = PUBLIC_PATHS.includes(pathname)
+    ? <Outlet />
+    : <AuthGate><Outlet /></AuthGate>
+
   return (
     <div className="app-layout">
       <aside className="sidebar no-print">
@@ -28,17 +38,15 @@ function Layout() {
           <div className="sidebar-group">Личный кабинет</div>
           <NavLink to="/orders" className={navCls}>Заказы</NavLink>
           <NavLink to="/framing-leads" className={navCls}>Заявки обрамления</NavLink>
+          <div className="sidebar-group">Справка</div>
+          <NavLink to="/help" className={navCls}>Инструкция</NavLink>
         </nav>
         <SidebarAuth />
       </aside>
 
       <div className="app-content">
         <main className="app-main">
-          <ErrorBoundary>
-            <AuthGate>
-              <Outlet />
-            </AuthGate>
-          </ErrorBoundary>
+          <ErrorBoundary>{content}</ErrorBoundary>
         </main>
         <Footer />
       </div>
@@ -61,6 +69,7 @@ const router = createBrowserRouter([
       { path: '/orders', element: <OrdersList /> },
       { path: '/orders/:id', element: <OrderDetail /> },
       { path: '/framing-leads', element: <FramingLeads /> },
+      { path: '/help', element: <Help /> },
       // Скрыта из навигации — доступна только по прямому адресу /joint-images
       { path: '/joint-images', element: <JointImages /> },
     ],
