@@ -616,6 +616,34 @@
   }
 },
 {
+  "model": "panels.jointtype",
+  "pk": 47,
+  "fields": {
+    "series": "60",
+    "code": "TC",
+    "name": "Теневой профиль",
+    "offset_mm": 0.0,
+    "price_per_meter": 0.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": ""
+  }
+},
+{
+  "model": "panels.jointtype",
+  "pk": 48,
+  "fields": {
+    "series": "50",
+    "code": "TC",
+    "name": "Теневой профиль",
+    "offset_mm": 0.0,
+    "price_per_meter": 0.0,
+    "profile_article": "",
+    "profile_count": 0.0,
+    "image": ""
+  }
+},
+{
   "model": "panels.finishgroup",
   "pk": 1,
   "fields": {

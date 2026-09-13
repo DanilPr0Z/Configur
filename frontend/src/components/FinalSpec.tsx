@@ -90,9 +90,11 @@ function formatDate(iso: string | null): string {
   return y && m && d ? `${d}.${m}.${y}` : iso
 }
 
-/** «A \ 2988 * 1509 \ B» — как в колонке «РАЗМЕРЫ ПАНЕЛИ И ТИПЫ КРОМОК» */
+/** «A \ 2988 × 1509 \ B» — как в колонке «РАЗМЕРЫ ПАНЕЛИ И ТИПЫ КРОМОК».
+ *  Размер везде пишется «высота × ширина» — тот же порядок, что в колонках
+ *  спецификации и в форме ввода. */
 function dimensions(p: FinalSpecPanel): string {
-  return `${p.leftNode || '—'} \\ ${p.height} * ${p.width} \\ ${p.rightNode || '—'}`
+  return `${p.leftNode || '—'} \\ ${p.height} × ${p.width} \\ ${p.rightNode || '—'}`
 }
 
 /** Панели дверного проёма №n: надпроёмная «Дn» и доборы «Дn.1», «Дn.2»… */
@@ -173,8 +175,8 @@ export default function FinalSpec({ header, panels, profiles, doors, series = '6
                 <tr>
                   <th>№ п/п</th>
                   <th>№ заказа дверного полотна из DGV</th>
-                  <th>L проёма, мм</th>
                   <th>H проёма, мм</th>
+                  <th>L проёма, мм</th>
                   <th>H потолка, мм</th>
                   <th>Тип монтажа двери</th>
                   <th>Открывание двери</th>
@@ -195,8 +197,8 @@ export default function FinalSpec({ header, panels, profiles, doors, series = '6
                     <tr key={i}>
                       <td><strong>{i + 1}</strong></td>
                       <td>{dash(d.doorRef)}</td>
-                      <td><strong>{d.openingW}</strong></td>
                       <td><strong>{d.openingH}</strong></td>
+                      <td><strong>{d.openingW}</strong></td>
                       <td>{d.ceilingH}</td>
                       <td>{dash(d.mountType)}</td>
                       <td>{dash(d.openingDir)}</td>

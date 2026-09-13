@@ -61,7 +61,7 @@ export default function FramingLeads() {
                 <thead>
                   <tr>
                     <th>#</th><th>Дата</th><th>Имя</th><th>Телефон</th>
-                    <th>Модель</th><th>Проём, мм</th><th>Итого, ₽</th>
+                    <th>Модель</th><th>Проём (В×Ш×Г), мм</th><th>Итого, ₽</th>
                     <th>Статус</th><th></th>
                   </tr>
                 </thead>
@@ -107,7 +107,7 @@ export default function FramingLeads() {
                 <strong>Телефон:</strong> {lead.phone}
                 {lead.email ? <> · <strong>Email:</strong> {lead.email}</> : null}<br />
                 <strong>Модель:</strong> {lead.model_name || '—'} · <strong>Установка:</strong> {lead.install || '—'}<br />
-                <strong>Проём:</strong> {lead.opening_height} × {lead.opening_width} × {lead.wall_depth} мм<br />
+                <strong>Проём (В×Ш×Г):</strong> {lead.opening_height} × {lead.opening_width} × {lead.wall_depth} мм<br />
                 {lead.color_name ? <><strong>Наличник:</strong> {lead.color_name} </> : null}
                 {lead.dobor_name ? <>· <strong>Добор:</strong> {lead.dobor_name} </> : null}
                 {lead.glass ? <>· <strong>Вставка:</strong> {lead.glass}</> : null}

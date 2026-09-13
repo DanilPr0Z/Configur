@@ -5,7 +5,7 @@ import {
   type FramingCatalog, type FramingState, type KitType, type InstType, type SpecRow,
 } from '../framing/framingData'
 
-const fmt = (n: number) => n.toLocaleString('ru-RU')
+const fmt = (n: number) => n.toLocaleString('ru-RU', { maximumFractionDigits: 0 })
 const STEPS = ['Модель', 'Параметры', 'Спецификация', 'Заявка']
 
 export default function Framing() {

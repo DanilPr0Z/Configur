@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react'
 import { fetchJointTypes, uploadJointImage, deleteJointImage, updateJointType } from '../api'
-import type { JointType } from '../api'
+import type { JointType, Series } from '../api'
 
 const PASSWORD = '&fSZB^Q2DV&h@1NL'
 const SESSION_KEY = 'joint_images_auth'
@@ -22,15 +22,19 @@ export default function JointImages() {
     }
   }
 
+  const [series, setSeries] = useState<Series>('60')
   const [joints, setJoints] = useState<JointType[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState<number | null>(null)
   const [msg, setMsg] = useState<{ id: number; text: string; ok: boolean } | null>(null)
 
+  // Узлы грузим по одной серии: коды 50 и 60 совпадают, без фильтра карточки
+  // шли парами и было не понять, у какой серии меняешь фото.
   useEffect(() => {
     if (!auth) return
-    fetchJointTypes().then(data => { setJoints(data); setLoading(false) })
-  }, [auth])
+    setLoading(true)
+    fetchJointTypes(series).then(data => { setJoints(data); setLoading(false) })
+  }, [auth, series])
 
   if (!auth) return (
     <div className="page">
@@ -107,6 +111,19 @@ export default function JointImages() {
           Загрузите фото для каждого узла — оно будет показываться как превью при выборе в заказе.
           Рекомендуемый размер: от 400×300 пикселей, формат JPG или PNG.
         </p>
+
+        <div style={{ display: 'flex', gap: 8, marginBottom: 18 }}>
+          {(['60', '50'] as Series[]).map(s => (
+            <button
+              key={s}
+              type="button"
+              className={s === series ? 'btn btn-primary' : 'btn'}
+              onClick={() => setSeries(s)}
+            >
+              NUOVO {s}
+            </button>
+          ))}
+        </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
           {joints.map(joint => (

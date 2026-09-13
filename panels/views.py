@@ -247,7 +247,10 @@ class OrderViewSet(viewsets.ModelViewSet):
             order.save()
 
         # --- Справочники ---
-        joint_map = {j.code.upper().strip(): j for j in JointType.objects.all()}
+        # Узлы берём строго серии заказа: коды 50 и 60 совпадают (A, B, C…),
+        # и без фильтра панели NUOVO 50 получали бы поправки и цены 60-й серии.
+        joint_map = {j.code.upper().strip(): j
+                     for j in JointType.objects.filter(series=order.series)}
 
         finish_group_map = {}
         finish_map = {}

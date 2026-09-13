@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { createBrowserRouter, RouterProvider, Outlet, NavLink, useLocation } from 'react-router-dom'
 import Home from './pages/Home'
 import Configurator from './pages/Configurator'
@@ -20,8 +21,29 @@ const navCls = ({ isActive }: { isActive: boolean }) =>
 // и никаких данных с бэкенда не запрашивает.
 const PUBLIC_PATHS = ['/help']
 
+// Заголовок вкладки по разделу: раньше на всех страницах висело
+// «NUOVO 60 — Конфигуратор панелей», даже в заказах и обрамлении.
+const TITLES: { match: (p: string) => boolean; title: string }[] = [
+  { match: p => p === '/', title: 'NUOVO — расчёт заказов' },
+  { match: p => p === '/wall-60', title: 'NUOVO 60 — конфигуратор панелей' },
+  { match: p => p === '/wall-50', title: 'NUOVO 50 — конфигуратор панелей' },
+  { match: p => p === '/framing', title: 'Обрамление проёма — NUOVO' },
+  { match: p => p.startsWith('/orders'), title: 'Заказы — NUOVO' },
+  { match: p => p === '/framing-leads', title: 'Заявки обрамления — NUOVO' },
+  { match: p => p === '/help', title: 'Инструкция — NUOVO' },
+  { match: p => p === '/joint-images', title: 'Фотографии узлов — NUOVO' },
+]
+
 function Layout() {
   const { pathname } = useLocation()
+
+  useEffect(() => {
+    document.title = TITLES.find(t => t.match(pathname))?.title ?? 'NUOVO'
+    // Переход в другой раздел начинается сверху: без этого «Заказы» после
+    // длинной страницы конфигуратора открывались посреди списка.
+    window.scrollTo(0, 0)
+  }, [pathname])
+
   const content = PUBLIC_PATHS.includes(pathname)
     ? <Outlet />
     : <AuthGate><Outlet /></AuthGate>

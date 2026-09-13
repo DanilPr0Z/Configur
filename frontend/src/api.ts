@@ -26,9 +26,12 @@ api.interceptors.request.use(config => {
   return config
 })
 
+export type Series = '50' | '60'
+
 export interface JointType {
   id: number
   code: string
+  series: Series      // '60' | '50' — коды у серий совпадают, различает только это
   name: string
   offset_mm: number
   price_per_meter: number
@@ -212,8 +215,6 @@ export interface OrderSummary {
 }
 
 // ─── API calls ────────────────────────────────────────────────────────────────
-
-export type Series = '50' | '60'
 
 export const fetchJointTypes = (series?: Series) =>
   api.get<JointType[]>('joint-types/', { params: series ? { series } : {} }).then(r => r.data)

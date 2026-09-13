@@ -184,12 +184,17 @@ class Command(BaseCommand):
         }
 
         created = updated = 0
+        existing_names = dict(
+            JointType.objects.filter(series=self.series).values_list('code', 'name')
+        )
         for code, (offset, count, article, price) in joint_map.items():
+            # Узла может не быть в labels (STEP, L, M, N, Z заведены вручную) —
+            # тогда оставляем уже сохранённое название, а не затираем пустым.
             obj, is_new = JointType.objects.update_or_create(
                 code=code,
                 series=self.series,
                 defaults=dict(
-                    name=labels.get(code, ''),
+                    name=labels.get(code) or existing_names.get(code, ''),
                     offset_mm=offset,
                     profile_count=count,
                     profile_article=article,

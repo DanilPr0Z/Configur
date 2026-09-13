@@ -78,8 +78,13 @@ interface Props {
 
 const PAD_L = 74   // место под вертикальную размерную линию
 const PAD_R = 26
-const PAD_T = 34   // место под названия участков
+const PAD_T = 46   // место под названия участков и отметку верха
 const PAD_B = 62   // место под горизонтальную размерную линию и узлы
+
+// Грубая оценка ширины строки: около 0,58 кегля на символ в system-ui.
+const textW = (s: string, fs: number) => s.length * fs * 0.58
+const trunc = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1) + '…' : s)
+const NAME_MAX = 26
 
 const nodeColor = (code: string): string => {
   if (['A', 'FL', 'FR', 'E', 'I'].includes(code)) return '#3b82f6'
@@ -107,11 +112,15 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
     onMouseLeave: () => setHover(null),
   })
   const totalMm = items.reduce((s, it) => s + itemWidth(it), 0)
-  const maxHmm = Math.max(...items.map(itemHeight), 1)
-  if (totalMm <= 0) return null
+  // Math.max с NaN даёт NaN, и тогда весь SVG уезжает в NaN — поэтому сначала
+  // отбрасываем нечисловые высоты (в старых заказах ceilingH мог не сохраниться).
+  const heights = items.map(itemHeight).filter(v => Number.isFinite(v) && v > 0)
+  const maxHmm = Math.max(...heights, 1)
+  if (!Number.isFinite(totalMm) || totalMm <= 0) return null
 
   // Масштаб подбираем так, чтобы развёртка влезла и по ширине, и по высоте.
   const scale = Math.min(1060 / totalMm, 460 / maxHmm, 0.3)
+  if (!Number.isFinite(scale) || scale <= 0) return null
   const W = totalMm * scale
   const H = maxHmm * scale
   const svgW = W + PAD_L + PAD_R
@@ -276,13 +285,13 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
                   <g key={k}>
                     <rect x={c.x} y={c.y} width={c.w} height={c.h}
                       fill="#dbeafe" stroke="#60a5fa" strokeWidth="1" />
-                    {c.w >= 30 && c.h >= 18 && (
+                    {c.h >= 18 && c.w >= textW(c.drawLabel, 11) + 6 && (
                       <text x={c.x + c.w / 2} y={c.y + c.h / 2 - 5} textAnchor="middle"
                         dominantBaseline="central" fontSize="11" fill="#1e40af" fontWeight="700">
                         {c.drawLabel}
                       </text>
                     )}
-                    {c.w >= 52 && c.h >= 32 && (
+                    {c.h >= 32 && c.w >= textW(`${c.height} × ${c.width}`, 7) + 6 && (
                       <text x={c.x + c.w / 2} y={c.y + c.h / 2 + 8} textAnchor="middle"
                         dominantBaseline="central" fontSize="7" fill="#3b5bdb">
                         {c.height} × {c.width}
@@ -309,11 +318,11 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
                 )}
 
                 {/* Название участка */}
-                <text x={x + w / 2} y={PAD_T - 20} textAnchor="middle" fontSize="10.5" fill="#1e293b" fontWeight="600">
-                  {it.name}{it.copies > 1 ? ` ×${it.copies}` : ''}
+                <text x={x + w / 2} y={PAD_T - 30} textAnchor="middle" fontSize="10.5" fill="#1e293b" fontWeight="600">
+                  {trunc(it.name, NAME_MAX)}{it.copies > 1 ? ` ×${it.copies}` : ''}
                 </text>
-                <text x={x + w / 2} y={PAD_T - 8} textAnchor="middle" fontSize="8" fill="#64748b">
-                  {it.wallLength} × {it.wallHeight} мм
+                <text x={x + w / 2} y={PAD_T - 18} textAnchor="middle" fontSize="8" fill="#64748b">
+                  В {it.wallHeight} × Д {it.wallLength} мм
                 </text>
 
                 {/* Узлы на швах каждой панели — как на чертеже СП: вертикальные кромки
@@ -324,14 +333,20 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
                   const right = c.lastCol === cols.length - 1 ? it.rightNode : it.connType
                   const top = c.row === 0 ? it.topEdge : it.rowConn
                   const bottom = c.lastRow === rowsOfCol.length - 1 ? it.bottomEdge : it.rowConn
+                  // Боковые метки стоят у краёв на середине высоты, верхняя и
+                  // нижняя — по центру ширины. На панели меньше 56 × 44 px все
+                  // четыре сходились в одну точку, поэтому верх/низ показываем
+                  // только когда места хватает и по ширине, и по высоте.
+                  const sideTags = c.w >= 46 && c.h >= 26
+                  const topBotTags = c.h >= 44 && c.w >= (sideTags ? 56 : 34)
                   return (
                     <g key={`n${k}`}>
-                      {c.w >= 46 && c.h >= 26 && <>
+                      {sideTags && <>
                         <EdgeTag x={c.x + 12} y={c.y + c.h / 2} code={left} />
                         {/* у последнего столбца метку сдвигаем внутрь: снаружи идёт цепочка высот */}
                         <EdgeTag x={c.x + c.w - (c.lastCol === cols.length - 1 ? 22 : 12)} y={c.y + c.h / 2} code={right} />
                       </>}
-                      {c.h >= 40 && c.w >= 34 && <>
+                      {topBotTags && <>
                         <EdgeTag x={c.x + c.w / 2} y={c.y + 9} code={top} />
                         <EdgeTag x={c.x + c.w / 2} y={c.y + c.h - 9} code={bottom} />
                       </>}
@@ -349,9 +364,13 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
                   <DimV key={`h${i}`} x={x + w - 8} y1={r.y} y2={r.y + r.h} text={`${r.mm}`} />
                 ))}
 
-                {/* Отметки высот: верх стены и верх панельного блока */}
-                <Level x={x + 6} y={topY} mm={it.wallHeight} />
-                {blockTop - topY >= 10 && <Level x={x + 6} y={blockTop} mm={it.gapBottom + rowsTotal} />}
+                {/* Отметки высот: верх стены и верх панельного блока.
+                    Подпись отметки тянется вправо примерно на 60 px — на узком
+                    участке она наезжала на отметку следующего, поэтому прячем. */}
+                {w >= 72 && <>
+                  <Level x={x + 6} y={topY} mm={it.wallHeight} />
+                  {blockTop - topY >= 10 && <Level x={x + 6} y={blockTop} mm={it.gapBottom + rowsTotal} />}
+                </>}
               </g>
             )
           }
@@ -360,6 +379,12 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
           const openTop = yOf(it.openingH)
           const ceilY = yOf(it.ceilingH)
           const hasPanel = it.panelH !== null && it.panelW !== null
+          // Полоса правого добора (та же формула, что и внутри блока доборов):
+          // от неё отступает вертикальный размер проёма, иначе его подпись
+          // ложится ровно на повёрнутую подпись добора.
+          const rightTrimPx = it.trim
+            ? Math.max(6, Math.min(w / 3, (Number.isFinite(it.trim.right.w) ? it.trim.right.w : 0) * scale))
+            : 0
 
           return (
             <g key={it.id}>
@@ -368,7 +393,7 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
                 fill="#f8fafc" stroke="#cbd5e1" strokeWidth="1" strokeDasharray="4 3" />
 
               {/* Панель над проёмом — реальной ширины (уже проёма на узлы коробки), по центру */}
-              {hasPanel && (() => {
+              {hasPanel && (it.panelH as number) > 0 && (it.panelW as number) > 0 && (() => {
                 const ph = (it.panelH as number) * scale
                 const pw = (it.panelW as number) * scale
                 const px = x + (w - pw) / 2
@@ -406,11 +431,28 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
                   показываем его полосой по краю проёма шириной в глубину добора. */}
               {it.trim && (() => {
                 const t = it.trim
-                // Глубина добора в мм → пиксели, но не тоньше 6 px и не шире трети проёма.
-                const depth = (mm: number) => Math.max(6, Math.min(w / 3, mm * scale))
+                // Глубина добора в мм → пиксели, но не тоньше 6 px и не шире трети
+                // проёма. Размер из старого заказа может прийти пустым — тогда
+                // Math.min(x, NaN) давал NaN и полоса не рисовалась вовсе.
+                const depth = (mm: number) =>
+                  Math.max(6, Math.min(w / 3, (Number.isFinite(mm) ? mm : 0) * scale))
                 const lw = depth(t.left.w)
-                const rw = depth(t.right.w)
-                const th = t.top ? Math.max(6, Math.min((floorY - openTop) / 3, t.top.h * scale)) : 0
+                const rw = rightTrimPx
+                const th = t.top
+                  ? Math.max(6, Math.min((floorY - openTop) / 3,
+                      (Number.isFinite(t.top.h) ? t.top.h : 0) * scale))
+                  : 0
+                const openH = floorY - openTop
+                // Подписи боковых доборов повёрнуты на 90°: их «ширина» на
+                // экране — это высота проёма, а полоса добора должна вместить
+                // кегль. Раньше порога не было вовсе и текст ложился на полотно.
+                const sideLabel = (lab: string) => openH >= textW(lab, 7) + 8
+                const leftLab  = `${t.drawLabels[1]} · ${t.left.h}×${t.left.w}`
+                const rightLab = `${t.drawLabels[2]} · ${t.right.h}×${t.right.w}`
+                const topLab   = t.top ? `${t.drawLabels[0]} · ${t.top.h}×${t.top.w}` : ''
+                // Метки узлов верхнего добора стоят внутри от его краёв: на узком
+                // проёме они менялись местами и накладывались друг на друга.
+                const topTags = t.top && w - lw - rw >= 60
                 return (
                   <g>
                     <rect x={x} y={openTop} width={lw} height={floorY - openTop}
@@ -422,27 +464,31 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
                         fill="#fde68a" fillOpacity={0.5} stroke="#d97706" strokeWidth="0.9" strokeDasharray="4 3" />
                     )}
                     {/* Обозначения и размеры доборов */}
-                    {t.top && w >= 60 && (
+                    {t.top && th >= 9 && w >= textW(topLab, 7) + 8 && (
                       <text x={x + w / 2} y={openTop + th / 2} textAnchor="middle" dominantBaseline="central"
                         fontSize="7" fill="#92400e">
-                        {t.drawLabels[0]} · {t.top.w}×{t.top.h}
+                        {topLab}
                       </text>
                     )}
-                    <text x={x + lw / 2} y={(openTop + floorY) / 2} textAnchor="middle"
-                      fontSize="7" fill="#92400e" transform={`rotate(-90, ${x + lw / 2}, ${(openTop + floorY) / 2})`}>
-                      {t.drawLabels[1]} · {t.left.h}×{t.left.w}
-                    </text>
-                    <text x={x + w - rw / 2} y={(openTop + floorY) / 2} textAnchor="middle"
-                      fontSize="7" fill="#92400e"
-                      transform={`rotate(-90, ${x + w - rw / 2}, ${(openTop + floorY) / 2})`}>
-                      {t.drawLabels[2]} · {t.right.h}×{t.right.w}
-                    </text>
+                    {sideLabel(leftLab) && (
+                      <text x={x + lw / 2} y={(openTop + floorY) / 2} textAnchor="middle"
+                        fontSize="7" fill="#92400e" transform={`rotate(-90, ${x + lw / 2}, ${(openTop + floorY) / 2})`}>
+                        {leftLab}
+                      </text>
+                    )}
+                    {sideLabel(rightLab) && (
+                      <text x={x + w - rw / 2} y={(openTop + floorY) / 2} textAnchor="middle"
+                        fontSize="7" fill="#92400e"
+                        transform={`rotate(-90, ${x + w - rw / 2}, ${(openTop + floorY) / 2})`}>
+                        {rightLab}
+                      </text>
+                    )}
                     {/* Узлы внешних краёв доборов — к стене */}
                     <EdgeTag x={x + lw / 2} y={floorY - 12} code={t.left.wallNode} />
                     <EdgeTag x={x + w - rw / 2} y={floorY - 12} code={t.right.wallNode} />
-                    {t.top && <>
-                      <EdgeTag x={x + lw + 12} y={openTop + th / 2} code={t.top.leftNode} />
-                      <EdgeTag x={x + w - rw - 12} y={openTop + th / 2} code={t.top.rightNode} />
+                    {topTags && <>
+                      <EdgeTag x={x + lw + 12} y={openTop + th / 2} code={t.top!.leftNode} />
+                      <EdgeTag x={x + w - rw - 12} y={openTop + th / 2} code={t.top!.rightNode} />
                     </>}
                   </g>
                 )
@@ -469,21 +515,23 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
               )}
 
               {/* Название проёма */}
-              <text x={x + w / 2} y={PAD_T - 20} textAnchor="middle" fontSize="10.5" fill="#166534" fontWeight="600">
-                {it.label}{it.copies > 1 ? ` ×${it.copies}` : ''}
+              <text x={x + w / 2} y={PAD_T - 30} textAnchor="middle" fontSize="10.5" fill="#166534" fontWeight="600">
+                {trunc(it.label, NAME_MAX)}{it.copies > 1 ? ` ×${it.copies}` : ''}
               </text>
-              <text x={x + w / 2} y={PAD_T - 8} textAnchor="middle" fontSize="8" fill="#64748b">
-                {it.openingW} × {it.openingH} мм
+              <text x={x + w / 2} y={PAD_T - 18} textAnchor="middle" fontSize="8" fill="#64748b">
+                В {it.openingH} × Ш {it.openingW} мм
               </text>
 
               {/* Размер проёма по низу + высота проёма сбоку */}
               <DimH x1={x} x2={x + w} y={floorY + 26} text={`${it.openingW}`} />
-              <DimV x={x + w - 8} y1={openTop} y2={floorY} text={`${it.openingH}`} />
+              <DimV x={x + w - rightTrimPx - 8} y1={openTop} y2={floorY} text={`${it.openingH}`} />
 
               {/* Отметки высот: потолок и верх проёма.
                   Потолок — справа, иначе отметка налезает на подпись участка. */}
-              <Level x={x + w - 6} y={ceilY} mm={it.ceilingH} anchor="end" />
-              <Level x={x + 6} y={openTop} mm={it.openingH} />
+              {w >= 72 && <>
+                <Level x={x + w - 6} y={ceilY} mm={it.ceilingH} anchor="end" />
+                <Level x={x + 6} y={openTop} mm={it.openingH} />
+              </>}
             </g>
           )
         })}
@@ -547,7 +595,7 @@ function DoorSections({ items }: { items: ElevItem[] }) {
   const doors = items.filter((it): it is ElevDoor => it.kind === 'door')
   if (doors.length === 0) return null
 
-  const maxH = Math.max(...doors.map(d => d.ceilingH), 1)
+  const maxH = Math.max(...doors.map(d => d.ceilingH).filter(v => Number.isFinite(v) && v > 0), 1)
   const scale = Math.min(190 / maxH, 0.07)
   const H = maxH * scale
   const STRIP = 9      // ширина полосы разреза на экране
@@ -568,12 +616,14 @@ function DoorSections({ items }: { items: ElevItem[] }) {
           const openTop = yOf(d.openingH)
           return (
             <g key={d.id}>
+              {/* Ячейка разреза — CELL px; длинную метку двери усекаем, иначе
+                  заголовок наезжает на соседний разрез. */}
               <text x={x - 44} y={14} fontSize="9" fill="#1e293b" fontWeight="600">
-                Разрез {d.label}
+                Разрез {trunc(d.label, Math.floor((CELL - 12) / (9 * 0.58)) - 7)}
               </text>
 
               {/* Панель над проёмом */}
-              {d.panelH !== null && (
+              {d.panelH !== null && d.panelH > 0 && (
                 <rect x={x} y={openTop - d.panelH * scale} width={STRIP} height={d.panelH * scale}
                   fill="#dcfce7" stroke="#4ade80" strokeWidth="1" />
               )}
@@ -610,7 +660,7 @@ function DoorSections({ items }: { items: ElevItem[] }) {
               <text x={x + STRIP + 6} y={openTop - 3} fontSize="7.5" fill="#334155" fontWeight="600">
                 {`+${(d.openingH / 1000).toFixed(3).replace('.', ',')}`}
               </text>
-              {d.panelH !== null && (
+              {d.panelH !== null && d.panelH * scale >= 16 && (
                 <text x={x + STRIP + 6} y={openTop - d.panelH * scale / 2} fontSize="7" fill="#15803d">
                   {d.panelH}
                 </text>

@@ -449,7 +449,9 @@ function ConfiguratorSpecView({ order, onEdit }: { order: Order; onEdit: () => v
           <div className="alert alert-info">Панелей нет. Откройте конфигуратор для добавления.</div>
         ) : (
           <div className="spec-zoom" style={{ zoom: `${zoom}%` }}>
-            <div className="table-wrap">
+            {/* spec-table — тот же компактный кегль, что в конфигураторе: без
+                него 22 колонки не помещались и колонка «Итог» обрезалась. */}
+            <div className="table-wrap spec-table">
               <table>
                 <thead>
                   <tr>
@@ -517,8 +519,8 @@ function ConfiguratorSpecView({ order, onEdit }: { order: Order; onEdit: () => v
                           <td><span className="badge badge-gray">{p.article}</span></td>
                           <td>{p.length}</td>
                           <td><strong>{p.quantity}</strong></td>
-                          <td className="text-right">{p.price_per_piece ? p.price_per_piece.toLocaleString('ru-RU') : '—'}</td>
-                          <td className="text-right price">{p.total_cost ? p.total_cost.toLocaleString('ru-RU') : '—'}</td>
+                          <td className="text-right">{p.price_per_piece ? p.price_per_piece.toLocaleString('ru-RU', { maximumFractionDigits: 0 }) : '—'}</td>
+                          <td className="text-right price">{p.total_cost ? p.total_cost.toLocaleString('ru-RU', { maximumFractionDigits: 0 }) : '—'}</td>
                           <td className="text-muted">{p.note}</td>
                         </tr>
                       ))}
@@ -527,7 +529,7 @@ function ConfiguratorSpecView({ order, onEdit }: { order: Order; onEdit: () => v
                 </div>
                 {profilesTotal > 0 && (
                   <div style={{ textAlign: 'right', marginTop: 8, fontWeight: 600 }}>
-                    Итого профили: <span className="price">{profilesTotal.toLocaleString('ru-RU')} ₽</span>
+                    Итого профили: <span className="price">{profilesTotal.toLocaleString('ru-RU', { maximumFractionDigits: 0 })} ₽</span>
                   </div>
                 )}
               </>
@@ -535,7 +537,7 @@ function ConfiguratorSpecView({ order, onEdit }: { order: Order; onEdit: () => v
 
             {(grandTotal + profilesTotal) > 0 && (
               <div style={{ textAlign: 'right', marginTop: 16, fontSize: '1.1rem', fontWeight: 700, color: '#1a4d8a', borderTop: '2px solid #e2e8f0', paddingTop: 12 }}>
-                ИТОГО ВСЕГО: <span className="price">{(grandTotal + profilesTotal).toLocaleString('ru-RU')} ₽</span>
+                ИТОГО ВСЕГО: <span className="price">{(grandTotal + profilesTotal).toLocaleString('ru-RU', { maximumFractionDigits: 0 })} ₽</span>
               </div>
             )}
           </div>

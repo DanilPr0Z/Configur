@@ -3,6 +3,14 @@ import { Link, useNavigate } from 'react-router-dom'
 import { fetchOrders, deleteOrder, createOrder, isCascateLoggedIn, LOGIN_REQUIRED_MSG } from '../api'
 import type { Order } from '../api'
 
+// Дата заказа приходит с бэкенда как «2026-09-08» — в списке показываем её
+// по-русски, как дату заявки обрамления.
+function formatDate(iso?: string | null): string {
+  if (!iso) return '—'
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso)
+  return m ? `${m[3]}.${m[2]}.${m[1]}` : iso
+}
+
 export default function OrdersList() {
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
@@ -74,7 +82,7 @@ export default function OrdersList() {
                       <td>{o.customer_name || '—'}</td>
                       <td>{o.agent_name || '—'}</td>
                       <td>{o.city || '—'}</td>
-                      <td>{o.order_date || '—'}</td>
+                      <td>{formatDate(o.order_date)}</td>
                       <td>
                         {o.cascate_synced_at ? (
                           <span className="badge badge-green" title={`Выгружен в Cascate ${new Date(o.cascate_synced_at).toLocaleString('ru-RU')}`}>

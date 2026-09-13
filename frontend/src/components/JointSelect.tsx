@@ -1,9 +1,89 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import type { RefObject } from 'react'
 import { createPortal } from 'react-dom'
 import type { JointType } from '../api'
 
 // Ширина карточки превью узла — нужна, чтобы решить, с какой стороны её показать
 const PREVIEW_W = 230
+const PREVIEW_GAP = 10
+const PREVIEW_CAPTION_H = 44   // подпись под картинкой превью
+const LIST_MAX_H = 320
+const EDGE = 8                 // минимальный отступ от края окна
+
+interface DropPos {
+  left: number
+  top: number | null      // якорь сверху (список раскрывается вниз)
+  bottom: number | null   // якорь снизу (список раскрывается вверх)
+  width: number
+  maxH: number            // сколько влезает по высоте
+  flip: boolean           // превью слева от списка
+  up: boolean
+  previewImgH: number
+}
+
+// Позиция выпадающего списка в координатах ОКНА (position: fixed): список
+// прижимается внутрь экрана по горизонтали, раскрывается вверх, если снизу
+// мало места, а карточка превью уходит влево, если справа за неё не хватает
+// ширины. previewW = 0 — для списков без превью.
+function computePos(btn: HTMLElement, previewW: number): DropPos {
+  const r = btn.getBoundingClientRect()
+  const vw = document.documentElement.clientWidth
+  const vh = document.documentElement.clientHeight
+  const width = Math.max(r.width, 160)
+
+  const spaceBelow = vh - r.bottom - EDGE - 4
+  const spaceAbove = r.top - EDGE - 4
+  const up = spaceBelow < 180 && spaceAbove > spaceBelow
+  const avail = Math.max(120, up ? spaceAbove : spaceBelow)
+  const maxH = Math.min(LIST_MAX_H, avail)
+
+  const listLeft = Math.max(EDGE, Math.min(r.left, vw - width - EDGE))
+  let left = listLeft
+  let flip = false
+  if (previewW > 0) {
+    const total = width + PREVIEW_GAP + previewW
+    if (listLeft + total > vw - EDGE) {
+      if (listLeft - previewW - PREVIEW_GAP >= EDGE) {
+        // места справа нет, а слева есть — превью уходит влево, СПИСОК ОСТАЁТСЯ
+        // на месте: контейнер начинается с превью, поэтому сдвигаем его левее.
+        flip = true
+        left = listLeft - previewW - PREVIEW_GAP
+      } else {
+        // не помещается ни справа, ни слева — прижимаем весь блок к правому краю
+        left = Math.max(EDGE, vw - total - EDGE)
+      }
+    }
+  }
+
+  return {
+    left,
+    top: up ? null : Math.round(r.bottom + 4),
+    bottom: up ? Math.round(vh - r.top + 4) : null,
+    width,
+    maxH,
+    flip,
+    up,
+    previewImgH: Math.max(96, Math.min(172, avail - PREVIEW_CAPTION_H)),
+  }
+}
+
+// Закрыть список при скролле страницы и ресайзе: позиция посчитана один раз в
+// координатах окна, догонять её при прокрутке — лишняя дрожь.
+function useCloseOnViewportChange(open: boolean, close: () => void, inside: RefObject<HTMLDivElement | null>) {
+  useEffect(() => {
+    if (!open) return
+    const onScroll = (e: Event) => {
+      if (inside.current?.contains(e.target as Node)) return   // скролл внутри самого списка
+      close()
+    }
+    document.addEventListener('scroll', onScroll, true)
+    window.addEventListener('resize', close)
+    return () => {
+      document.removeEventListener('scroll', onScroll, true)
+      window.removeEventListener('resize', close)
+    }
+  }, [open, close, inside])
+}
 
 interface Props {
   value: number | null
@@ -32,17 +112,17 @@ interface PropsStr {
 
 export function StringSelect({ value, options, onChange, placeholder = '— выбрать' }: PropsStr) {
   const [open, setOpen] = useState(false)
-  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 0 })
+  const [dropPos, setDropPos] = useState<DropPos | null>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
   const dropRef = useRef<HTMLDivElement>(null)
 
   const openDropdown = () => {
-    if (btnRef.current) {
-      const r = btnRef.current.getBoundingClientRect()
-      setDropPos({ top: r.bottom + window.scrollY + 4, left: r.left + window.scrollX, width: r.width })
-    }
+    if (btnRef.current) setDropPos(computePos(btnRef.current, 0))
     setOpen(true)
   }
+
+  const close = useCallback(() => setOpen(false), [])
+  useCloseOnViewportChange(open, close, dropRef)
 
   useEffect(() => {
     if (!open) return
@@ -80,9 +160,17 @@ export function StringSelect({ value, options, onChange, placeholder = '— вы
           <path d="M1 3l4 4 4-4" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
         </svg>
       </button>
-      {open && createPortal(
-        <div ref={dropRef} style={{ position: 'absolute', top: dropPos.top, left: dropPos.left, zIndex: 99999, minWidth: dropPos.width }}>
-          <div style={{ background: '#fff', border: '1.5px solid #d0d7e3', borderRadius: 10, boxShadow: '0 8px 32px rgba(0,0,0,.14)', overflow: 'hidden' }}>
+      {open && dropPos && createPortal(
+        <div ref={dropRef} style={{
+          position: 'fixed',
+          top: dropPos.top ?? undefined,
+          bottom: dropPos.bottom ?? undefined,
+          left: dropPos.left,
+          zIndex: 99999,
+          minWidth: dropPos.width,
+          maxWidth: `calc(100vw - ${EDGE * 2}px)`,
+        }}>
+          <div style={{ background: '#fff', border: '1.5px solid #d0d7e3', borderRadius: 10, boxShadow: '0 8px 32px rgba(0,0,0,.14)', overflowY: 'auto', overflowX: 'hidden', maxHeight: dropPos.maxH }}>
             {options.map(opt => (
               <div
                 key={opt}
@@ -124,10 +212,22 @@ export function JointSelectCode({ value, codes, jointTypes, onChange, allowEmpty
         profile_article: '',
         profile_count: 0,
         image_url: null,
+        series: '60' as const,
       })),
   ]
-  const filtered = merged.filter(j => codes.includes(j.code))
-  const selectedId = merged.find(j => j.code === value)?.id ?? null
+  // Текущее значение показываем всегда, даже если такого кода в списке уже нет
+  // (узел убрали из каталога, а в сохранённом заказе он остался) — иначе поле
+  // выглядит пустым и при первом же сохранении значение теряется.
+  const filtered = merged.filter(j => codes.includes(j.code) || j.code === value)
+  const known = merged.find(j => j.code === value)
+  // Кода нет вообще ни в каталоге, ни в fallback — показываем как есть,
+  // чтобы старый заказ не потерял узел молча.
+  if (value && !known) filtered.push({
+    id: -999, code: value, name: '— нет в справочнике', offset_mm: 0,
+    price_per_meter: 0, profile_article: '', profile_count: 0, image_url: null,
+    series: '60',
+  })
+  const selectedId = filtered.find(j => j.code === value)?.id ?? null
   return (
     <JointSelect
       value={selectedId}
@@ -144,31 +244,20 @@ export function JointSelectCode({ value, codes, jointTypes, onChange, allowEmpty
 export default function JointSelect({ value, jointTypes, onChange, allowEmpty: _allowEmpty = true }: Props) {
   const [open, setOpen] = useState(false)
   const [hovered, setHovered] = useState<JointType | null>(null)
-  const [dropPos, setDropPos] = useState({ top: 0, left: 0, width: 0, flip: false })
+  const [dropPos, setDropPos] = useState<DropPos | null>(null)
   const btnRef = useRef<HTMLButtonElement>(null)
   const dropRef = useRef<HTMLDivElement>(null)
 
   const selected = jointTypes.find(j => j.id === value) ?? null
 
   const openDropdown = () => {
-    if (btnRef.current) {
-      const r = btnRef.current.getBoundingClientRect()
-      const width = Math.max(r.width, 160)
-      // Превью (230 px) по умолчанию справа от списка. У правого края экрана
-      // места нет — тогда показываем слева, иначе картинка уезжает за поле.
-      const flip = r.left + width + 10 + PREVIEW_W > window.innerWidth - 8
-      // Сам список тоже прижимаем внутрь окна.
-      const maxLeft = window.innerWidth - width - 8
-      setDropPos({
-        top: r.bottom + window.scrollY + 4,
-        left: Math.max(8, Math.min(r.left, maxLeft)) + window.scrollX,
-        width,
-        flip,
-      })
-    }
+    if (btnRef.current) setDropPos(computePos(btnRef.current, PREVIEW_W))
     setOpen(true)
     setHovered(null)
   }
+
+  const close = useCallback(() => { setOpen(false); setHovered(null) }, [])
+  useCloseOnViewportChange(open, close, dropRef)
 
   // закрыть по клику снаружи
   useEffect(() => {
@@ -234,10 +323,19 @@ export default function JointSelect({ value, jointTypes, onChange, allowEmpty: _
       </button>
 
       {/* Дропдаун через портал */}
-      {open && createPortal(
+      {open && dropPos && createPortal(
         <div
           ref={dropRef}
-          style={{ position: 'absolute', top: dropPos.top, left: dropPos.left, zIndex: 99999, display: 'flex', alignItems: 'flex-start', gap: 0 }}
+          style={{
+            position: 'fixed',
+            top: dropPos.top ?? undefined,
+            bottom: dropPos.bottom ?? undefined,
+            left: dropPos.left,
+            zIndex: 99999,
+            display: 'flex',
+            alignItems: dropPos.up ? 'flex-end' : 'flex-start',
+            gap: 0,
+          }}
         >
           {/* Список */}
           <div
@@ -247,7 +345,8 @@ export default function JointSelect({ value, jointTypes, onChange, allowEmpty: _
               borderRadius: 10,
               boxShadow: '0 8px 32px rgba(0,0,0,.14)',
               minWidth: dropPos.width,
-              maxHeight: 320,
+              maxWidth: Math.max(dropPos.width, 260),
+              maxHeight: dropPos.maxH,
               overflowY: 'auto',
               overflowX: 'hidden',
             }}
@@ -330,28 +429,28 @@ export default function JointSelect({ value, jointTypes, onChange, allowEmpty: _
           {hovered && (
             <div style={{
               order: dropPos.flip ? -1 : 0,
-              marginLeft: dropPos.flip ? 0 : 10,
-              marginRight: dropPos.flip ? 10 : 0,
+              marginLeft: dropPos.flip ? 0 : PREVIEW_GAP,
+              marginRight: dropPos.flip ? PREVIEW_GAP : 0,
               background: '#fff',
               border: '1.5px solid #d0d7e3',
               borderRadius: 12,
               overflow: 'hidden',
               boxShadow: '0 8px 32px rgba(0,0,0,.16)',
               pointerEvents: 'none',
-              width: 230,
+              width: PREVIEW_W,
               flexShrink: 0,
             }}>
               {hovered.image_url ? (
                 <img
                   src={hovered.image_url}
                   alt={hovered.code}
-                  style={{ display: 'block', width: 230, height: 172, objectFit: 'contain' }}
+                  style={{ display: 'block', width: PREVIEW_W, height: dropPos.previewImgH, objectFit: 'contain' }}
                 />
               ) : (
                 /* Заглушка если фото нет */
                 <div style={{
-                  width: 230,
-                  height: 172,
+                  width: PREVIEW_W,
+                  height: dropPos.previewImgH,
                   background: 'linear-gradient(135deg, #e8f0fe 0%, #d0dcf5 100%)',
                   display: 'flex',
                   flexDirection: 'column',

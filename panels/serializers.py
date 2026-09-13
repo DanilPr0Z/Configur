@@ -57,7 +57,7 @@ class JointTypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = JointType
-        fields = ['id', 'code', 'name', 'offset_mm', 'price_per_meter',
+        fields = ['id', 'code', 'series', 'name', 'offset_mm', 'price_per_meter',
                   'profile_article', 'profile_count', 'image', 'image_url']
 
     def get_image_url(self, obj):

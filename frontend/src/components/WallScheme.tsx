@@ -66,6 +66,8 @@ const CORNER_INNER = new Set(['DG', 'DH'])  // +90° (по часовой) — �
 // полей — схема не должна из-за этого падать (белый экран вместо заказа).
 const low = (s?: string) => (s ?? '').toLowerCase()
 
+const NAME_MAX = 26   // максимум символов в подписи участка на чертеже
+
 function nodeColor(code: string): string {
   if (['A', 'FL', 'FR', 'E'].includes(code)) return '#3b82f6'
   if (code === 'B') return '#f97316'
@@ -74,6 +76,15 @@ function nodeColor(code: string): string {
   if (['G', 'H'].includes(code)) return '#ef4444'
   return '#64748b'
 }
+
+// Грубая оценка ширины строки в пикселях: цифры и кириллица в system-ui дают
+// около 0,58 кегля на символ. Нужна, чтобы прятать подпись по её фактической
+// длине, а не по угаданному порогу вроде «px < 52».
+const textW = (s: string, fs: number) => s.length * fs * 0.58
+
+// Имя участка вводит пользователь — длинную строку усекаем, иначе она вылезает
+// за расчётный bbox и обрезается вьюпортом.
+const trunc = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1) + '…' : s)
 
 // ── Компонент ────────────────────────────────────────────────────────────────
 
@@ -118,7 +129,7 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
     if (item.type === 'wall') return s + (walls.find(w => w.id === item.id)?.wallLength ?? 0)
     return s + (doors.find(d => d.id === item.id)?.openingW ?? 0)
   }, 0)
-  const scale = totalMm > 0 ? Math.min(0.22, 700 / totalMm) : 0.15
+  const scale = totalMm > 0 && Number.isFinite(totalMm) ? Math.min(0.22, 700 / totalMm) : 0.15
 
   // ── Сегменты: начальная точка + угол направления ──────────────────────────
   // angle: 0 = вправо, 90 = вниз, 180 = влево, 270 = вверх
@@ -164,8 +175,16 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
   }
 
   // ── Вычисление bounding box ──────────────────────────────────────────────
+  // Ни один id из itemOrder не нашёлся — рисовать нечего. Без этой проверки
+  // Math.min(...[]) даёт Infinity и viewBox получается «Infinity Infinity NaN NaN».
+  if (segs.length === 0) return null
+
   const maxDoorPx = doors.length > 0 ? Math.max(...doors.map(d => d.openingW * scale)) : 0
   const LABEL_SPACE = compact ? BAR_H / 2 + 64 : BAR_H / 2 + maxDoorPx + 110
+  const textReserve = Math.max(100, ...[
+    ...walls.map(w => textW(trunc(w.name, NAME_MAX), 11) / 2 + 12),
+    ...doors.map(d => textW(trunc(d.label, NAME_MAX), 10) / 2 + 12),
+  ])
   const allPts: [number, number][] = []
 
   for (const seg of segs) {
@@ -178,9 +197,11 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
     for (const [px, py] of [[seg.x, seg.y], [ex, ey]] as [number, number][]) {
       allPts.push([px + perpX * LABEL_SPACE, py + perpY * LABEL_SPACE])
       allPts.push([px - perpX * LABEL_SPACE, py - perpY * LABEL_SPACE])
-      // Горизонтальный текст занимает дополнительное место вдоль оси X/Y
-      allPts.push([px + 100, py + 30])
-      allPts.push([px - 100, py - 30])
+      // Горизонтальный текст занимает дополнительное место вдоль оси X/Y.
+      // Резерв считаем по самой длинной подписи, а не по фиксированным 100 px:
+      // длинное имя участка иначе уезжает за край схемы.
+      allPts.push([px + textReserve, py + 30])
+      allPts.push([px - textReserve, py - 30])
     }
   }
 
@@ -188,7 +209,8 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
   const minY = Math.min(...allPts.map(p => p[1])) - PAD
   const maxX = Math.max(...allPts.map(p => p[0])) + PAD
   const maxY = Math.max(...allPts.map(p => p[1])) + PAD
-  const svgW = maxX - minX
+  // Легенда — 4 элемента с шагом 90 px; на короткой схеме она вылезала вправо.
+  const svgW = Math.max(maxX - minX, compact ? 0 : 2 * PAD + 4 * 90)
   const svgH = maxY - minY
 
   // ── Вспомогательный компонент: горизонтальный текст в локальных coords ────
@@ -249,13 +271,28 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
           if (seg.type === 'wall') {
             const w = walls.find(w => w.id === seg.id)
             if (!w) return null
-            const N = w.numPanels
+            // numPanels из старого заказа может быть 0/undefined — без этого
+            // px становится Infinity/NaN и весь сегмент рисуется в никуда.
+            const N = Math.max(1, Math.round(w.numPanels) || 1)
             const px = seg.pxLen / N
             const wPanels = panels.filter(p => p.wallName === w.name)
 
-            // Y-координаты ВНУТРИ полосы (BAR_H=44, диапазон -22..+22)
-            const topY    = -8   // верхняя строка (номер панели)
-            const bottomY =  9   // нижняя строка (размер панели)
+            // Y-координаты ВНУТРИ полосы (BAR_H=44, диапазон -22..+22).
+            // Строки разведены от бейджей узлов (радиус 10 в центре полосы).
+            const topY    = -14  // верхняя строка (номер панели)
+            const bottomY =  13  // нижняя строка (размер панели)
+
+            // Бейдж стыка стоит на границе ячеек, номер панели — в её центре,
+            // то есть между ними px/2. Показываем стыки только когда круг
+            // радиуса badgeR туда влезает.
+            const badgeR = (w.connType ?? '').length > 2 ? 13 : 10
+            const showBadges = px >= 2 * badgeR + 6
+
+            // Куда «вверх» на экране в локальных координатах сегмента. При
+            // повороте на 180° локальная ось Y смотрит вниз экрана: раньше
+            // название стены флипалось, а размерная цепочка — нет, и текст
+            // ложился прямо на неё.
+            const upSign = seg.angle > 90 && seg.angle < 270 ? 1 : -1
 
             return (
               <g key={seg.id} transform={transform}>
@@ -280,7 +317,14 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
                   const p = wPanels[i]
                   const label = p?.panelLabel ?? `${walls.indexOf(w) + 1}.${i + 1}`
                   const cellX = px * i + px / 2
-                  if (px < 24) return null
+                  // Размер панели пишем «высота × ширина» — тот же порядок, что
+                  // в форме ввода и в спецификации.
+                  const size = p?.width ? `${p.height} × ${p.width}` : ''
+                  // Пороги — по фактической длине строки: номер вида «10.3.12»
+                  // шире, чем «1.1», и на узком столбце наезжал на соседний.
+                  const fitLabel = px >= textW(label, 9) + (showBadges ? 2 * badgeR : 6)
+                  const fitSize  = size !== '' && px >= textW(size, 7) + 6
+                  if (!fitLabel) return null
                   return (
                     <g key={i}>
                       <HText lx={cellX} ly={topY} angle={a}
@@ -288,11 +332,11 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
                         fontSize="9" fill="#1e40af" fontWeight="600">
                         {label}
                       </HText>
-                      {p?.width && px >= 52 && (
+                      {fitSize && (
                         <HText lx={cellX} ly={bottomY} angle={a}
                           textAnchor="middle" dominantBaseline="central"
                           fontSize="7" fill="#3b5bdb">
-                          {p.width}×{p.height}
+                          {size}
                         </HText>
                       )}
                     </g>
@@ -304,17 +348,15 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
                     tspan+dy гарантирует вертикальный стек в глобальных экранных координатах.
                     Offset 50 = BAR_H/2(22) + стрелка(8) + зазор(20) — стрелка не перекрывает. */}
                 {(() => {
-                  const ly = Math.cos(a * Math.PI / 180) >= 0
-                    ? -(BAR_H / 2 + 50)
-                    :  (BAR_H / 2 + 50)
+                  const ly = upSign * (BAR_H / 2 + 50)
                   const dy = ly < 0 ? 14 : -14
                   return (
                     <HText lx={seg.pxLen / 2} ly={ly} angle={a} textAnchor="middle">
                       <tspan x={seg.pxLen / 2} fontSize="11" fill="#1e293b" fontWeight="600">
-                        {w.name}{w.copies > 1 ? ` ×${w.copies}` : ''}
+                        {trunc(w.name, NAME_MAX)}{w.copies > 1 ? ` ×${w.copies}` : ''}
                       </tspan>
                       <tspan x={seg.pxLen / 2} dy={dy} fontSize="9" fill="#64748b">
-                        {w.wallLength} × {w.wallHeight} мм
+                        В {w.wallHeight} × Д {w.wallLength} мм
                       </tspan>
                     </HText>
                   )
@@ -323,8 +365,9 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
                 {/* Размерная цепочка по низу полосы: ширина каждой панели и общая
                     длина участка — как на планах СП. */}
                 {(() => {
-                  const yChain = BAR_H / 2 + 16
-                  const yTotal = BAR_H / 2 + 34
+                  // Цепочка всегда на стороне, противоположной названию участка.
+                  const yChain = -upSign * (BAR_H / 2 + 16)
+                  const yTotal = -upSign * (BAR_H / 2 + 34)
                   const tick = (x: number, y: number) => (
                     <line x1={x} y1={y - 3} x2={x} y2={y + 3} stroke="#94a3b8" strokeWidth="0.8" />
                   )
@@ -334,15 +377,19 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
                       {Array.from({ length: N + 1 }, (_, i) => (
                         <g key={i}>{tick(px * i, yChain)}</g>
                       ))}
-                      {px >= 30 && Array.from({ length: N }, (_, i) => (
-                        <HText key={i} lx={px * i + px / 2} ly={yChain - 5} angle={a}
-                          textAnchor="middle" fontSize="7" fill="#64748b">
-                          {wPanels[i]?.width ?? ''}
-                        </HText>
-                      ))}
+                      {Array.from({ length: N }, (_, i) => {
+                        const v = wPanels[i]?.width
+                        if (!v || px < textW(String(v), 7) + 6) return null
+                        return (
+                          <HText key={i} lx={px * i + px / 2} ly={yChain + 5 * upSign} angle={a}
+                            textAnchor="middle" fontSize="7" fill="#64748b">
+                            {v}
+                          </HText>
+                        )
+                      })}
                       <line x1={0} y1={yTotal} x2={seg.pxLen} y2={yTotal} stroke="#cbd5e1" strokeWidth="0.8" />
                       {tick(0, yTotal)}{tick(seg.pxLen, yTotal)}
-                      <HText lx={seg.pxLen / 2} ly={yTotal - 5} angle={a}
+                      <HText lx={seg.pxLen / 2} ly={yTotal + 5 * upSign} angle={a}
                         textAnchor="middle" fontSize="7.5" fill="#94a3b8">
                         {w.wallLength}
                       </HText>
@@ -352,7 +399,7 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
 
                 {/* Значки узлов — connType скрываем если ячейка < 28px (значки бы накладывались) */}
                 <Badge x={0}         y={0} code={w.leftNode}  angle={a} />
-                {px >= 28 && Array.from({ length: N - 1 }, (_, i) => (
+                {showBadges && Array.from({ length: N - 1 }, (_, i) => (
                   <Badge key={i} x={px * (i + 1)} y={0} code={w.connType} angle={a} />
                 ))}
                 <Badge x={seg.pxLen} y={0} code={w.rightNode} angle={a} />
@@ -398,9 +445,32 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
           // Добор рисуем только когда он реально посчитан в спецификации
           // (buildSpec создаёт панели добора при hasTrim === true).
           const trimEnabled = d.hasTrim === true
-          const leftTrimPx  = trimEnabled ? Math.max(10, Math.min(70, (d.trimLeftW  || d.wallDepth || 200) * scale)) : 0
-          const rightTrimPx = trimEnabled ? Math.max(10, Math.min(70, (d.trimRightW || d.wallDepth || 200) * scale)) : 0
+          const trimMm = (v?: number) => (Number.isFinite(v) && (v as number) > 0 ? (v as number) : (d.wallDepth || 200))
+          const leftTrimMm  = trimMm(d.trimLeftW)
+          const rightTrimMm = trimMm(d.trimRightW)
+          const leftTrimPx  = trimEnabled ? Math.max(10, Math.min(70, leftTrimMm  * scale)) : 0
+          const rightTrimPx = trimEnabled ? Math.max(10, Math.min(70, rightTrimMm * scale)) : 0
           const showTopTrim = trimEnabled && d.mountType !== 'В ПОТОЛОК'
+
+          // Куда «вверх» на экране в локальных координатах (см. блок стены).
+          const upSign = seg.angle > 90 && seg.angle < 270 ? 1 : -1
+          const BADGE_R = 10
+
+          // Дуга открывания уходит от лицевой стороны на всю ширину проёма.
+          // Раньше подписи и доборы считали свой отступ независимо от неё, и на
+          // широком проёме дуга резала линию верхнего добора, его подпись и
+          // строку «Монтаж …». Теперь всё, что рисуется снаружи полосы,
+          // отсчитывается от фактического выноса дуги в свою сторону.
+          const upBase   = !opensOut ? Math.max(BAR_H / 2, L - BAR_H / 2 + 10) : BAR_H / 2
+          const downBase = opensOut  ? BAR_H / 2 + L + 10 : BAR_H / 2
+          // Верхний добор и подписи над проёмом
+          const trimLineOff  = upBase + TRIM_GAP
+          const trimTextOff  = trimLineOff + 13
+          const trimBadgeOff = trimLineOff + 28
+          const labelOff     = (showTopTrim ? trimBadgeOff + 26 : upBase + 34)
+          // Узлы двери и «Монтаж …» — на противоположной стороне
+          const doorBadgeOff = downBase + 16
+          const mountOff     = showTopTrim ? doorBadgeOff + 22 : downBase + 18
 
           return (
             <g key={seg.id} transform={transform}>
@@ -408,10 +478,10 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
               {trimEnabled && <>
                 <line x1={-leftTrimPx} y1={0} x2={0} y2={0}
                   stroke="#94a3b8" strokeWidth="1" strokeDasharray="4 3" />
-                {leftTrimPx >= 22 && (
-                  <HText lx={-leftTrimPx / 2} ly={-BAR_H / 2 - 13} angle={a}
+                {leftTrimPx >= textW(`${leftTrimMm}мм`, 7) + 4 && (
+                  <HText lx={-leftTrimPx / 2} ly={upSign * (BAR_H / 2 + 13)} angle={a}
                     textAnchor="middle" fontSize="7" fill="#64748b">
-                    {d.trimLeftW || d.wallDepth || 200}мм
+                    {leftTrimMm}мм
                   </HText>
                 )}
                 <Badge x={-12} y={0} code={'O'} angle={a} />
@@ -421,10 +491,10 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
               {trimEnabled && <>
                 <line x1={seg.pxLen} y1={0} x2={seg.pxLen + rightTrimPx} y2={0}
                   stroke="#94a3b8" strokeWidth="1" strokeDasharray="4 3" />
-                {rightTrimPx >= 22 && (
-                  <HText lx={seg.pxLen + rightTrimPx / 2} ly={-BAR_H / 2 - 13} angle={a}
+                {rightTrimPx >= textW(`${rightTrimMm}мм`, 7) + 4 && (
+                  <HText lx={seg.pxLen + rightTrimPx / 2} ly={upSign * (BAR_H / 2 + 13)} angle={a}
                     textAnchor="middle" fontSize="7" fill="#64748b">
-                    {d.trimRightW || d.wallDepth || 200}мм
+                    {rightTrimMm}мм
                   </HText>
                 )}
                 <Badge x={seg.pxLen + 12} y={0} code={'O'} angle={a} />
@@ -434,17 +504,17 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
                   Панель над дверью физически выше проёма, поэтому узлы рисуем над полосой. */}
               {showTopTrim && (
                 <g>
-                  <line x1={0} y1={-(BAR_H / 2 + TRIM_GAP)} x2={seg.pxLen} y2={-(BAR_H / 2 + TRIM_GAP)}
+                  <line x1={0} y1={upSign * trimLineOff} x2={seg.pxLen} y2={upSign * trimLineOff}
                     stroke="#94a3b8" strokeWidth="1" strokeDasharray="4 3" />
-                  <HText lx={seg.pxLen / 2} ly={-(BAR_H / 2 + TRIM_GAP + 13)} angle={a}
+                  <HText lx={seg.pxLen / 2} ly={upSign * trimTextOff} angle={a}
                     textAnchor="middle" fontSize="7" fill="#64748b">
-                    верх {d.trimTopH || d.wallDepth || 200}мм
+                    верх {trimMm(d.trimTopH)}мм
                   </HText>
                   {d.trimTopLeftNode && (
-                    <Badge x={-12} y={-(BAR_H / 2 + TRIM_GAP + 28)} code={d.trimTopLeftNode} angle={a} />
+                    <Badge x={-12} y={upSign * trimBadgeOff} code={d.trimTopLeftNode} angle={a} />
                   )}
                   {d.trimTopRightNode && (
-                    <Badge x={seg.pxLen + 12} y={-(BAR_H / 2 + TRIM_GAP + 28)} code={d.trimTopRightNode} angle={a} />
+                    <Badge x={seg.pxLen + 12} y={upSign * trimBadgeOff} code={d.trimTopRightNode} angle={a} />
                   )}
                 </g>
               )}
@@ -481,18 +551,15 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
 
               {/* Название + размеры */}
               {(() => {
-                const labelOff = !opensOut
-                  ? L + 46
-                  : (showTopTrim ? BAR_H / 2 + TRIM_GAP + 28 + 40 : BAR_H / 2 + 50)
-                const ly = Math.cos(a * Math.PI / 180) >= 0 ? -labelOff : labelOff
+                const ly = upSign * labelOff
                 const dy = ly < 0 ? 14 : -14
                 return (
                   <HText lx={seg.pxLen / 2} ly={ly} angle={a} textAnchor="middle">
                     <tspan x={seg.pxLen / 2} fontSize="10" fill="#1e293b" fontWeight="600">
-                      {d.label}{d.doorRef ? ` (${d.doorRef})` : ''}{d.copies > 1 ? ` ×${d.copies}` : ''}
+                      {trunc(d.label, NAME_MAX)}{d.doorRef ? ` (${d.doorRef})` : ''}{d.copies > 1 ? ` ×${d.copies}` : ''}
                     </tspan>
                     <tspan x={seg.pxLen / 2} dy={dy} fontSize="9" fill="#64748b">
-                      {d.openingW} × {d.openingH} мм
+                      В {d.openingH} × Ш {d.openingW} мм
                     </tspan>
                   </HText>
                 )
@@ -502,13 +569,9 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
                   Монтаж (В ПРОЕМ/В ПОТОЛОК) и открывание (внутрь/наружу + петля)
                   разнесены, чтобы «в проём» не читалось как направление. */}
               {(() => {
-                const trimOff = showTopTrim
-                  ? BAR_H / 2 + TRIM_GAP + 46
-                  : BAR_H / 2 + 18
-                const mountOff = opensOut ? Math.max(L + BAR_H / 2 + 18, trimOff + 16) : trimOff
                 const cx = seg.pxLen / 2
                 return (
-                  <HText lx={cx} ly={mountOff} angle={a}
+                  <HText lx={cx} ly={-upSign * mountOff} angle={a}
                     textAnchor="middle" fontSize="8" fill="#94a3b8">
                     <tspan x={cx}>Монтаж {low(d.mountType)}</tspan>
                     <tspan x={cx} dy={11}>
@@ -522,13 +585,17 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
                   (бывшее место верхнего добора); иначе — по бокам за доборами. */}
               {showTopTrim ? (
                 <>
-                  <Badge x={-12}            y={BAR_H / 2 + TRIM_GAP + 28} code={d.leftNode}  angle={a} />
-                  <Badge x={seg.pxLen + 12} y={BAR_H / 2 + TRIM_GAP + 28} code={d.rightNode} angle={a} />
+                  <Badge x={-12}            y={-upSign * doorBadgeOff} code={d.leftNode}  angle={a} />
+                  <Badge x={seg.pxLen + 12} y={-upSign * doorBadgeOff} code={d.rightNode} angle={a} />
                 </>
               ) : (
                 <>
-                  <Badge x={-(leftTrimPx + 14)}            y={0} code={d.leftNode}  angle={a} />
-                  <Badge x={seg.pxLen + rightTrimPx + 14}  y={0} code={d.rightNode} angle={a} />
+                  {/* Отступ не меньше двух радиусов бейджа: на мелком масштабе
+                      добор сжимается до 10 px и узел двери налезал на «O». */}
+                  <Badge x={-(Math.max(leftTrimPx, trimEnabled ? 2 * BADGE_R + 4 : 0) + 14)}
+                    y={0} code={d.leftNode} angle={a} />
+                  <Badge x={seg.pxLen + Math.max(rightTrimPx, trimEnabled ? 2 * BADGE_R + 4 : 0) + 14}
+                    y={0} code={d.rightNode} angle={a} />
                 </>
               )}
             </g>
