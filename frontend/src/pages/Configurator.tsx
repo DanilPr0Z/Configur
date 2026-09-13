@@ -160,9 +160,9 @@ const NODES: NodeDef[] = [
   { code: 'P',  label: 'P — Профиль-декор П-обр 6×6', offset: 0,  article: null,      ppe: 0   },
   { code: 'R',  label: 'R — Профиль П-обр 6×6 (зазор 6 мм)', offset: -6, article: null, ppe: 0 },
   { code: 'S',  label: 'S — Стык',                offset: 0,     article: null,      ppe: 0   },
-  // Полка Step врезается в панель (лист «Схема сборки … COMPLANAR 60»), размер
-  // панели не меняет — отдельный код, чтобы не путать со стыком рядов S.
-  { code: 'STEP', label: 'S — Полка Step',        offset: 0,     article: null,      ppe: 0   },
+  // Полка Step врезается в панель пазом 3,5 мм (подтверждено Виталием Габбасовым
+  // 09.09.2026) — отдельный код, чтобы не путать со стыком рядов S.
+  { code: 'STEP', label: 'S — Полка Step',        offset: -3.5,  article: null,      ppe: 0   },
   { code: 'T',  label: 'T — Тип T',               offset: 0,     article: null,      ppe: 0   },
   { code: 'I',  label: 'I — Тип I',               offset: -1.2,  article: null,      ppe: 0   },
   // Теневой профиль: уменьшает высоту панели на 12 мм при установке сверху или снизу
