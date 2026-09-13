@@ -37,23 +37,10 @@ function computePos(btn: HTMLElement, previewW: number): DropPos {
   const avail = Math.max(120, up ? spaceAbove : spaceBelow)
   const maxH = Math.min(LIST_MAX_H, avail)
 
-  const listLeft = Math.max(EDGE, Math.min(r.left, vw - width - EDGE))
-  let left = listLeft
-  let flip = false
-  if (previewW > 0) {
-    const total = width + PREVIEW_GAP + previewW
-    if (listLeft + total > vw - EDGE) {
-      if (listLeft - previewW - PREVIEW_GAP >= EDGE) {
-        // места справа нет, а слева есть — превью уходит влево, СПИСОК ОСТАЁТСЯ
-        // на месте: контейнер начинается с превью, поэтому сдвигаем его левее.
-        flip = true
-        left = listLeft - previewW - PREVIEW_GAP
-      } else {
-        // не помещается ни справа, ни слева — прижимаем весь блок к правому краю
-        left = Math.max(EDGE, vw - total - EDGE)
-      }
-    }
-  }
+  // Список всегда стоит под своим полем; уезжать может только карточка превью,
+  // которая позиционируется от него (см. разметку ниже).
+  const left = Math.max(EDGE, Math.min(r.left, vw - width - EDGE))
+  const flip = previewW > 0 && left + width + PREVIEW_GAP + previewW > vw - EDGE
 
   return {
     left,
@@ -332,14 +319,12 @@ export default function JointSelect({ value, jointTypes, onChange, allowEmpty: _
             bottom: dropPos.bottom ?? undefined,
             left: dropPos.left,
             zIndex: 99999,
-            display: 'flex',
-            alignItems: dropPos.up ? 'flex-end' : 'flex-start',
-            gap: 0,
           }}
         >
           {/* Список */}
           <div
             style={{
+              position: 'relative',
               background: '#fff',
               border: '1.5px solid #d0d7e3',
               borderRadius: 10,
@@ -428,9 +413,12 @@ export default function JointSelect({ value, jointTypes, onChange, allowEmpty: _
           {/* Превью справа */}
           {hovered && (
             <div style={{
-              order: dropPos.flip ? -1 : 0,
-              marginLeft: dropPos.flip ? 0 : PREVIEW_GAP,
-              marginRight: dropPos.flip ? PREVIEW_GAP : 0,
+              // Превью прижато к списку сбоку: справа, а если там не помещается
+              // — слева. Сам список при этом не двигается.
+              position: 'absolute',
+              top: 0,
+              left: dropPos.flip ? 'auto' : `calc(100% + ${PREVIEW_GAP}px)`,
+              right: dropPos.flip ? `calc(100% + ${PREVIEW_GAP}px)` : 'auto',
               background: '#fff',
               border: '1.5px solid #d0d7e3',
               borderRadius: 12,

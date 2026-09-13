@@ -379,12 +379,6 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
           const openTop = yOf(it.openingH)
           const ceilY = yOf(it.ceilingH)
           const hasPanel = it.panelH !== null && it.panelW !== null
-          // Полоса правого добора (та же формула, что и внутри блока доборов):
-          // от неё отступает вертикальный размер проёма, иначе его подпись
-          // ложится ровно на повёрнутую подпись добора.
-          const rightTrimPx = it.trim
-            ? Math.max(6, Math.min(w / 3, (Number.isFinite(it.trim.right.w) ? it.trim.right.w : 0) * scale))
-            : 0
 
           return (
             <g key={it.id}>
@@ -397,7 +391,12 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
                 const ph = (it.panelH as number) * scale
                 const pw = (it.panelW as number) * scale
                 const px = x + (w - pw) / 2
-                const py = openTop - ph
+                // Панель висит ОТ ПОТОЛКА. Её высота = просвет над проёмом плюс
+                // заход в узел коробки (у 60-й +43 мм для G и +51,5 мм для H),
+                // поэтому низ уходит ниже верха проёма и прячется за коробкой.
+                // Раньше панель откладывалась вверх от верха проёма и на эти же
+                // 43–51,5 мм торчала выше потолка и выше соседней стены.
+                const py = ceilY
                 return (
                   <g>
                     <rect x={px} y={py} width={pw} height={ph}
@@ -418,7 +417,7 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
                         Нижний держим ВНУТРИ панели: на границе его перекрывал проём. */}
                     <Badge x={px + 9} y={py + ph / 2} code={it.leftNode} />
                     <Badge x={px + pw - 9} y={py + ph / 2} code={it.rightNode} />
-                    {ph >= 26 && <Badge x={px + pw / 2} y={openTop - 10} code={it.bottomEdge} />}
+                    {ph >= 26 && <Badge x={px + pw / 2} y={Math.min(py + ph, openTop) - 10} code={it.bottomEdge} />}
                   </g>
                 )
               })()}
@@ -437,7 +436,7 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
                 const depth = (mm: number) =>
                   Math.max(6, Math.min(w / 3, (Number.isFinite(mm) ? mm : 0) * scale))
                 const lw = depth(t.left.w)
-                const rw = rightTrimPx
+                const rw = depth(t.right.w)
                 const th = t.top
                   ? Math.max(6, Math.min((floorY - openTop) / 3,
                       (Number.isFinite(t.top.h) ? t.top.h : 0) * scale))
@@ -476,10 +475,13 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
                         {leftLab}
                       </text>
                     )}
-                    {sideLabel(rightLab) && (
-                      <text x={x + w - rw / 2} y={(openTop + floorY) / 2} textAnchor="middle"
+                    {/* Подпись правого добора уводим к его внутреннему краю и
+                        показываем только на широкой полосе: по центру она
+                        ложилась на вертикальный размер высоты проёма. */}
+                    {rw >= 32 && sideLabel(rightLab) && (
+                      <text x={x + w - rw + 6} y={(openTop + floorY) / 2} textAnchor="middle"
                         fontSize="7" fill="#92400e"
-                        transform={`rotate(-90, ${x + w - rw / 2}, ${(openTop + floorY) / 2})`}>
+                        transform={`rotate(-90, ${x + w - rw + 6}, ${(openTop + floorY) / 2})`}>
                         {rightLab}
                       </text>
                     )}
@@ -501,18 +503,30 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
                 ? `M ${x + 1.5} ${floorY} L ${x + w} ${(openTop + floorY) / 2} L ${x + 1.5} ${openTop}`
                 : `M ${x + w - 1.5} ${floorY} L ${x} ${(openTop + floorY) / 2} L ${x + w - 1.5} ${openTop}`}
                 fill="none" stroke="#16a34a" strokeWidth="1" strokeDasharray="4 3" />
-              {w >= 46 && (
-                <>
-                  <text x={x + w / 2} y={(openTop + floorY) / 2 - 8} textAnchor="middle" dominantBaseline="central"
-                    fontSize="10" fill="#166534" fontWeight="700">
-                    {it.doorLabel}
-                  </text>
-                  <text x={x + w / 2} y={(openTop + floorY) / 2 + 6} textAnchor="middle" dominantBaseline="central"
-                    fontSize="7.5" fill="#15803d" opacity={0.85}>
-                    {it.opensOut ? 'наружу' : 'внутрь'}, {it.hingeLeft ? 'петли слева' : 'петли справа'}
-                  </text>
-                </>
-              )}
+              {(() => {
+                // Пороги по фактической длине строк: «внутрь, петли слева» —
+                // это ~90 px, и при w = 46 подпись вылезала за края проёма.
+                const dir = `${it.opensOut ? 'наружу' : 'внутрь'}, ${it.hingeLeft ? 'петли слева' : 'петли справа'}`
+                // Запас 26 px — под вертикальный размер высоты проёма, который
+                // идёт вплотную к правому краю.
+                const fitName = w >= textW(it.doorLabel, 10) + 26
+                const fitDir = w >= textW(dir, 7.5) + 26
+                if (!fitName) return null
+                return (
+                  <>
+                    <text x={x + w / 2} y={(openTop + floorY) / 2 - (fitDir ? 8 : 0)} textAnchor="middle"
+                      dominantBaseline="central" fontSize="10" fill="#166534" fontWeight="700">
+                      {it.doorLabel}
+                    </text>
+                    {fitDir && (
+                      <text x={x + w / 2} y={(openTop + floorY) / 2 + 6} textAnchor="middle" dominantBaseline="central"
+                        fontSize="7.5" fill="#15803d" opacity={0.85}>
+                        {dir}
+                      </text>
+                    )}
+                  </>
+                )
+              })()}
 
               {/* Название проёма */}
               <text x={x + w / 2} y={PAD_T - 30} textAnchor="middle" fontSize="10.5" fill="#166534" fontWeight="600">
@@ -524,14 +538,17 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
 
               {/* Размер проёма по низу + высота проёма сбоку */}
               <DimH x1={x} x2={x + w} y={floorY + 26} text={`${it.openingW}`} />
-              <DimV x={x + w - rightTrimPx - 8} y1={openTop} y2={floorY} text={`${it.openingH}`} />
+              <DimV x={x + w - 8} y1={openTop} y2={floorY} text={`${it.openingH}`} />
 
               {/* Отметки высот: потолок и верх проёма.
                   Потолок — справа, иначе отметка налезает на подпись участка. */}
-              {w >= 72 && <>
-                <Level x={x + w - 6} y={ceilY} mm={it.ceilingH} anchor="end" />
-                <Level x={x + 6} y={openTop} mm={it.openingH} />
-              </>}
+              {/* Обе отметки — справа: слева от верха проёма стоит узел низа
+                  надпроёмной панели, и подпись уровня ложилась прямо на него. */}
+              {w >= 72 && <Level x={x + w - 6} y={ceilY} mm={it.ceilingH} anchor="end" />}
+              {/* Отметка верха проёма — только на широком участке: на узком её
+                  подпись (≈60 px) ложится на узел низа надпроёмной панели,
+                  который стоит по центру. */}
+              {w >= 130 && <Level x={x + w - 6} y={openTop} mm={it.openingH} anchor="end" />}
             </g>
           )
         })}
@@ -624,7 +641,7 @@ function DoorSections({ items }: { items: ElevItem[] }) {
 
               {/* Панель над проёмом */}
               {d.panelH !== null && d.panelH > 0 && (
-                <rect x={x} y={openTop - d.panelH * scale} width={STRIP} height={d.panelH * scale}
+                <rect x={x} y={ceilY} width={STRIP} height={d.panelH * scale}
                   fill="#dcfce7" stroke="#4ade80" strokeWidth="1" />
               )}
               {/* Верхний добор: в разрезе уходит вглубь стены от верха проёма */}
@@ -661,7 +678,7 @@ function DoorSections({ items }: { items: ElevItem[] }) {
                 {`+${(d.openingH / 1000).toFixed(3).replace('.', ',')}`}
               </text>
               {d.panelH !== null && d.panelH * scale >= 16 && (
-                <text x={x + STRIP + 6} y={openTop - d.panelH * scale / 2} fontSize="7" fill="#15803d">
+                <text x={x + STRIP + 6} y={ceilY + d.panelH * scale / 2} fontSize="7" fill="#15803d">
                   {d.panelH}
                 </text>
               )}

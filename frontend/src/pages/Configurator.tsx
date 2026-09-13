@@ -209,9 +209,15 @@ const DEFAULT_GAP_BOTTOM = 5
 // Порядок — как в каталоге, но самые ходовые узлы подняты наверх.
 const NODE_ORDER = ['A', 'B', 'C', 'D', 'DG', 'DH', 'R', 'P', 'S', 'STEP']
 
+// Тот же запасной справочник для превью в списке: без него поле показывало бы
+// пустой список, даже когда коды известны.
+const NODE_FALLBACK = NODES.map(n => ({ code: n.code, name: n.label }))
+
 function codesOf(jointTypes: JointType[]): string[] {
-  return [...jointTypes]
-    .map(j => j.code)
+  // Справочник не загрузился (нет сети, 403) — оставляем хардкод NODES, иначе
+  // все поля выбора узлов оказываются пустыми и заказ не набрать.
+  const src = jointTypes.length ? jointTypes.map(j => j.code) : NODES.map(n => n.code)
+  return [...src]
     .sort((x, y) => {
       const ix = NODE_ORDER.indexOf(x), iy = NODE_ORDER.indexOf(y)
       if (ix >= 0 || iy >= 0) return (ix < 0 ? 99 : ix) - (iy < 0 ? 99 : iy)
@@ -1179,7 +1185,7 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
           <div className="field">
             <label>Стык рядов (верх/низ)</label>
             {(wall.numRows || 1) > 1 ? (
-              <JointSelectCode value={wall.rowConn || 'S'} codes={allCodes} jointTypes={jointTypes}
+              <JointSelectCode value={wall.rowConn || 'S'} codes={allCodes} jointTypes={jointTypes} fallback={NODE_FALLBACK}
                 onChange={code => onChange({ rowConn: code })} />
             ) : (
               <input value="один ряд" disabled style={{ background: '#f5f5f5' }} />
@@ -1358,9 +1364,13 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
             <div style={{ fontSize: '.78rem', marginTop: 8, display: 'flex', gap: 18, flexWrap: 'wrap' }}>
               <span style={{ color: (widthDiff === 0 || wall.widthMode !== 'manual') ? '#166534' : '#b45309' }}>
                 Ширины: Σ <strong>{calc.widthsSum}</strong> из <strong>{calc.wallLengthByPanels} мм</strong> по узлам
-                {/* В авто-режиме ±0,5 мм — это округление половинок, не ошибка ввода */}
+                {/* В авто-режиме ±0,5 мм — это округление половинок, не ошибка ввода.
+                    Без пояснения «Σ 2997 из 2996.4» читалось как ошибка расчёта. */}
                 {widthDiff !== 0 && wall.widthMode === 'manual' && (
                   <> — расхождение <strong>{widthDiff > 0 ? '+' : ''}{widthDiff}</strong></>
+                )}
+                {widthDiff !== 0 && wall.widthMode !== 'manual' && (
+                  <span style={{ color: '#94a3b8' }}> — округление ширин до 0,5 мм</span>
                 )}
                 {wall.widthMode === 'manual' && (
                   <button type="button" className="btn btn-ghost btn-sm" style={{ marginLeft: 6 }}
@@ -1392,17 +1402,17 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
         <div className="grid-3" style={{ marginBottom: 10 }}>
           <div className="field">
             <label>Узел левого края</label>
-            <JointSelectCode value={wall.leftNode} codes={allCodes} jointTypes={jointTypes}
+            <JointSelectCode value={wall.leftNode} codes={allCodes} jointTypes={jointTypes} fallback={NODE_FALLBACK}
               onChange={code => onChange({ leftNode: code })} />
           </div>
           <div className="field">
             <label>Соединение панелей</label>
-            <JointSelectCode value={wall.connType} codes={allCodes} jointTypes={jointTypes}
+            <JointSelectCode value={wall.connType} codes={allCodes} jointTypes={jointTypes} fallback={NODE_FALLBACK}
               onChange={code => onChange({ connType: code as ConnType })} />
           </div>
           <div className="field">
             <label>Узел правого края</label>
-            <JointSelectCode value={wall.rightNode} codes={allCodes} jointTypes={jointTypes}
+            <JointSelectCode value={wall.rightNode} codes={allCodes} jointTypes={jointTypes} fallback={NODE_FALLBACK}
               onChange={code => onChange({ rightNode: code })} />
           </div>
         </div>
@@ -1411,12 +1421,12 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
         <div className="grid-2" style={{ marginBottom: 10 }}>
           <div className="field">
             <label>Верхняя кромка (тип узла)</label>
-            <JointSelectCode value={wall.topEdge} codes={allCodes} jointTypes={jointTypes}
+            <JointSelectCode value={wall.topEdge} codes={allCodes} jointTypes={jointTypes} fallback={NODE_FALLBACK}
               onChange={code => onChange({ topEdge: code })} allowEmpty />
           </div>
           <div className="field">
             <label>Нижняя кромка (тип узла)</label>
-            <JointSelectCode value={wall.bottomEdge} codes={allCodes} jointTypes={jointTypes}
+            <JointSelectCode value={wall.bottomEdge} codes={allCodes} jointTypes={jointTypes} fallback={NODE_FALLBACK}
               onChange={code => onChange({ bottomEdge: code })} allowEmpty />
           </div>
         </div>
@@ -1717,12 +1727,12 @@ function DoorCard({ door, series, jointTypes, finishGroups, onChange, onRemove, 
       <div className="grid-2" style={{ marginBottom: 10 }}>
         <div className="field">
           <label>Узел левого края (только B/C)</label>
-          <JointSelectCode value={door.leftNode} codes={DOOR_CONN_CODES} jointTypes={jointTypes}
+          <JointSelectCode value={door.leftNode} codes={DOOR_CONN_CODES} jointTypes={jointTypes} fallback={NODE_FALLBACK}
             onChange={code => onChange({ leftNode: code })} />
         </div>
         <div className="field">
           <label>Узел правого края (только B/C)</label>
-          <JointSelectCode value={door.rightNode} codes={DOOR_CONN_CODES} jointTypes={jointTypes}
+          <JointSelectCode value={door.rightNode} codes={DOOR_CONN_CODES} jointTypes={jointTypes} fallback={NODE_FALLBACK}
             onChange={code => onChange({ rightNode: code })} />
         </div>
       </div>
@@ -1731,7 +1741,7 @@ function DoorCard({ door, series, jointTypes, finishGroups, onChange, onRemove, 
       <div className="grid-2" style={{ marginBottom: 10 }}>
         <div className="field">
           <label>Верхняя кромка</label>
-          <JointSelectCode value={door.topEdge} codes={allCodes} jointTypes={jointTypes}
+          <JointSelectCode value={door.topEdge} codes={allCodes} jointTypes={jointTypes} fallback={NODE_FALLBACK}
             onChange={code => onChange({ topEdge: code })} allowEmpty />
         </div>
         <div className="field">
@@ -1819,7 +1829,7 @@ function DoorCard({ door, series, jointTypes, finishGroups, onChange, onRemove, 
             </div>
             <div className="field">
               <label title="Узел внешнего края добора — стык со стеновой панелью">Узел к стене</label>
-              <JointSelectCode value={door.trimLeftWallNode ?? 'A'} codes={allCodes} jointTypes={jointTypes}
+              <JointSelectCode value={door.trimLeftWallNode ?? 'A'} codes={allCodes} jointTypes={jointTypes} fallback={NODE_FALLBACK}
                 onChange={code => onChange({ trimLeftWallNode: code })} />
             </div>
             <div style={{ fontSize: '.72rem', color: '#94a3b8', marginTop: 4 }}>
@@ -1844,7 +1854,7 @@ function DoorCard({ door, series, jointTypes, finishGroups, onChange, onRemove, 
             </div>
             <div className="field">
               <label title="Узел внешнего края добора — стык со стеновой панелью">Узел к стене</label>
-              <JointSelectCode value={door.trimRightWallNode ?? 'A'} codes={allCodes} jointTypes={jointTypes}
+              <JointSelectCode value={door.trimRightWallNode ?? 'A'} codes={allCodes} jointTypes={jointTypes} fallback={NODE_FALLBACK}
                 onChange={code => onChange({ trimRightWallNode: code })} />
             </div>
             <div style={{ fontSize: '.72rem', color: '#94a3b8', marginTop: 4 }}>
@@ -1870,12 +1880,12 @@ function DoorCard({ door, series, jointTypes, finishGroups, onChange, onRemove, 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
               <div className="field">
                 <label title="Левый торец верхнего добора — стык с левым добором">Узел лев.</label>
-                <JointSelectCode value={door.trimTopLeftNode ?? 'A'} codes={allCodes} jointTypes={jointTypes}
+                <JointSelectCode value={door.trimTopLeftNode ?? 'A'} codes={allCodes} jointTypes={jointTypes} fallback={NODE_FALLBACK}
                   onChange={code => onChange({ trimTopLeftNode: code })} />
               </div>
               <div className="field">
                 <label title="Правый торец верхнего добора — стык с правым добором">Узел пр.</label>
-                <JointSelectCode value={door.trimTopRightNode ?? 'A'} codes={allCodes} jointTypes={jointTypes}
+                <JointSelectCode value={door.trimTopRightNode ?? 'A'} codes={allCodes} jointTypes={jointTypes} fallback={NODE_FALLBACK}
                   onChange={code => onChange({ trimTopRightNode: code })} />
               </div>
             </div>

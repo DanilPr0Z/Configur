@@ -271,10 +271,12 @@ export default function FinalSpec({ header, panels, profiles, doors, series = '6
         <FinishBreakdown panels={panels} subtitle="все панели заказа, включая дверные" />
       </div>
 
-      {/* ── Алюминиевый профиль ── */}
+      {/* ── Профили и комплектующие ──
+          В список попадает не только алюминий: ламель и навес стеновой панели —
+          МДФ, и под заголовком «алюминиевого профиля» они читались как ошибка. */}
       {mainProfiles.length > 0 && (
         <>
-          <SectionTitle>СПЕЦИФИКАЦИЯ АЛЮМИНИЕВОГО ПРОФИЛЯ</SectionTitle>
+          <SectionTitle>СПЕЦИФИКАЦИЯ ПРОФИЛЕЙ И КОМПЛЕКТУЮЩИХ</SectionTitle>
           <div className="table-wrap">
             <table>
               <thead>

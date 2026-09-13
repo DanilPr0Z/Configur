@@ -58,6 +58,50 @@ describe('WallScheme — план', () => {
     expect(svg).toBe('')
   })
 
+  it('объединённые панели рисуются своей шириной, а не равными долями', () => {
+    // Стена 3000 мм: первые два столбца объединены (999 + 999 + шов 4 = 2002),
+    // третий — 999. На плане должно быть ДВЕ ячейки и ОДИН шов, а не три
+    // равные трети с повторяющимся номером панели.
+    const svg = render(WallScheme, {
+      walls: [wall({ numPanels: 3 })],
+      doors: [], panels: [
+        { wallName: 'Стена 1', panelLabel: '1.1', width: 2002, height: 2688 },
+        { wallName: 'Стена 1', panelLabel: '1.3', width: 999, height: 2688 },
+      ],
+      itemOrder: [{ type: 'wall', id: 'w1' }],
+    })
+    clean(svg)
+    // Номера панелей — ровно те, что в спецификации, каждый по одному разу.
+    expect(svg.match(/>1\.1</g)?.length).toBe(1)
+    expect(svg.match(/>1\.3</g)?.length).toBe(1)
+    expect(svg).not.toMatch(/>1\.2</)
+    // Шов между панелями один, и он на 2/3 длины, а не на половине.
+    const seams = [...svg.matchAll(/<line x1="([\d.]+)" y1="-22"/g)].map(m => +m[1])
+    expect(seams).toHaveLength(1)
+    expect(seams[0] / (3000 * 0.22)).toBeCloseTo(2002 / 3001, 2)
+  })
+
+  it('в план попадает только верхний ряд многорядной стены', () => {
+    // Два ряда, в верхнем первые два столбца объединены. На плане (вид сверху)
+    // видно только верхний ряд: раньше третьей ячейкой подставлялась панель
+    // второго ряда «1.2.1», и цепочка размеров давала 4000 мм вместо 3000.
+    const svg = render(WallScheme, {
+      walls: [wall({ numPanels: 3 })],
+      doors: [], panels: [
+        { wallName: 'Стена 1', panelLabel: '1.1.1', width: 2002, height: 1344 },
+        { wallName: 'Стена 1', panelLabel: '1.1.3', width: 999, height: 1344 },
+        { wallName: 'Стена 1', panelLabel: '1.2.1', width: 999, height: 1344 },
+        { wallName: 'Стена 1', panelLabel: '1.2.2', width: 999, height: 1344 },
+        { wallName: 'Стена 1', panelLabel: '1.2.3', width: 999, height: 1344 },
+      ],
+      itemOrder: [{ type: 'wall', id: 'w1' }],
+    })
+    clean(svg)
+    expect(svg).toMatch(/>1\.1\.1</)
+    expect(svg).toMatch(/>1\.1\.3</)
+    expect(svg).not.toMatch(/>1\.2\./)
+  })
+
   it('на повороте 180° название участка не ложится на размерную цепочку', () => {
     // D справа у первой стены разворачивает вторую; третья идёт обратно (180°).
     const svg = render(WallScheme, {
@@ -90,6 +134,26 @@ describe('WallElevation — развёртка', () => {
   it('рисует стену и проём без NaN', () => {
     const svg = render(WallElevation, { items: [elevWall] })
     clean(svg)
+  })
+
+  it('панель над проёмом висит от потолка, а не торчит выше него', () => {
+    // panelH = ceilingH − openingH + заход в узел H (51,5) = 651,5 при просвете
+    // 600 мм. Если откладывать высоту вверх от верха проёма, панель вылезает
+    // на 51,5 мм выше потолка и выше соседней стеновой панели.
+    const door = {
+      kind: 'door' as const, id: 'd1', label: 'Проём', copies: 1,
+      openingW: 900, openingH: 2100, ceilingH: 2700,
+      panelH: 651.5, panelW: 782.5, panelDrawLabel: 'А1', doorLabel: 'Д1',
+      leftNode: 'B', rightNode: 'B', topEdge: '', bottomEdge: 'H',
+      opensOut: false, hingeLeft: true, trim: null,
+    }
+    const svg = render(WallElevation, { items: [elevWall, door] })
+    clean(svg)
+    // Зелёная панель (fill #dcfce7) начинается ровно на отметке потолка —
+    // на самом верху поля чертежа (PAD_T = 46), не выше.
+    const panel = /<rect[^>]*\sy="([\d.]+)"[^>]*fill="#dcfce7"/.exec(svg)
+    expect(panel).not.toBeNull()
+    expect(+panel![1]).toBe(46)
   })
 
   it('проём выше потолка не даёт прямоугольник отрицательной высоты', () => {

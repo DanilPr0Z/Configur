@@ -91,11 +91,13 @@ const trunc = (s: string, n: number) => (s.length > n ? s.slice(0, n - 1) + '…
 interface HoverState { code: string; jt: JointType | null; x: number; y: number }
 
 export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes = [], compact = false }: Props) {
-  if (walls.length === 0) return null
+  // useState — до любых ранних возвратов: раньше выход по «стен нет» стоял выше
+  // хука, и удаление последней стены роняло рендер («rendered fewer hooks»).
+  const [hover, setHover] = useState<HoverState | null>(null)
+  const noWalls = walls.length === 0
 
   // Карта код → узел справочника (для превью фото при наведении)
   const jtByCode = new Map(jointTypes.map(j => [j.code, j]))
-  const [hover, setHover] = useState<HoverState | null>(null)
 
   // Бейдж узла — кликабельный, при наведении показывает превью фото.
   // Определён внутри компонента: замыкает jtByCode и setHover, поэтому
@@ -120,7 +122,7 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
     )
   }
 
-  const PAD      = compact ? 24 : 70    // отступ вокруг схемы
+  const PAD      = compact ? 18 : 34    // отступ вокруг схемы
   const ITEM_GAP = 52    // px между элементами — достаточно чтобы значки не касались
   const BAR_H    = 44    // высота полосы (две строки внутри)
 
@@ -177,14 +179,20 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
   // ── Вычисление bounding box ──────────────────────────────────────────────
   // Ни один id из itemOrder не нашёлся — рисовать нечего. Без этой проверки
   // Math.min(...[]) даёт Infinity и viewBox получается «Infinity Infinity NaN NaN».
-  if (segs.length === 0) return null
+  if (noWalls || segs.length === 0) return null
 
-  const maxDoorPx = doors.length > 0 ? Math.max(...doors.map(d => d.openingW * scale)) : 0
-  const LABEL_SPACE = compact ? BAR_H / 2 + 64 : BAR_H / 2 + maxDoorPx + 110
-  const textReserve = Math.max(100, ...[
+  const textReserve = Math.max(60, ...[
     ...walls.map(w => textW(trunc(w.name, NAME_MAX), 11) / 2 + 12),
     ...doors.map(d => textW(trunc(d.label, NAME_MAX), 10) / 2 + 12),
   ])
+
+  // Сколько места занимает подписанное вокруг полосы — отдельно с каждой
+  // стороны. Раньше во все стороны резервировалась одна величина по самому
+  // широкому проёму, и схема из одних стен тонула в пустом поле.
+  //   стена: название с габаритами — с одной стороны, размерная цепочка — с другой;
+  //   проём: название над дугой и доборами, «Монтаж …» — под дугой.
+  const WALL_NAME_EXT  = BAR_H / 2 + 52 + 26
+  const WALL_CHAIN_EXT = BAR_H / 2 + 52 + 12
   const allPts: [number, number][] = []
 
   for (const seg of segs) {
@@ -194,14 +202,34 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
     const ex = seg.x + fwdX * seg.pxLen
     const ey = seg.y + fwdY * seg.pxLen
 
+    // upSign — тот же, что при отрисовке: куда в локальных координатах
+    // смотрит «верх экрана» (см. блоки стены и двери ниже).
+    const upSign = seg.angle > 90 && seg.angle < 270 ? 1 : -1
+    let upExt: number, downExt: number
+    if (seg.type === 'wall') {
+      upExt = WALL_NAME_EXT
+      downExt = WALL_CHAIN_EXT
+    } else {
+      const d = doors.find(x => x.id === seg.id)
+      const opensOut = d?.openingDir === 'НАРУЖУ'
+      const L = seg.pxLen
+      const upBase   = !opensOut ? Math.max(BAR_H / 2, L - BAR_H / 2 + 10) : BAR_H / 2
+      const downBase = opensOut  ? BAR_H / 2 + L + 10 : BAR_H / 2
+      upExt   = upBase + 58 + 20
+      downExt = downBase + 38 + 20
+    }
+    // Локальная +Y направлена по perp; «вверх экрана» — это upSign * (локальная Y).
+    const plusExt  = upSign > 0 ? upExt : downExt
+    const minusExt = upSign > 0 ? downExt : upExt
+
     for (const [px, py] of [[seg.x, seg.y], [ex, ey]] as [number, number][]) {
-      allPts.push([px + perpX * LABEL_SPACE, py + perpY * LABEL_SPACE])
-      allPts.push([px - perpX * LABEL_SPACE, py - perpY * LABEL_SPACE])
+      allPts.push([px + perpX * plusExt,  py + perpY * plusExt])
+      allPts.push([px - perpX * minusExt, py - perpY * minusExt])
       // Горизонтальный текст занимает дополнительное место вдоль оси X/Y.
       // Резерв считаем по самой длинной подписи, а не по фиксированным 100 px:
       // длинное имя участка иначе уезжает за край схемы.
-      allPts.push([px + textReserve, py + 30])
-      allPts.push([px - textReserve, py - 30])
+      allPts.push([px + textReserve, py + 20])
+      allPts.push([px - textReserve, py - 20])
     }
   }
 
@@ -267,6 +295,16 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
           const transform = `translate(${seg.x}, ${seg.y}) rotate(${seg.angle})`
           const a = seg.angle  // для counter-rotate
 
+          // Подписи участка рисуем ВНЕ повёрнутой группы, в координатах экрана:
+          // внутри неё строки расходились вдоль локальной оси Y, из-за чего на
+          // повороте 180° название и габариты менялись местами, а на 90°/270°
+          // печатались бок о бок и наезжали друг на друга.
+          const segRad = a * Math.PI / 180
+          const fX = Math.cos(segRad), fY = Math.sin(segRad)
+          const pX = -Math.sin(segRad), pY = Math.cos(segRad)
+          const toGlobal = (lx: number, ly: number): [number, number] =>
+            [seg.x + fX * lx + pX * ly, seg.y + fY * lx + pY * ly]
+
           // ── Стена ──────────────────────────────────────────────────────────
           if (seg.type === 'wall') {
             const w = walls.find(w => w.id === seg.id)
@@ -274,13 +312,41 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
             // numPanels из старого заказа может быть 0/undefined — без этого
             // px становится Infinity/NaN и весь сегмент рисуется в никуда.
             const N = Math.max(1, Math.round(w.numPanels) || 1)
-            const px = seg.pxLen / N
             const wPanels = panels.filter(p => p.wallName === w.name)
 
-            // Y-координаты ВНУТРИ полосы (BAR_H=44, диапазон -22..+22).
-            // Строки разведены от бейджей узлов (радиус 10 в центре полосы).
-            const topY    = -14  // верхняя строка (номер панели)
-            const bottomY =  13  // нижняя строка (размер панели)
+            // План рисуем по ФАКТИЧЕСКИМ панелям верхнего ряда, а не делением
+            // полосы на numPanels равных долей: при объединении панелей и при
+            // ручных ширинах столбцов схема показывала лишние швы, равные
+            // ячейки и повторяющиеся номера.
+            // Верхний ряд — панели с меткой «стена.колонка» либо
+            // «стена.1.колонка» (у многорядной стены ряд стоит в середине).
+            const topRow = wPanels.filter(p => {
+              const parts = (p.panelLabel ?? '').split('.')
+              return parts.length < 3 || parts[1] === '1'
+            })
+            const sumW = topRow.reduce((s, p) => s + (p.width || 0), 0)
+            // Ширины панелей известны — раскладываем полосу пропорционально им;
+            // если панелей ещё нет, делим поровну, как раньше.
+            const cellsPx = sumW > 0
+              ? (() => {
+                  let cx = 0
+                  return topRow.map(p => {
+                    const cw = seg.pxLen * (p.width || 0) / sumW
+                    const cell = { x: cx, w: cw, p: p as P | undefined }
+                    cx += cw
+                    return cell
+                  })
+                })()
+              : Array.from({ length: N }, (_, i) => ({
+                  x: (seg.pxLen / N) * i, w: seg.pxLen / N, p: undefined as P | undefined,
+                }))
+            // Самая узкая ячейка задаёт пороги видимости подписей и стыков.
+            const px = Math.min(...cellsPx.map(c => c.w))
+
+            // Блок из двух строк (номер панели и её размер) внутри полосы
+            // BAR_H = 44: якорь первой строки поднят так, чтобы обе строки
+            // легли симметрично относительно центра полосы.
+            const topY = -6
 
             // Бейдж стыка стоит на границе ячеек, номер панели — в её центре,
             // то есть между ними px/2. Показываем стыки только когда круг
@@ -294,8 +360,20 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
             // ложился прямо на неё.
             const upSign = seg.angle > 90 && seg.angle < 270 ? 1 : -1
 
+            // Повёрнутый на 90°/270° участок идёт по экрану вертикально, а
+            // подписи остаются горизонтальными (counter-rotate). Значит вдоль
+            // полосы у текста высота строки, а поперёк — её длина: с прежними
+            // порогами «по px» номер панели и её размер печатались бок о бок и
+            // налезали друг на друга.
+            const vertical = seg.angle === 90 || seg.angle === 270
+            const across = BAR_H - 6
+
+            // Точка подписи участка: середина полосы, отступ наружу от неё.
+            const [nameX, nameY] = toGlobal(seg.pxLen / 2, upSign * (BAR_H / 2 + 52))
+
             return (
-              <g key={seg.id} transform={transform}>
+              <g key={seg.id}>
+              <g transform={transform}>
                 {/* Полоса стены */}
                 <rect x={0} y={-BAR_H / 2} width={seg.pxLen} height={BAR_H}
                   fill="#dbeafe" stroke="#93c5fd" strokeWidth="1.5" rx="2" />
@@ -303,85 +381,77 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
                 <rect x={0} y={BAR_H / 2 - 4} width={seg.pxLen} height={4}
                   fill="#3b82f6" opacity={0.7} rx="1" />
 
-                {/* Разделители панелей */}
-                {Array.from({ length: N - 1 }, (_, i) => (
+                {/* Разделители панелей — по фактическим швам */}
+                {cellsPx.slice(1).map((c, i) => (
                   <line key={i}
-                    x1={px * (i + 1)} y1={-BAR_H / 2}
-                    x2={px * (i + 1)} y2={BAR_H / 2}
+                    x1={c.x} y1={-BAR_H / 2}
+                    x2={c.x} y2={BAR_H / 2}
                     stroke="#60a5fa" strokeWidth="1" />
                 ))}
 
                 {/* Метки панелей с HText (counter-rotate) — всегда читаемые при любом угле.
                     Скрываем при px < 24 (ячейка слишком узкая). */}
-                {Array.from({ length: N }, (_, i) => {
-                  const p = wPanels[i]
+                {cellsPx.map((c, i) => {
+                  const p = c.p
                   const label = p?.panelLabel ?? `${walls.indexOf(w) + 1}.${i + 1}`
-                  const cellX = px * i + px / 2
+                  const cellX = c.x + c.w / 2
                   // Размер панели пишем «высота × ширина» — тот же порядок, что
                   // в форме ввода и в спецификации.
                   const size = p?.width ? `${p.height} × ${p.width}` : ''
                   // Пороги — по фактической длине строки: номер вида «10.3.12»
                   // шире, чем «1.1», и на узком столбце наезжал на соседний.
-                  const fitLabel = px >= textW(label, 9) + (showBadges ? 2 * badgeR : 6)
-                  const fitSize  = size !== '' && px >= textW(size, 7) + 6
+                  const labelW = textW(label, 9)
+                  const sizeW = textW(size, 7)
+                  // Порог считаем по ЭТОЙ ячейке: узкая панель рядом с широкой
+                  // больше не прячет подписи у соседки.
+                  const cAlong = c.w - (showBadges ? 2 * badgeR : 6)
+                  const fitLabel = vertical
+                    ? cAlong >= 13 && across >= labelW
+                    : cAlong >= labelW && across >= 13
+                  const fitSize = size !== '' && (vertical
+                    ? cAlong >= 26 && across >= Math.max(labelW, sizeW)
+                    : cAlong >= Math.max(labelW, sizeW) && across >= 26)
                   if (!fitLabel) return null
+                  // Обе строки — в одном тексте: tspan с dy кладёт их одна под
+                  // другой на ЭКРАНЕ при любом повороте участка, тогда как две
+                  // отдельные подписи со своими ly расходились вдоль локальной
+                  // оси Y, то есть вбок на повёрнутом участке.
                   return (
                     <g key={i}>
-                      <HText lx={cellX} ly={topY} angle={a}
-                        textAnchor="middle" dominantBaseline="central"
-                        fontSize="9" fill="#1e40af" fontWeight="600">
-                        {label}
+                      <HText lx={cellX} ly={fitSize ? topY : 0} angle={a}
+                        textAnchor="middle" dominantBaseline="central">
+                        <tspan x={cellX} fontSize="9" fill="#1e40af" fontWeight="600">{label}</tspan>
+                        {fitSize && <tspan x={cellX} dy={13} fontSize="7" fill="#3b5bdb">{size}</tspan>}
                       </HText>
-                      {fitSize && (
-                        <HText lx={cellX} ly={bottomY} angle={a}
-                          textAnchor="middle" dominantBaseline="central"
-                          fontSize="7" fill="#3b5bdb">
-                          {size}
-                        </HText>
-                      )}
                     </g>
                   )
                 })}
-
-                {/* Название + Габариты стены — один HText с двумя tspan.
-                    lyLabel: для угла 90–270° знак флипается (иначе при 180° текст под полосой).
-                    tspan+dy гарантирует вертикальный стек в глобальных экранных координатах.
-                    Offset 50 = BAR_H/2(22) + стрелка(8) + зазор(20) — стрелка не перекрывает. */}
-                {(() => {
-                  const ly = upSign * (BAR_H / 2 + 50)
-                  const dy = ly < 0 ? 14 : -14
-                  return (
-                    <HText lx={seg.pxLen / 2} ly={ly} angle={a} textAnchor="middle">
-                      <tspan x={seg.pxLen / 2} fontSize="11" fill="#1e293b" fontWeight="600">
-                        {trunc(w.name, NAME_MAX)}{w.copies > 1 ? ` ×${w.copies}` : ''}
-                      </tspan>
-                      <tspan x={seg.pxLen / 2} dy={dy} fontSize="9" fill="#64748b">
-                        В {w.wallHeight} × Д {w.wallLength} мм
-                      </tspan>
-                    </HText>
-                  )
-                })()}
 
                 {/* Размерная цепочка по низу полосы: ширина каждой панели и общая
                     длина участка — как на планах СП. */}
                 {(() => {
                   // Цепочка всегда на стороне, противоположной названию участка.
                   const yChain = -upSign * (BAR_H / 2 + 16)
-                  const yTotal = -upSign * (BAR_H / 2 + 34)
+                  // На вертикальном участке подписи цепочки и итоговой линии
+                  // стоят рядом по горизонтали и при зазоре 18 px наезжали
+                  // друг на друга — разводим их шире.
+                  const yTotal = -upSign * (BAR_H / 2 + (vertical ? 52 : 34))
                   const tick = (x: number, y: number) => (
                     <line x1={x} y1={y - 3} x2={x} y2={y + 3} stroke="#94a3b8" strokeWidth="0.8" />
                   )
                   return (
                     <g>
                       <line x1={0} y1={yChain} x2={seg.pxLen} y2={yChain} stroke="#94a3b8" strokeWidth="0.8" />
-                      {Array.from({ length: N + 1 }, (_, i) => (
-                        <g key={i}>{tick(px * i, yChain)}</g>
+                      {[...cellsPx.map(c => c.x), seg.pxLen].map((cx, i) => (
+                        <g key={i}>{tick(cx, yChain)}</g>
                       ))}
-                      {Array.from({ length: N }, (_, i) => {
-                        const v = wPanels[i]?.width
-                        if (!v || px < textW(String(v), 7) + 6) return null
+                      {cellsPx.map((c, i) => {
+                        const v = c.p?.width
+                        // На вертикальном участке соседние подписи цепочки
+                        // расходятся по экрану вверх-вниз, а не вбок.
+                        if (!v || c.w < (vertical ? 12 : textW(String(v), 7) + 6)) return null
                         return (
-                          <HText key={i} lx={px * i + px / 2} ly={yChain + 5 * upSign} angle={a}
+                          <HText key={i} lx={c.x + c.w / 2} ly={yChain + 5 * upSign} angle={a}
                             textAnchor="middle" fontSize="7" fill="#64748b">
                             {v}
                           </HText>
@@ -399,11 +469,22 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
 
                 {/* Значки узлов — connType скрываем если ячейка < 28px (значки бы накладывались) */}
                 <Badge x={0}         y={0} code={w.leftNode}  angle={a} />
-                {showBadges && Array.from({ length: N - 1 }, (_, i) => (
-                  <Badge key={i} x={px * (i + 1)} y={0} code={w.connType} angle={a} />
+                {showBadges && cellsPx.slice(1).map((c, i) => (
+                  <Badge key={i} x={c.x} y={0} code={w.connType} angle={a} />
                 ))}
                 <Badge x={seg.pxLen} y={0} code={w.rightNode} angle={a} />
 
+              </g>
+
+              {/* Название + габариты участка — в координатах экрана */}
+              <text x={nameX} y={nameY} textAnchor="middle">
+                <tspan x={nameX} fontSize="11" fill="#1e293b" fontWeight="600">
+                  {trunc(w.name, NAME_MAX)}{w.copies > 1 ? ` ×${w.copies}` : ''}
+                </tspan>
+                <tspan x={nameX} dy={13} fontSize="9" fill="#64748b">
+                  В {w.wallHeight} × Д {w.wallLength} мм
+                </tspan>
+              </text>
               </g>
             )
           }
@@ -472,8 +553,12 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
           const doorBadgeOff = downBase + 16
           const mountOff     = showTopTrim ? doorBadgeOff + 22 : downBase + 18
 
+          const [dLabX, dLabY] = toGlobal(seg.pxLen / 2, upSign * labelOff)
+          const [dMntX, dMntY] = toGlobal(seg.pxLen / 2, -upSign * mountOff)
+
           return (
-            <g key={seg.id} transform={transform}>
+            <g key={seg.id}>
+            <g transform={transform}>
               {/* ── Левый добор: штриховая линия + метка + узел к коробке (авто O) */}
               {trimEnabled && <>
                 <line x1={-leftTrimPx} y1={0} x2={0} y2={0}
@@ -549,38 +634,6 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
                 {opensOut ? '↓ Н' : '↑ В'}
               </text>
 
-              {/* Название + размеры */}
-              {(() => {
-                const ly = upSign * labelOff
-                const dy = ly < 0 ? 14 : -14
-                return (
-                  <HText lx={seg.pxLen / 2} ly={ly} angle={a} textAnchor="middle">
-                    <tspan x={seg.pxLen / 2} fontSize="10" fill="#1e293b" fontWeight="600">
-                      {trunc(d.label, NAME_MAX)}{d.doorRef ? ` (${d.doorRef})` : ''}{d.copies > 1 ? ` ×${d.copies}` : ''}
-                    </tspan>
-                    <tspan x={seg.pxLen / 2} dy={dy} fontSize="9" fill="#64748b">
-                      В {d.openingH} × Ш {d.openingW} мм
-                    </tspan>
-                  </HText>
-                )
-              })()}
-
-              {/* Монтаж коробки + направление открывания — две строки.
-                  Монтаж (В ПРОЕМ/В ПОТОЛОК) и открывание (внутрь/наружу + петля)
-                  разнесены, чтобы «в проём» не читалось как направление. */}
-              {(() => {
-                const cx = seg.pxLen / 2
-                return (
-                  <HText lx={cx} ly={-upSign * mountOff} angle={a}
-                    textAnchor="middle" fontSize="8" fill="#94a3b8">
-                    <tspan x={cx}>Монтаж {low(d.mountType)}</tspan>
-                    <tspan x={cx} dy={11}>
-                      Открывание {low(d.openingDir)} {low(d.hingeDir)}
-                    </tspan>
-                  </HText>
-                )
-              })()}
-
               {/* Узлы двери (leftNode/rightNode). В ПРОЕМ — на нижних углах проёма
                   (бывшее место верхнего добора); иначе — по бокам за доборами. */}
               {showTopTrim ? (
@@ -598,6 +651,26 @@ export default function WallScheme({ walls, doors, panels, itemOrder, jointTypes
                     y={0} code={d.rightNode} angle={a} />
                 </>
               )}
+            </g>
+
+            {/* Название и размеры проёма — в координатах экрана */}
+            <text x={dLabX} y={dLabY} textAnchor="middle">
+              <tspan x={dLabX} fontSize="10" fill="#1e293b" fontWeight="600">
+                {trunc(d.label, NAME_MAX)}{d.doorRef ? ` (${d.doorRef})` : ''}{d.copies > 1 ? ` ×${d.copies}` : ''}
+              </tspan>
+              <tspan x={dLabX} dy={13} fontSize="9" fill="#64748b">
+                В {d.openingH} × Ш {d.openingW} мм
+              </tspan>
+            </text>
+
+            {/* Монтаж коробки и направление открывания — с противоположной
+                стороны полосы, за дугой открывания. */}
+            <text x={dMntX} y={dMntY} textAnchor="middle" fontSize="8" fill="#94a3b8">
+              <tspan x={dMntX}>Монтаж {low(d.mountType)}</tspan>
+              <tspan x={dMntX} dy={11}>
+                Открывание {low(d.openingDir)} {low(d.hingeDir)}
+              </tspan>
+            </text>
             </g>
           )
         })}
