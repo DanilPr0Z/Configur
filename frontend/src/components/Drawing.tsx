@@ -346,23 +346,26 @@ export function ElevationView({ items, off, zoom }: { items: ElevItem[]; off: Of
             {hasPanel && (() => {
               const pw = num(it.panelW) * k
               const px = x + (w - pw) / 2
+              // Сверху у надпроёмной панели такой же зазор, как у стеновой;
+              // снизу зазора нет — там панель заходит в узел коробки.
+              const pTop = ceilingH - num(it.gapTop)
               return (
                 <g>
-                  <rect x={px} y={Y(ceilingH)} width={pw} height={panelH * k}
+                  <rect x={px} y={Y(pTop)} width={pw} height={panelH * k}
                     fill="#fff" stroke="#000" strokeWidth={LW.thick} />
                   {pw >= textW(it.panelDrawLabel, FS.label) + 2 && panelH * k >= FS.label + 2 && (
-                    <text x={px + pw / 2} y={Y(ceilingH) + panelH * k / 2 - (panelH * k >= 12 ? 2 : 0)}
+                    <text x={px + pw / 2} y={Y(pTop) + panelH * k / 2 - (panelH * k >= 12 ? 2 : 0)}
                       textAnchor="middle" dominantBaseline="central" fontSize={FS.label}
                       fill="#000" fontStyle="italic" fontFamily={FONT}>{it.panelDrawLabel}</text>
                   )}
                   {panelH * k >= 12 && pw >= textW(`${size(panelH)}×${size(it.panelW ?? 0)}`, FS.tag) + 2 && (
-                    <text x={px + pw / 2} y={Y(ceilingH) + panelH * k / 2 + 3.4} textAnchor="middle"
+                    <text x={px + pw / 2} y={Y(pTop) + panelH * k / 2 + 3.4} textAnchor="middle"
                       dominantBaseline="central" fontSize={FS.tag} fill="#000"
                       fontStyle="italic" fontFamily={FONT}>{size(panelH)}×{size(it.panelW ?? 0)}</text>
                   )}
                   {panelH * k >= 10 && <>
-                    <NodeTag x={px} y={Y(ceilingH) + panelH * k / 2} code={it.leftNode} />
-                    <NodeTag x={px + pw} y={Y(ceilingH) + panelH * k / 2} code={it.rightNode} />
+                    <NodeTag x={px} y={Y(pTop) + panelH * k / 2} code={it.leftNode} />
+                    <NodeTag x={px + pw} y={Y(pTop) + panelH * k / 2} code={it.rightNode} />
                   </>}
                 </g>
               )
@@ -598,7 +601,7 @@ export function SectionView({ items, zoom }: { items: ElevItem[]; zoom: number }
           <g key={it.id}>
             <Caption x={cx} y={row * rowH + PAD_T - 5} size={FS.dim} text={trunc(name, 18)} />
             {panelH > 0 && (
-              <rect x={cx - sw / 2} y={Y(ceilingH)} width={sw} height={panelH * k}
+              <rect x={cx - sw / 2} y={Y(ceilingH - num(it.gapTop))} width={sw} height={panelH * k}
                 fill={GREY_CUT} stroke="#000" strokeWidth={LW.thick} />
             )}
             <rect x={cx - sw / 2} y={Y(openingH)} width={sw} height={openingH * k}

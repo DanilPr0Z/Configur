@@ -62,6 +62,7 @@ export interface ElevDoor {
   openingW: number
   openingH: number
   ceilingH: number
+  gapTop: number           // зазор от потолка до верха надпроёмной панели
   panelLabel: string       // «Д1» — панель над проёмом в спецификации
   panelDrawLabel: string   // обозначение панели над проёмом на чертеже (А2…)
   doorLabel: string        // «Д-42641» — дверное полотно по номеру заказа DGV
@@ -411,14 +412,19 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
                 const ph = (it.panelH as number) * scale
                 const pw = (it.panelW as number) * scale
                 const px = x + (w - pw) / 2
-                // Панель висит ОТ ПОТОЛКА. Её высота = просвет над проёмом плюс
-                // заход в узел коробки (у 60-й +43 мм для G и +51,5 мм для H),
-                // поэтому низ уходит ниже верха проёма и прячется за коробкой.
-                // Раньше панель откладывалась вверх от верха проёма и на эти же
-                // 43–51,5 мм торчала выше потолка и выше соседней стены.
-                const py = ceilY
+                // Панель висит от потолка, но не вплотную: сверху остаётся такой
+                // же зазор, как у стеновой панели. Её высота = просвет над проёмом
+                // плюс заход в узел коробки (у 60-й +43 мм для G и +51,5 мм для H)
+                // минус этот зазор, поэтому низ уходит ниже верха проёма и
+                // прячется за коробкой. Снизу зазора нет.
+                const gapTop = it.gapTop ?? 0
+                const py = yOf(it.ceilingH - gapTop)
                 return (
                   <g>
+                    {gapTop > 0 && py - ceilY >= 2 && (
+                      <rect x={px} y={ceilY} width={pw} height={py - ceilY}
+                        fill="#fef3c7" opacity={0.75} />
+                    )}
                     <rect x={px} y={py} width={pw} height={ph}
                       fill="#dcfce7" stroke="#4ade80" strokeWidth="1" />
                     {pw >= 34 && ph >= 16 && (
@@ -709,7 +715,7 @@ function Sections({ items }: { items: ElevItem[] }) {
 
               {/* Панель над проёмом */}
               {d.panelH !== null && d.panelH > 0 && (
-                <rect x={x} y={ceilY} width={STRIP} height={d.panelH * scale}
+                <rect x={x} y={yOf(d.ceilingH - (d.gapTop ?? 0))} width={STRIP} height={d.panelH * scale}
                   fill="#dcfce7" stroke="#4ade80" strokeWidth="1" />
               )}
               {/* Верхний добор: в разрезе уходит вглубь стены от верха проёма */}
@@ -746,7 +752,8 @@ function Sections({ items }: { items: ElevItem[] }) {
                 {level(d.openingH)}
               </text>
               {d.panelH !== null && d.panelH * scale >= 16 && (
-                <text x={x + STRIP + 6} y={ceilY + d.panelH * scale / 2} fontSize="7" fill="#15803d">
+                <text x={x + STRIP + 6} y={yOf(d.ceilingH - (d.gapTop ?? 0)) + d.panelH * scale / 2}
+                  fontSize="7" fill="#15803d">
                   {d.panelH}
                 </text>
               )}

@@ -70,6 +70,9 @@ export interface DoorSeg {
   openingW: number
   openingH: number
   ceilingH: number
+  // Зазор сверху — такой же, как у стеновой панели: надпроёмная панель не
+  // доходит до потолка. Снизу зазора НЕТ: там панель заходит в узел коробки.
+  gapTop: number
   mountType: 'В ПОТОЛОК' | 'В ПРОЕМ'
   openingDir: 'ВНУТРЬ' | 'НАРУЖУ'
   hingeDir: 'СЛЕВА' | 'СПРАВА'
@@ -343,6 +346,7 @@ export function makeDoor(n: number): DoorSeg {
   return {
     id: uid(), label: `Дверной проём ${n}`,
     doorRef: '', openingW: 900, openingH: 2100, ceilingH: 2700,
+    gapTop: DEFAULT_GAP_TOP,
     mountType: 'В ПРОЕМ', openingDir: 'ВНУТРЬ', hingeDir: 'СЛЕВА',
     leftNode: 'B', rightNode: 'B',
     topEdge: '', bottomEdge: '',
@@ -412,6 +416,7 @@ function migrateDoors(raw: any[]): DoorSeg[] {
     openingW: da.openingW ?? 900,
     openingH: da.openingH ?? 2100,
     ceilingH: da.ceilingH ?? 2700,
+    gapTop: da.gapTop ?? DEFAULT_GAP_TOP,
     mountType: da.mountType ?? 'В ПРОЕМ',
     openingDir: da.openingDir ?? 'ВНУТРЬ',
     hingeDir: da.hingeDir ?? 'СЛЕВА',
@@ -598,8 +603,12 @@ function calcDoorPanelWidth(d: DoorSeg, g: DoorGeom): number {
   return Math.round((d.openingW - adj) * 2) / 2
 }
 
+// Высота панели над проёмом: просвет над проёмом плюс заход в узел коробки
+// (у 60-й +43 мм для G и +51,5 мм для H) МИНУС зазор сверху — панель не
+// доходит до потолка ровно так же, как стеновая. Снизу зазора нет: там панель
+// прячется в коробку двери.
 function calcDoorPanelHeight(d: DoorSeg, dtype: 'G' | 'H', g: DoorGeom): number {
-  return d.ceilingH - d.openingH + (dtype === 'G' ? g.hG : g.hH)
+  return d.ceilingH - d.openingH + (dtype === 'G' ? g.hG : g.hH) - (d.gapTop ?? DEFAULT_GAP_TOP)
 }
 
 function suggestPanels(w: WallSeg, off: OffsetMap, maxW = 1200): number {
@@ -884,6 +893,7 @@ function buildElevation(
         kind: 'door', id: d.id,
         label: d.label + (d.doorRef ? ` (${d.doorRef})` : ''),
         openingW: d.openingW, openingH: d.openingH, ceilingH: d.ceilingH,
+        gapTop: d.gapTop ?? DEFAULT_GAP_TOP,
         panelLabel: `Д${di + 1}`,
         panelDrawLabel: dtype ? nextDraw() : '',
         doorLabel: d.doorRef ? `Д-${d.doorRef}` : `Дверь ${di + 1}`,
@@ -1707,6 +1717,16 @@ function DoorCard({ door, series, jointTypes, finishGroups, onChange, onRemove, 
           <input type="number" value={door.ceilingH || ''} min={0}
             onChange={e => onChange({ ceilingH: +e.target.value })} />
         </div>
+        <div className="field">
+          {/* Снизу у надпроёмной панели зазора нет: там она заходит в узел
+              коробки, поэтому поле только одно. */}
+          <label>Зазор сверху, мм</label>
+          <input type="number" min={0} value={door.gapTop ?? DEFAULT_GAP_TOP}
+            onChange={e => onChange({ gapTop: +e.target.value })} />
+        </div>
+      </div>
+
+      <div className="grid-4" style={{ marginBottom: 10 }}>
         <div className="field">
           <label>Копий</label>
           <input type="number" min={1} value={door.copies}

@@ -132,7 +132,21 @@ describe('buildSpec — панель над дверным проёмом', () =
     const door = { ...makeDoor(1), openingW: 900, openingH: 2100, ceilingH: 2700 }
     const { panels } = buildSpec([], [door], OFF,
       { hG: 43, hH: 51.5, wOutB: 100.5, wOutC: 108.5, wInB: 117.5, wInC: 125.5 })
-    // ВНУТРЬ + ламель B: высота 2700 − 2100 + 51.5, ширина 900 − 117.5
-    expect(panels[0]).toMatchObject({ height: 651.5, width: 782.5 })
+    // ВНУТРЬ + ламель B: высота 2700 − 2100 + 51.5 − 7 (зазор сверху),
+    // ширина 900 − 117.5. Зазор сверху введён 14.09.2026 по требованию
+    // производства: надпроёмная панель не доходит до потолка ровно так же,
+    // как стеновая. СНИЗУ зазора нет — там панель заходит в узел коробки.
+    expect(panels[0]).toMatchObject({ height: 644.5, width: 782.5 })
+  })
+
+  it('зазор сверху вычитается из высоты панели, снизу — нет', () => {
+    const geom = { hG: 43, hH: 51.5, wOutB: 100.5, wOutC: 108.5, wInB: 117.5, wInC: 125.5 }
+    const base = { ...makeDoor(1), openingW: 900, openingH: 2100, ceilingH: 2700 }
+    const h = (gapTop: number) =>
+      buildSpec([], [{ ...base, gapTop }], OFF, geom).panels[0].height
+    expect(h(0)).toBe(651.5)
+    expect(h(7)).toBe(644.5)
+    // Зазор 10 мм убирает ровно 10 мм — снизу ничего не добавляется.
+    expect(h(0) - h(10)).toBe(10)
   })
 })
