@@ -6,6 +6,8 @@ import { visibleFinishGroups } from '../api'
 import { JointSelectCode, StringSelect } from '../components/JointSelect'
 import WallScheme from '../components/WallScheme'
 import WallElevation, { ElevationTable } from '../components/WallElevation'
+import Drawing, { availableViews } from '../components/Drawing'
+import type { DrawView } from '../components/Drawing'
 import type { ElevItem } from '../components/WallElevation'
 import FinishBreakdown, { groupByFinish } from '../components/FinishBreakdown'
 import { printSpec } from '../components/FinalSpec'
@@ -864,6 +866,13 @@ function buildElevation(
         topEdge: w.topEdge, bottomEdge: w.bottomEdge,
         connType: w.connType, rowConn: w.rowConn || 'S',
         copies: Math.max(1, w.copies),
+        spec: {
+          finishGroup: w.finishGroup, finishName: w.finishName,
+          veneerDirection: w.veneerDirection, decor3d: w.decor3d,
+          aluminumVertical: w.aluminumVertical, aluminumHorizontal: w.aluminumHorizontal,
+          aluminumColor: w.aluminumColor,
+          wallFacing: w.wallFacing, notes: w.notes,
+        },
       })
     } else {
       const d = doors.find(x => x.id === item.id)
@@ -885,6 +894,11 @@ function buildElevation(
         hingeLeft: d.hingeDir !== 'СПРАВА',
         opensOut: d.openingDir === 'НАРУЖУ',
         copies: Math.max(1, d.copies),
+        spec: {
+          finishGroup: d.finishGroup, finishName: d.finishName,
+          veneerDirection: d.veneerDirection, decor3d: d.decor3d,
+          mountType: d.mountType, wallDepth: d.wallDepth, notes: d.notes,
+        },
         trim: d.hasTrim === true ? {
           label: `Д${di + 1}`,
           drawLabels: [
@@ -976,6 +990,11 @@ function calcPanelCosts(
 const fmt = (n: number) => n > 0 ? n.toLocaleString('ru-RU', { maximumFractionDigits: 0 }) : '—'
 
 // ─── StepNav ─────────────────────────────────────────────────────────────────
+
+// Чертёжные виды (Drawing.tsx) временно скрыты со страницы: графика ещё сырая,
+// раскладку ведём по прежним схемам. Код, стили и тесты на месте — поставить
+// true, и вкладки «Развёртка / План / Разрезы / Узлы / Кромки» вернутся.
+const SHOW_DRAWING: boolean = false
 
 const STEP_LABELS = ['Стены и узлы', 'Отделки', 'Спецификация', 'Оформление']
 
@@ -2331,7 +2350,27 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
   const [itemOrder, setItemOrder] = useState<ItemOrder>([])
   const [activeStep, setActiveStep] = useState<number>(1)
   // Виды спереди и сверху показываем вместе; кнопкой включаются разрезы дверей.
+  // 'scheme' — прежняя экранная схема (цветная, с превью узлов по наведению):
+  // чертёж её не заменяет, дилеру и менеджеру привычнее разное.
+  const [drawView, setDrawView] = useState<DrawView | 'scheme'>(SHOW_DRAWING ? 'elevation' : 'scheme')
+  const [drawZoom, setDrawZoom] = useState(1)
   const [showSections, setShowSections] = useState(false)
+
+  // Печатаем весь чертёж целиком и без карточек конфигуратора: на печать
+  // временно включаем вид «Всё» и помечаем body — CSS прячет остальное.
+  const printDrawing = () => {
+    const back = drawView
+    // Со вкладки «Схема» (и пока чертёж скрыт) печатаем то, что на экране:
+    // переключение на «Всё» подсунуло бы пользователю другой вид.
+    if (SHOW_DRAWING && back !== 'scheme') setDrawView('all')
+    document.body.classList.add('dw-printing')
+    // Даём React дорисовать все виды до открытия диалога печати.
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      window.print()
+      document.body.classList.remove('dw-printing')
+      setDrawView(back)
+    }))
+  }
   const [copied, setCopied] = useState(false)
   const [showSaveModal, setShowSaveModal] = useState(false)
   const [editOrder, setEditOrder] = useState<Order | null>(null)
@@ -2423,6 +2462,7 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
     () => buildElevation(walls, doors, itemOrder, jointOffsets, doorGeom),
     [walls, doors, itemOrder, jointOffsets, doorGeom],
   )
+
 
   const totalPanels = spec.panels.reduce((s, p) => s + p.quantity, 0)
   const totalAreaSqm = spec.panels.reduce(
@@ -2626,36 +2666,63 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
               )}
 
               {spec.panels.length > 0 && (
-                <div className="card" style={{ marginTop: 24 }}>
-                  <div className="flex gap-2" style={{ alignItems: 'center', marginBottom: 4 }}>
-                    <h2 style={{ margin: 0 }}>Раскладка</h2>
-                    <button type="button"
-                      className={`btn btn-sm no-print ${showSections ? 'btn-primary' : 'btn-ghost'}`}
-                      style={{ marginLeft: 'auto' }}
-                      onClick={() => setShowSections(v => !v)}>Разрез</button>
+                <div className="card dw-print-root" style={{ marginTop: 24 }}>
+                  <div className="flex gap-2 no-print" style={{ alignItems: 'center', marginBottom: 10, flexWrap: 'wrap' }}>
+                    <h2 style={{ margin: 0 }}>{SHOW_DRAWING ? 'Чертёж' : 'Раскладка'}</h2>
+                    {/* Переключатель вида вместо прежних «Вид спереди / Вид сверху»:
+                        чертёж один, а видов много — листать их удобнее, чем скроллить. */}
+                    {SHOW_DRAWING && (
+                      <div className="dw-tabs">
+                        {[...availableViews(elevation), { id: 'scheme' as const, label: 'Схема' }].map(v => (
+                          <button key={v.id} type="button"
+                            className={`dw-tab${drawView === v.id ? ' is-active' : ''}`}
+                            onClick={() => setDrawView(v.id)}>{v.label}</button>
+                        ))}
+                      </div>
+                    )}
+                    <div className="dw-zoom" style={{ marginLeft: 'auto' }}>
+                      {!SHOW_DRAWING || drawView === 'scheme' ? (
+                        <button type="button"
+                          className={`btn btn-sm ${showSections ? 'btn-primary' : 'btn-ghost'}`}
+                          title="Разрезы по всем участкам: стенам и проёмам"
+                          onClick={() => setShowSections(v => !v)}>Разрез</button>
+                      ) : (
+                        <>
+                          <button type="button" className="btn btn-ghost btn-sm"
+                            onClick={() => setDrawZoom(z => Math.max(0.5, +(z - 0.25).toFixed(2)))}>−</button>
+                          <span>{Math.round(drawZoom * 100)}%</span>
+                          <button type="button" className="btn btn-ghost btn-sm"
+                            onClick={() => setDrawZoom(z => Math.min(4, +(z + 0.25).toFixed(2)))}>+</button>
+                          <button type="button" className="btn btn-ghost btn-sm"
+                            onClick={() => setDrawZoom(1)}>по ширине</button>
+                        </>
+                      )}
+                      <button type="button" className="btn btn-ghost btn-sm"
+                        onClick={printDrawing}>⬇ Печать / PDF</button>
+                    </div>
                   </div>
 
-                  <h3 className="spec-section-title">Вид спереди</h3>
-                  <div style={{ fontSize: '.8rem', color: '#94a3b8', marginBottom: 12 }}>
-                    Развёртка стены: участки слева направо, углы развёрнуты в плоскость.
-                    Жёлтым — зазоры сверху и снизу и доборы проёма, зелёным — панель над проёмом.
-                  </div>
-                  <WallElevation items={elevation} jointTypes={jointTypes} sections={showSections} />
+                  {!SHOW_DRAWING || drawView === 'scheme' ? (
+                    <>
+                      <h3 className="spec-section-title">Вид спереди</h3>
+                      <div style={{ fontSize: '.8rem', color: '#94a3b8', marginBottom: 12 }}>
+                        Развёртка стены: участки слева направо, углы развёрнуты в плоскость.
+                        Жёлтым — зазоры сверху и снизу и доборы проёма, зелёным — панель над проёмом.
+                      </div>
+                      <WallElevation items={elevation} jointTypes={jointTypes} sections={showSections} />
 
-                  <h3 className="spec-section-title" style={{ marginTop: 22 }}>Вид сверху</h3>
-                  <div style={{ fontSize: '.8rem', color: '#94a3b8', marginBottom: 12 }}>
-                    План: повороты на угловых узлах D (наружный) и DG/DH (внутренний).
-                  </div>
-                  <WallScheme walls={walls} doors={doors} panels={spec.panels} itemOrder={itemOrder} jointTypes={jointTypes} />
+                      <h3 className="spec-section-title" style={{ marginTop: 22 }}>Вид сверху</h3>
+                      <div style={{ fontSize: '.8rem', color: '#94a3b8', marginBottom: 12 }}>
+                        План: повороты на угловых узлах D (наружный) и DG/DH (внутренний).
+                      </div>
+                      <WallScheme walls={walls} doors={doors} panels={spec.panels} itemOrder={itemOrder} jointTypes={jointTypes} />
 
-                  <h3 className="spec-section-title" style={{ marginTop: 22 }}>
-                    Панели и типы кромок
-                  </h3>
-                  <div style={{ fontSize: '.8rem', color: '#94a3b8', marginBottom: 10 }}>
-                    Кромки по кругу от верха по часовой стрелке: А — верх, В — правая, С — низ, D — левая.
-                    Обозначения панелей сквозные слева направо, как в чертеже развёртки.
-                  </div>
-                  <ElevationTable items={elevation} />
+                      <h3 className="spec-section-title" style={{ marginTop: 22 }}>Панели и типы кромок</h3>
+                      <ElevationTable items={elevation} />
+                    </>
+                  ) : (
+                    <Drawing items={elevation} jointTypes={jointTypes} view={drawView} zoom={drawZoom} />
+                  )}
                 </div>
               )}
             </>

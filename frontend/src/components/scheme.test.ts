@@ -7,6 +7,7 @@ import { createElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import WallScheme from './WallScheme'
 import WallElevation from './WallElevation'
+import Drawing, { planRun, usedNodeCodes, finishLine, noteLines } from './Drawing'
 
 const render = (c: unknown, props: Record<string, unknown>) =>
   renderToStaticMarkup(createElement(c as never, props as never))
@@ -156,6 +157,14 @@ describe('WallElevation — развёртка', () => {
     expect(+panel![1]).toBe(46)
   })
 
+  it('разрезы рисуются по всем участкам, а не только по проёмам', () => {
+    // Заказ из одних стен: раньше DoorSections возвращал null и кнопка
+    // «Разрез» молча ничего не показывала.
+    const svg = render(WallElevation, { items: [elevWall], sections: true })
+    clean(svg)
+    expect(svg).toContain('Разрез Стена 1')
+  })
+
   it('проём выше потолка не даёт прямоугольник отрицательной высоты', () => {
     const bad = {
       kind: 'door' as const, id: 'd1', label: 'Проём', copies: 1,
@@ -167,5 +176,101 @@ describe('WallElevation — развёртка', () => {
     const svg = render(WallElevation, { items: [bad] })
     clean(svg)
     expect(svg).not.toMatch(/height="-/)
+  })
+})
+
+describe('Drawing — чертёж раскладки', () => {
+  const elevWall = {
+    kind: 'wall' as const, id: 'w1', name: 'П50 · Стена 1', copies: 1,
+    wallLength: 3000, wallHeight: 2700, gapTop: 7, gapBottom: 5,
+    lengthByNodes: 2962, widths: [987, 987, 988],
+    colRows: [[2100, 588], [2100, 588], [2100, 588]],
+    cells: [0, 1, 2].flatMap(col => [0, 1].map(row => ({
+      col, row, span: 1, rowSpan: 1, width: 987, height: row === 0 ? 2100 : 588,
+      label: `1.${row + 1}.${col + 1}`, drawLabel: `п.${col * 2 + row + 1}`,
+    }))),
+    leftNode: 'A', rightNode: 'D', connType: 'C', topEdge: 'A', bottomEdge: 'A', rowConn: 'S',
+  }
+  const elevDoor = {
+    kind: 'door' as const, id: 'd1', label: 'Д1', copies: 1,
+    openingW: 900, openingH: 2100, ceilingH: 2700,
+    panelH: 651.5, panelW: 782.5, panelLabel: 'Д1', panelDrawLabel: 'А4', doorLabel: 'Д-64808',
+    leftNode: 'B', rightNode: 'B', topEdge: 'A', bottomEdge: 'H',
+    opensOut: false, hingeLeft: true,
+    trim: { label: 'Д1', drawLabels: ['А5', 'А6', 'А7'],
+      top: { w: 900, h: 200, leftNode: 'A', rightNode: 'A' },
+      left: { w: 200, h: 2100, wallNode: 'A' }, right: { w: 200, h: 2100, wallNode: 'A' } },
+  }
+  const draw = (view: string, extra = {}) =>
+    render(Drawing, { items: [elevWall, elevDoor], view, ...extra })
+
+  it('каждый вид рисуется без NaN', () => {
+    for (const v of ['elevation', 'plan', 'section', 'trims', 'nodes']) clean(draw(v))
+  })
+
+  it('вид «Всё» собирает развёртку, план, разрезы, доборы и узлы', () => {
+    const svg = draw('all', { jointTypes: [{ code: 'C', offset_mm: -4, name: 'Профиль', image_url: null }] })
+    for (const t of ['Развёртка', 'План —', 'Разрезы участков', 'Доборы проёмов', 'Узлы, применённые'])
+      expect(svg).toContain(t)
+    // Рамки и основной надписи ГОСТ на чертеже быть не должно.
+    expect(svg).not.toContain('Формат')
+    expect(svg).not.toContain('Копировал')
+  })
+
+  it('переключатель показывает только выбранный вид', () => {
+    const svg = draw('plan')
+    expect(svg).toContain('План —')
+    expect(svg).not.toContain('Разрезы участков')
+  })
+
+  it('на шве печатается зазор, на кромке и в углу — только буква', () => {
+    // В каталоге зазор хранится ОТРИЦАТЕЛЬНОЙ поправкой: «зазор 4 мм» → −4.
+    // Положительная поправка (угловой D = 19,4) — заход в профиль, не щель.
+    const svg = render(Drawing, {
+      items: [elevWall], view: 'elevation',
+      jointTypes: [{ code: 'C', offset_mm: -4 }, { code: 'D', offset_mm: 19.4 },
+        { code: 'A', offset_mm: -15 }, { code: 'S', offset_mm: 0 }],
+    })
+    expect(svg).toContain('C 4')
+    expect(svg).not.toMatch(/D 19/)
+    expect(svg).not.toMatch(/A 15/)
+  })
+
+  it('отделка и примечания собираются из заказа', () => {
+    const it = { ...elevWall, spec: {
+      finishGroup: 'ШПОН 1,5 ММ', finishName: 'Breeze Oak', veneerDirection: 'вертикально',
+      aluminumVertical: 2, aluminumHorizontal: 1, aluminumColor: 'Чёрный матовый',
+      wallFacing: 'back' as const, notes: 'фрезеровка по эскизу',
+    } }
+    expect(finishLine(it as never)).toBe('ШПОН 1,5 ММ · Breeze Oak · вертикально')
+    expect(noteLines(it as never)).toEqual([
+      'Декор алюм. П 6×6: верт. 2, гор. 1 — Чёрный матовый',
+      'Сторона монтажа: тыльная',
+      'фрезеровка по эскизу',
+    ])
+  })
+
+  it('лист узлов собирает все применённые коды', () => {
+    expect(usedNodeCodes([elevWall, elevDoor] as never))
+      .toEqual(['A', 'D', 'C', 'S', 'B', 'H'])
+  })
+
+  it('угловой узел D разворачивает план на 90°', () => {
+    const segs = planRun([elevWall, { ...elevDoor, id: 'd2' }] as never)
+    expect(segs).toHaveLength(2)
+    expect(Math.round(segs[0].ux)).toBe(1)
+    expect(Math.round(segs[1].uy)).toBe(-1)
+  })
+
+  it('переживает битые данные старого заказа', () => {
+    const bad = {
+      ...elevWall, wallHeight: undefined as unknown as number,
+      lengthByNodes: undefined as unknown as number,
+      colRows: [[]], widths: [0], cells: [],
+    }
+    clean(render(Drawing, {
+      items: [bad, { ...elevDoor, panelH: null, panelW: null, ceilingH: 0, trim: null }],
+      view: 'all',
+    }))
   })
 })

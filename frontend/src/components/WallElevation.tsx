@@ -34,6 +34,25 @@ export interface ElevWall {
   connType: string         // вертикальный стык столбцов
   rowConn: string          // горизонтальный стык рядов
   copies: number
+  // Всё, что не влияет на геометрию, но должно попасть на чертёж: отделка,
+  // алюминиевый декор, сторона монтажа, примечание. Поля необязательные —
+  // заказы, сохранённые до появления чертёжных листов, их не содержат.
+  spec?: ItemSpec
+}
+
+/** Описание изделия для подписей чертежа (не участвует в геометрии). */
+export interface ItemSpec {
+  finishGroup?: string
+  finishName?: string
+  veneerDirection?: string
+  decor3d?: string
+  aluminumVertical?: number
+  aluminumHorizontal?: number
+  aluminumColor?: string
+  wallFacing?: 'front' | 'back'
+  mountType?: string
+  wallDepth?: number
+  notes?: string
 }
 
 export interface ElevDoor {
@@ -55,6 +74,7 @@ export interface ElevDoor {
   hingeLeft: boolean
   opensOut: boolean
   copies: number
+  spec?: ItemSpec
   // Добор обрамления: панели в откосе проёма (в развёртке видны с торца).
   // null — добор не заказан.
   trim: {
@@ -557,7 +577,7 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
         <DimH x1={PAD_L} x2={PAD_L + W} y={floorY + 46} text={`${totalMm} мм — вся развёртка`} />
       </svg>
 
-      {sections && <DoorSections items={items} />}
+      {sections && <Sections items={items} />}
 
       {/* Превью узла при наведении — рядом с курсором, с зажимом в окно */}
       {hover && createPortal(
@@ -604,15 +624,17 @@ export default function WallElevation({ items, jointTypes = [], sections = true 
   )
 }
 
-// ── Разрез по дверному проёму ────────────────────────────────────────────────
-// Вид сбоку узкой полосой, как на листах СП: толщина панели условно 9 мм,
-// сверху панель над проёмом, ниже — проём с дверным полотном.
+// ── Разрезы участков ────────────────────────────────────────────────────────
+// Вид сбоку узкой полосой, как на листах СП: толщина панели условно 9 мм.
+// Показываем ВСЕ участки, а не только проёмы: у стены в разрезе видны швы
+// рядов и отметка верха панельного блока, и без них кнопка «Разрез» на заказе
+// из одних стен молча ничего не рисовала.
 
-function DoorSections({ items }: { items: ElevItem[] }) {
-  const doors = items.filter((it): it is ElevDoor => it.kind === 'door')
-  if (doors.length === 0) return null
+function Sections({ items }: { items: ElevItem[] }) {
+  const list = items.filter(it => itemHeight(it) > 0)
+  if (list.length === 0) return null
 
-  const maxH = Math.max(...doors.map(d => d.ceilingH).filter(v => Number.isFinite(v) && v > 0), 1)
+  const maxH = Math.max(...list.map(itemHeight), 1)
   const scale = Math.min(190 / maxH, 0.07)
   const H = maxH * scale
   const STRIP = 9      // ширина полосы разреза на экране
@@ -622,22 +644,68 @@ function DoorSections({ items }: { items: ElevItem[] }) {
 
   return (
     <div style={{ overflowX: 'auto', marginTop: 14 }}>
-      <svg width={doors.length * CELL} height={H + TOP + BOT}
-        viewBox={`0 0 ${doors.length * CELL} ${H + TOP + BOT}`}
+      <svg width={list.length * CELL} height={H + TOP + BOT}
+        viewBox={`0 0 ${list.length * CELL} ${H + TOP + BOT}`}
         style={{ display: 'block', fontFamily: 'system-ui, sans-serif' }}>
-        {doors.map((d, i) => {
+        {list.map((it, i) => {
           const x = i * CELL + 52
           const floorY = TOP + H
           const yOf = (mm: number) => TOP + H - mm * scale
+          const name = it.kind === 'wall' ? it.name : it.label
+          // Длинную метку усекаем, иначе заголовок наезжает на соседний разрез.
+          const title = trunc(name, Math.floor((CELL - 12) / (9 * 0.58)) - 7)
+          const level = (mm: number) => `+${(mm / 1000).toFixed(3).replace('.', ',')}`
+
+          if (it.kind === 'wall') {
+            const gapBottom = it.gapBottom
+            const rowsTotal = Math.max(...it.colRows.map(rs => rs.reduce((a, v) => a + v, 0)), 0)
+            const blockTop = gapBottom + rowsTotal
+            // Ряды берём по самому нарезанному столбцу: разрез показывает шов
+            // ряда там, где он есть хоть в одном столбце.
+            const rows = it.colRows.reduce<number[]>((best, rs) => rs.length > best.length ? rs : best, [])
+            let top = blockTop
+            const bounds = rows.map(h => { const t = top; top -= h; return { top: t, bot: top, mm: h } })
+            return (
+              <g key={it.id}>
+                <text x={x - 44} y={14} fontSize="9" fill="#1e293b" fontWeight="600">Разрез {title}</text>
+                <rect x={x} y={yOf(blockTop)} width={STRIP} height={rowsTotal * scale}
+                  fill="#dbeafe" stroke="#60a5fa" strokeWidth="1" />
+                {bounds.slice(1).map((r, j) => (
+                  <line key={j} x1={x} y1={yOf(r.top)} x2={x + STRIP} y2={yOf(r.top)}
+                    stroke="#60a5fa" strokeWidth="0.9" />
+                ))}
+                {/* Пол и потолок */}
+                <line x1={x - 16} y1={floorY} x2={x + STRIP + 16} y2={floorY} stroke="#475569" strokeWidth="1.4" />
+                <line x1={x - 16} y1={yOf(it.wallHeight)} x2={x + STRIP + 16} y2={yOf(it.wallHeight)}
+                  stroke="#94a3b8" strokeWidth="1" strokeDasharray="4 3" />
+                {/* Полная высота участка слева и высоты рядов подписями справа */}
+                <g stroke="#94a3b8" strokeWidth="0.8">
+                  <line x1={x - 22} y1={yOf(it.wallHeight)} x2={x - 22} y2={floorY} />
+                  <line x1={x - 25.5} y1={yOf(it.wallHeight)} x2={x - 18.5} y2={yOf(it.wallHeight)} />
+                  <line x1={x - 25.5} y1={floorY} x2={x - 18.5} y2={floorY} />
+                  <text x={x - 27} y={(yOf(it.wallHeight) + floorY) / 2} textAnchor="middle" fontSize="7.5"
+                    fill="#64748b" stroke="none"
+                    transform={`rotate(-90, ${x - 27}, ${(yOf(it.wallHeight) + floorY) / 2})`}>
+                    {it.wallHeight}
+                  </text>
+                </g>
+                {bounds.map((r, j) => r.mm * scale >= 12 && (
+                  <text key={`r${j}`} x={x + STRIP + 6} y={yOf(r.top) + r.mm * scale / 2}
+                    fontSize="7" fill="#3b5bdb">{r.mm}</text>
+                ))}
+                <text x={x + STRIP + 6} y={yOf(blockTop) - 3} fontSize="7.5" fill="#334155" fontWeight="600">
+                  {level(blockTop)}
+                </text>
+              </g>
+            )
+          }
+
+          const d = it
           const ceilY = yOf(d.ceilingH)
           const openTop = yOf(d.openingH)
           return (
             <g key={d.id}>
-              {/* Ячейка разреза — CELL px; длинную метку двери усекаем, иначе
-                  заголовок наезжает на соседний разрез. */}
-              <text x={x - 44} y={14} fontSize="9" fill="#1e293b" fontWeight="600">
-                Разрез {trunc(d.label, Math.floor((CELL - 12) / (9 * 0.58)) - 7)}
-              </text>
+              <text x={x - 44} y={14} fontSize="9" fill="#1e293b" fontWeight="600">Разрез {title}</text>
 
               {/* Панель над проёмом */}
               {d.panelH !== null && d.panelH > 0 && (
@@ -672,10 +740,10 @@ function DoorSections({ items }: { items: ElevItem[] }) {
                 </text>
               </g>
               <text x={x + STRIP + 6} y={ceilY + 8} fontSize="7.5" fill="#334155" fontWeight="600">
-                {`+${(d.ceilingH / 1000).toFixed(3).replace('.', ',')}`}
+                {level(d.ceilingH)}
               </text>
               <text x={x + STRIP + 6} y={openTop - 3} fontSize="7.5" fill="#334155" fontWeight="600">
-                {`+${(d.openingH / 1000).toFixed(3).replace('.', ',')}`}
+                {level(d.openingH)}
               </text>
               {d.panelH !== null && d.panelH * scale >= 16 && (
                 <text x={x + STRIP + 6} y={ceilY + d.panelH * scale / 2} fontSize="7" fill="#15803d">
