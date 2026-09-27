@@ -130,13 +130,12 @@ class OrderViewSet(viewsets.ModelViewSet):
             'finish', 'finish_group', 'aluminum_color',
         ).all())
 
-        # Подсчёт использований типов узлов
+        # Подсчёт использований типов узлов. Профиль начисляется только на
+        # боковые кромки — как в Excel (COUNTIF по колонкам «узел лев./пр.») и
+        # в конфигураторе; верх/низ панели в расход профиля не идут.
         joint_counter = Counter()
         for panel in panels:
             for joint in [panel.joint_left, panel.joint_right]:
-                if joint and joint.code:
-                    joint_counter[joint.code] += panel.quantity
-            for joint in [panel.joint_top, panel.joint_bottom]:
                 if joint and joint.code:
                     joint_counter[joint.code] += panel.quantity
 

@@ -116,6 +116,13 @@ describe('buildSpec — панели и профили', () => {
     expect(conn(merged)).toBeLessThan(conn(plain))
   })
 
+  it('узел I начисляет торцевой финишный профиль, как A', () => {
+    const endProfile = (w: WallSeg) =>
+      spec(w).profiles.find(p => p.article === '104.256')?.quantity ?? 0
+    expect(endProfile(wall({ leftNode: 'I', rightNode: 'D' }))).toBe(1)
+    expect(endProfile(wall({ leftNode: 'I', rightNode: 'I' }))).toBe(2)
+  })
+
   it('у объединения по высоте нижняя кромка берётся от нижнего ряда', () => {
     const { panels } = spec(wall({
       numRows: 2, topEdge: 'A', bottomEdge: 'A',

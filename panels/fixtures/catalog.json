@@ -219,7 +219,7 @@
     "offset_mm": -1.2,
     "price_per_meter": 350.0,
     "profile_article": "104.256",
-    "profile_count": 0.0,
+    "profile_count": 1.0,
     "image": "joints/joint_I.png"
   }
 },
@@ -527,7 +527,7 @@
     "offset_mm": -1.2,
     "price_per_meter": 350.0,
     "profile_article": "104.256",
-    "profile_count": 0.0,
+    "profile_count": 1.0,
     "image": "joints/joint_I_50.png"
   }
 },
@@ -5018,6 +5018,19 @@
     "length_mm": 2995,
     "price_per_piece": 2125.0,
     "joint_type_code": "decor",
+    "count_per_joint": 1.0,
+    "note": ""
+  }
+},
+{
+  "model": "panels.aluminumprofile",
+  "pk": 58,
+  "fields": {
+    "article": "104.256",
+    "name": "Торцевой профиль (финишный) Арт. 104.256",
+    "length_mm": 3000,
+    "price_per_piece": 2125.0,
+    "joint_type_code": "I",
     "count_per_joint": 1.0,
     "note": ""
   }
