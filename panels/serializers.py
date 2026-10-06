@@ -14,7 +14,8 @@ class FramingModelSerializer(serializers.ModelSerializer):
                   'depth_mode', 'depth_delta', 'profile_count',
                   'has_glass', 'price_category',
                   'has_veneer', 'veneer_surcharge',
-                  'has_shadow', 'shadow_nH', 'shadow_nL', 'shadow_price_per_m']
+                  'has_shadow', 'shadow_nH', 'shadow_nL', 'shadow_price_per_m',
+                  'xl_price']
 
 
 class FramingColorSerializer(serializers.ModelSerializer):

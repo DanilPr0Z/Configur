@@ -226,6 +226,9 @@ Base URL: `http://localhost:8000/api/`
 столбцам, объединения, кромки, панель над дверью).
 `frontend/src/framing/framingData.test.ts` — обрамление: формулы, глубина
 добора, надбавка 15 %, контрольный заказ PASSO 2695×1018×200 = 51 426 ₽.
+Luna / Luna-Glass / Dune / Cascade (`FramingModel.xl_price`) считаются по
+заводскому Excel, а не по справочнику (константа `XL` в `framingData.ts`,
+задание 06.10.2026): контрольные Luna-Glass 44 648, Dune 52 562, Cascade 94 894.
 `frontend/src/components/scheme.test.ts` — отрисовка плана, развёртки и
 чертёжных листов: рендер в строку через `renderToStaticMarkup` (jsdom не нужен),
 проверка, что в SVG нет NaN/Infinity и что битые данные старого заказа не ломают

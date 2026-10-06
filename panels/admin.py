@@ -71,7 +71,7 @@ class FramingProfilePriceAdmin(admin.ModelAdmin):
 
 @admin.register(FramingModel)
 class FramingModelAdmin(admin.ModelAdmin):
-    list_display = ['name', 'subtitle', 'price_category', 'has_glass',
+    list_display = ['name', 'subtitle', 'price_category', 'xl_price', 'has_glass',
                     'depth_mode', 'depth_delta', 'sort_order']
     list_editable = ['price_category', 'sort_order']
 

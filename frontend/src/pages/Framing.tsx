@@ -83,6 +83,9 @@ export default function Framing() {
       if (L < 400 || L > 1500) { alert('Ширина должна быть от 400 до 1500 мм'); return false }
       if (C < 50 || C > 750) { alert('Глубина должна быть от 50 до 750 мм'); return false }
     }
+    // Luna-Glass всегда со вставкой, как в заводском Excel (решение владельца
+    // 06.10.2026). Вставка выбирается на шаге 2 — проверяем при уходе с него.
+    if (n >= 3 && hasGlass && !st.glassGroup) { alert('Выберите вставку для Luna-Glass'); return false }
     return true
   }
 
@@ -288,7 +291,7 @@ export default function Framing() {
                   <div className="field">
                     <label>Группа вставки</label>
                     <select value={st.glassGroup} onChange={e => setGlassGroup(e.target.value)}>
-                      <option value="">— без вставки —</option>
+                      <option value="">— выберите вставку —</option>
                       {cat.glassGroupNames.map(g => <option key={g} value={g}>{g}</option>)}
                     </select>
                   </div>

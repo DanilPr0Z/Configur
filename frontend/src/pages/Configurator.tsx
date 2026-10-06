@@ -967,13 +967,16 @@ function findPricedFinish(finishGroups: FinishGroup[], groupName: string, finish
       const f = (g.finishes as Finish[]).find(f => normDecor(f.name) === target)
       if (f) return f
     }
-    return undefined
+    // Декора с толщиной в прайсе нет — у NUOVO 50 групп ШПОН 1,5/2,5/5 ММ нет
+    // вовсе, и Excel 50-й считает цену по самой отделке (VLOOKUP по колонке
+    // «ОТДЕЛКА»), декор на неё не влияет. Без этого отката отделка стоила 0 ₽
+    // и в итог шли одни узлы (06.10.2026).
   }
   const g = finishGroups.find(g => g.name === groupName)
   return (g?.finishes as Finish[] | undefined)?.find(f => f.name === finishName)
 }
 
-function getFinishPrice(finishGroups: FinishGroup[], groupName: string, finishName: string, decor3d?: string): number {
+export function getFinishPrice(finishGroups: FinishGroup[], groupName: string, finishName: string, decor3d?: string): number {
   return findPricedFinish(finishGroups, groupName, finishName, decor3d)?.price_sqm ?? 0
 }
 

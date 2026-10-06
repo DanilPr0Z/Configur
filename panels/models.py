@@ -147,6 +147,11 @@ class FramingModel(models.Model):
     shadow_nL = models.FloatField(default=0, verbose_name='Поправка ширины теневого профиля')
     shadow_price_per_m = models.FloatField(default=1200,
                                            verbose_name='Цена теневого профиля, руб/м пог')
+    # Luna, Luna-Glass, Dune, Cascade: цена как на листе «Обрамление» заводского
+    # Excel — постоянные цены наличника/добора/вставки и ROUNDUP(×100/55), цвет и
+    # отделка на цену не влияют (решение владельца 06.10.2026). Формула — в
+    # frontend/src/framing/framingData.ts (XL).
+    xl_price = models.BooleanField(default=False, verbose_name='Цена по заводскому Excel (Luna/Dune/Cascade)')
     sort_order = models.IntegerField(default=0)
 
     class Meta:

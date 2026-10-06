@@ -2,9 +2,9 @@
 // Цифры сверены с расчётом Excel «Ввод данных к заказу» и чертежами СП.
 
 import { describe, it, expect } from 'vitest'
-import { calcWall, buildSpec, makeWall, makeDoor, offsetsOf } from './Configurator'
+import { calcWall, buildSpec, makeWall, makeDoor, offsetsOf, getFinishPrice } from './Configurator'
 import type { WallSeg } from './Configurator'
-import type { JointType } from '../api'
+import type { JointType, FinishGroup } from '../api'
 
 // Узлы серии 60 из справочника — только те, что нужны расчёту.
 const JOINTS = [
@@ -155,5 +155,25 @@ describe('buildSpec — панель над дверным проёмом', () =
     expect(h(7)).toBe(644.5)
     // Зазор 10 мм убирает ровно 10 мм — снизу ничего не добавляется.
     expect(h(0) - h(10)).toBe(10)
+  })
+})
+
+describe('getFinishPrice — цена отделки', () => {
+  const veneer = (name: string, finishes: [string, number][]): FinishGroup => ({
+    id: finishes.length, name, sort_order: 0,
+    finishes: finishes.map(([n, p], i) => ({ id: i + 1, name: n, price_sqm: p })),
+  })
+
+  it('шпон с 3D-декором у 60-й стоит по прайсу декора', () => {
+    const groups = [
+      veneer('ШПОН', [['Noce Ondulato', 18927.38]]),
+      veneer('ШПОН 2,5 ММ', [['Noce Ondulato 2,5мм', 44360.82]]),
+    ]
+    expect(getFinishPrice(groups, 'ШПОН', 'Noce Ondulato', 'Noce Ondulato 2,5 мм')).toBe(44360.82)
+  })
+
+  it('у 50-й декора в прайсе нет — цена по самой отделке, а не 0', () => {
+    const groups = [veneer('ШПОН', [['Noce Ondulato', 18927.38]])]
+    expect(getFinishPrice(groups, 'ШПОН', 'Noce Ondulato', 'Noce Ondulato 2,5 мм')).toBe(18927.38)
   })
 })

@@ -19,6 +19,7 @@ export interface FramingModel {
   has_shadow: boolean          // модель «+ теневой профиль»
   shadow_nH: number; shadow_nL: number
   shadow_price_per_m: number
+  xl_price: boolean            // Luna, Luna-Glass, Dune, Cascade — цена по заводскому Excel (XL)
 }
 
 export interface FramingDobor { group: string; name: string; price: number }
@@ -102,7 +103,7 @@ export interface FramingState {
   ci: number         // индекс цвета в cat.colors
   di: number         // индекс добора в cat.doborItems
   kit: KitType
-  glassGroup: string // группа вставки ('' = без вставки)
+  glassGroup: string // группа вставки ('' = не выбрана)
   glassInsert: string
   glassColor: string
   veneer: boolean    // наличник со шпоном (только для моделей has_veneer)
@@ -140,6 +141,17 @@ export function glassInsertOptions(group: string, cat: FramingCatalog): string[]
   return cat.dobors.filter(d => d.group === group).map(d => d.name)
 }
 
+// Модели с xl_price считаются как лист «Обрамление» заводского Excel (решение
+// владельца 06.10.2026: «на сайте цены как в Excel»): постоянные цены наличника
+// ₽/м, добора ₽/м² на ЛЮБУЮ отделку и вставки ₽/м на любую вставку, а строка =
+// ROUNDUP(ROUNDUP(база) × 100 / share). Цвет, отделка и вставка на цену не
+// влияют, но выбираются — они нужны производству. Эталон — константа XL в
+// News/живой-сайт-обрамление_06.10.2026.zip → ЭТАЛОН-cascate_calculator.html.
+export const XL = { n: 1500, d: 13400, g: 1200, share: 55 }
+
+// ROUNDUP до рубля. toFixed(6) гасит хвосты дробей: 6075.0000001 → 6075, а не 6076.
+const roundUp = (x: number) => Math.ceil(+x.toFixed(6))
+
 export interface SpecRow {
   nm: string; dm: string; qt: number | string; pr: number; cl?: 'glass' | 'sur'
 }
@@ -159,22 +171,29 @@ export function computeSpec(st: FramingState, cat: FramingCatalog): SpecResult {
   const dep = getDepth(m, C, st.inst)
   const showNal = st.kit !== 'dob', showDob = st.kit !== 'nal'
   const venActive = m.has_veneer && st.veneer && showNal
-  const pN = getPpu(m, cat, st.veneer)
+  const xl = m.xl_price
+  // Первый ROUNDUP — от сырой базы: с round() часть строк выходит на 1–2 ₽ меньше
+  const rub = (x: number) => xl ? roundUp(roundUp(x) * 100 / XL.share) : Math.round(x)
+  const pN = xl ? XL.n : getPpu(m, cat, st.veneer)
   const dob = cat.doborItems[st.di]
-  const pD = dob ? dob.price : 0
+  const pD = xl ? XL.d : dob ? dob.price : 0
 
-  const rNV = showNal ? Math.round(pN * nV / 1000 * qv) : 0
-  const rNH = showNal ? Math.round(pN * nH2 / 1000 * qh) : 0
-  const rDV = showDob ? Math.round(pD * dV * dep / 1e6 * 2) : 0
-  const rDH = showDob ? Math.round(pD * dH2 * dep / 1e6) : 0
-  const sur = (showDob && dep > 500) ? Math.round((rDV + rDH) * 0.15) : 0
+  const rNV = showNal ? rub(pN * nV / 1000 * qv) : 0
+  const rNH = showNal ? rub(pN * nH2 / 1000 * qh) : 0
+  const rDV = showDob ? rub(pD * dV * dep / 1e6 * 2) : 0
+  const rDH = showDob ? rub(pD * dH2 * dep / 1e6) : 0
+  // Надбавка +15%: у xl — только к вертикальному добору длиннее 2800 мм
+  // (за глубину > 500 мм у них её нет), у остальных — за глубину > 500 мм.
+  const sur = !showDob ? 0
+    : xl ? (dV > 2800 ? Math.round(rDV * 0.15) : 0)
+    : (dep > 500 ? Math.round((rDV + rDH) * 0.15) : 0)
 
   const hasGlass = m.has_glass && showNal
   const gV = hasGlass ? Math.round(H + 43) : 0
   const gH2 = hasGlass ? Math.round(L - 46) : 0
-  const pG = glassPrice(st.glassGroup, cat)
-  const rGV = hasGlass ? Math.round(pG * gV / 1000 * qv) : 0
-  const rGH = hasGlass ? Math.round(pG * gH2 / 1000 * qh) : 0
+  const pG = xl ? XL.g : glassPrice(st.glassGroup, cat)
+  const rGV = hasGlass ? rub(pG * gV / 1000 * qv) : 0
+  const rGH = hasGlass ? rub(pG * gH2 / 1000 * qh) : 0
 
   // Теневой профиль — рамка по периметру, отдельные строки сметы
   const hasShadow = m.has_shadow && showNal
@@ -210,7 +229,10 @@ export function computeSpec(st: FramingState, cat: FramingCatalog): SpecResult {
     rows.push({ nm: `Добор горизонтальный, ${dN}`, dm: `${dH2}×${Math.round(dep)} мм`, qt: 1, pr: rDH })
   }
   if (sur > 0) {
-    rows.push({ nm: 'Надбавка: нестандартная ширина добора +15%', dm: '—', qt: '—', pr: sur, cl: 'sur' })
+    rows.push({
+      nm: xl ? 'Надбавка: вертикальный добор длиннее 2800 мм +15%' : 'Надбавка: нестандартная ширина добора +15%',
+      dm: '—', qt: '—', pr: sur, cl: 'sur',
+    })
   }
 
   let warn: string | null = null
