@@ -290,7 +290,8 @@ function getDecorOptions(finishName: string, groupName: string): { group: string
     const byThickness = [
       { group: 'ШПОН 1,5 мм', src: DECORS_SHPON_15 },
       { group: 'ШПОН 2,5 мм', src: DECORS_SHPON_25 },
-      { group: 'ШПОН 5 мм',   src: DECORS_SHPON_5  },
+      // Фрезеровки 5 мм нет — из выбора убрана (07.10.2026). Список
+      // DECORS_SHPON_5 и прайс «ШПОН 5 ММ» оставлены: по ним считаются старые заказы.
     ]
     // Отделка (базовое имя, напр. «Breeze Oak») выбрана — показываем только её
     // варианты по толщине: Breeze Oak 1,5 / 2,5 / 5 мм.
@@ -1532,14 +1533,28 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
       {/* Алюминий + наценка */}
       <div className="grid-4" style={{ marginBottom: 10 }}>
         <div className="field">
-          <label>Ал. декор верт., шт</label>
+          <label>Ал. декор верт., шт на панель</label>
           <input type="number" value={wall.aluminumVertical || 0} min={0}
             onChange={e => onChange({ aluminumVertical: +e.target.value })} />
+          {/* Число — на КАЖДУЮ панель стены, как колонка O/P листа «Ввод данных»;
+              дилеры читали его как «на стену» и удивлялись 6 шт вместо 2. */}
+          {wall.aluminumVertical > 0 && calc.widths.length > 1 && (
+            <div style={{ fontSize: 11, color: '#64748b', marginTop: 3 }}>
+              {`× ${calc.widths.length} панелей = ${wall.aluminumVertical * calc.widths.length} шт на стену`}
+            </div>
+          )}
         </div>
         <div className="field">
-          <label>Ал. декор гор., шт</label>
+          <label>Ал. декор гор., шт на панель</label>
           <input type="number" value={wall.aluminumHorizontal || 0} min={0}
             onChange={e => onChange({ aluminumHorizontal: +e.target.value })} />
+          {/* Число — на КАЖДУЮ панель стены, как колонка O/P листа «Ввод данных»;
+              дилеры читали его как «на стену» и удивлялись 6 шт вместо 2. */}
+          {wall.aluminumHorizontal > 0 && calc.widths.length > 1 && (
+            <div style={{ fontSize: 11, color: '#64748b', marginTop: 3 }}>
+              {`× ${calc.widths.length} панелей = ${wall.aluminumHorizontal * calc.widths.length} шт на стену`}
+            </div>
+          )}
         </div>
         <div className="field">
           <label>Цвет алюминия</label>
