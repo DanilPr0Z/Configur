@@ -2,7 +2,7 @@
 // Цифры сверены с расчётом Excel «Ввод данных к заказу» и чертежами СП.
 
 import { describe, it, expect } from 'vitest'
-import { calcWall, buildSpec, makeWall, makeDoor, offsetsOf, getFinishPrice } from './Configurator'
+import { calcWall, buildSpec, makeWall, makePanel, makeDoor, offsetsOf, getFinishPrice } from './Configurator'
 import type { WallSeg } from './Configurator'
 import type { JointType, FinishGroup } from '../api'
 
@@ -175,5 +175,15 @@ describe('getFinishPrice — цена отделки', () => {
   it('у 50-й декора в прайсе нет — цена по самой отделке, а не 0', () => {
     const groups = [veneer('ШПОН', [['Noce Ondulato', 18927.38]])]
     expect(getFinishPrice(groups, 'ШПОН', 'Noce Ondulato', 'Noce Ondulato 2,5 мм')).toBe(18927.38)
+  })
+})
+
+describe('отдельная панель', () => {
+  it('размер панели равен введённому, без поправок узлов и зазоров', () => {
+    const p = { ...makePanel(1), wallHeight: 2400, wallLength: 600, leftNode: 'A', rightNode: 'A' }
+    const c = calcWall(p, OFF)
+    expect(c.cells).toHaveLength(1)
+    expect(c.cells[0].height).toBe(2400)
+    expect(c.cells[0].width).toBe(600)
   })
 })

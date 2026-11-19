@@ -524,3 +524,29 @@ td input:focus, td select:focus { border-color: #4c6ef5; outline: none; }
   .dw-view-scroll { overflow: visible !important; padding: 0; }
   .dw-view-scroll svg { width: 100% !important; max-width: 100% !important; height: auto !important; }
 }
+
+/* ── Адаптивность: телефон и узкий планшет ── */
+@media (max-width: 800px) {
+  .container { padding: 0 12px; }
+  .page { padding: 16px 0; }
+  .page-title { font-size: 1.25rem; margin-bottom: 14px; }
+  .card { padding: 14px; }
+  /* Кнопки действий (+ Добавить, Далее) переносятся, а не вылезают за экран */
+  .flex.gap-2 { flex-wrap: wrap; }
+  .flex.gap-2 > div[style*="margin-left"] { margin-left: 0 !important; }
+  /* Таблицы и сетки раскладки прокручиваются вбок внутри карточки */
+  .card table { display: block; overflow-x: auto; max-width: 100%; }
+  .layout-grid { display: table; }
+}
+@media (max-width: 540px) {
+  .modal { padding: 16px; max-width: 100%; }
+  .modal-overlay { padding: 8px; }
+  .btn { padding-left: 12px; padding-right: 12px; }
+  .home-card { padding: 14px; }
+}
+@media (max-width: 800px) { .card-hint { display: none; } }
+@media screen and (max-width: 640px) {
+  .print-header { flex-wrap: wrap; gap: 10px; }
+  .print-header-fields { grid-template-columns: repeat(2, 1fr); flex: 1 1 100%; min-width: 0; }
+  .print-header-order { white-space: normal; text-align: left; flex: 1 1 100%; }
+}

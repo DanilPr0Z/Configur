@@ -27,6 +27,8 @@ const TITLES: { match: (p: string) => boolean; title: string }[] = [
   { match: p => p === '/', title: 'NUOVO — расчёт заказов' },
   { match: p => p === '/wall-60', title: 'NUOVO 60 — конфигуратор панелей' },
   { match: p => p === '/wall-50', title: 'NUOVO 50 — конфигуратор панелей' },
+  { match: p => p === '/panel-60', title: 'NUOVO 60 — панели' },
+  { match: p => p === '/panel-50', title: 'NUOVO 50 — панели' },
   { match: p => p === '/framing', title: 'Обрамление проёма — NUOVO' },
   { match: p => p.startsWith('/orders'), title: 'Заказы — NUOVO' },
   { match: p => p === '/framing-leads', title: 'Заявки обрамления — NUOVO' },
@@ -56,6 +58,8 @@ function Layout() {
           <div className="sidebar-group">Разделы</div>
           <NavLink to="/wall-60" className={navCls}>Стеновые 60</NavLink>
           <NavLink to="/wall-50" className={navCls}>Стеновые 50</NavLink>
+          <NavLink to="/panel-60" className={navCls}>Панели 60</NavLink>
+          <NavLink to="/panel-50" className={navCls}>Панели 50</NavLink>
           <NavLink to="/framing" className={navCls}>Обрамление проёма</NavLink>
           <div className="sidebar-group">Личный кабинет</div>
           <NavLink to="/orders" className={navCls}>Заказы</NavLink>
@@ -87,6 +91,8 @@ const router = createBrowserRouter([
       // с чистого листа, а не тащил панели предыдущей серии
       { path: '/wall-60', element: <Configurator key="60" series="60" /> },
       { path: '/wall-50', element: <Configurator key="50" series="50" /> },
+      { path: '/panel-60', element: <Configurator key="p60" series="60" panelsOnly /> },
+      { path: '/panel-50', element: <Configurator key="p50" series="50" panelsOnly /> },
       { path: '/framing', element: <Framing /> },
       { path: '/orders', element: <OrdersList /> },
       { path: '/orders/:id', element: <OrderDetail /> },

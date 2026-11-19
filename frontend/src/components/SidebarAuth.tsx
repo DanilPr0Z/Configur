@@ -44,6 +44,13 @@ export default function SidebarAuth() {
     window.dispatchEvent(new Event(AUTH_EVENT))
   }
 
+  // Вход/выход/истёкшая сессия в другом месте — подтягиваем пользователя из хранилища
+  useEffect(() => {
+    const sync = () => setUser(loadUser())
+    window.addEventListener(AUTH_EVENT, sync)
+    return () => window.removeEventListener(AUTH_EVENT, sync)
+  }, [])
+
   // Кнопка «Войти» с экрана-заглушки открывает эту же форму
   useEffect(() => {
     const open = () => setOpen(true)

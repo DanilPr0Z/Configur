@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useNavigate, useSearchParams, useBlocker } from 'react-router-dom'
 import { fetchAluminumProfiles, fetchProfileColors, fetchJointTypes, fetchFinishGroups, fetchOrder, createOrder, updateOrder, createPanel, deletePanel, isCascateLoggedIn, LOGIN_REQUIRED_MSG } from '../api'
 import type { AluminumProfile, ProfileColor, JointType, FinishGroup, Finish, Order, Series } from '../api'
@@ -61,6 +61,9 @@ export interface WallSeg {
   markup: number
   notes: string
   wallFacing: 'front' | 'back'
+  // Отдельная панель вне стены: одна панель, размер задаётся прямо (высота × ширина),
+  // зазоров, рядов и столбцов нет. Остальные настройки те же, что у стены.
+  standalone?: boolean
 }
 
 export interface DoorSeg {
@@ -345,6 +348,14 @@ export function makeWall(n: number): WallSeg {
   }
 }
 
+export function makePanel(n: number): WallSeg {
+  return {
+    ...makeWall(n), name: `Панель ${n}`, standalone: true,
+    wallHeight: 2700, wallLength: 600, numPanels: 1,
+    gapTop: 0, gapBottom: 0,
+  }
+}
+
 export function makeDoor(n: number): DoorSeg {
   return {
     id: uid(), label: `Дверной проём ${n}`,
@@ -488,12 +499,14 @@ export function calcWall(w: WallSeg, off: OffsetMap): WallCalc {
   if (!w.wallHeight || !w.wallLength || !w.numPanels || w.numPanels < 1) return EMPTY_CALC
   const N = w.numPanels
   const R = Math.max(1, w.numRows || 1)
-  const lOff = offsetOf(off, w.leftNode)
-  const rOff = offsetOf(off, w.rightNode)
+  // Отдельная панель: введённые высота и ширина — это размер самой панели,
+  // поправки узлов и зазоры к ней не применяются.
+  const lOff = w.standalone ? 0 : offsetOf(off, w.leftNode)
+  const rOff = w.standalone ? 0 : offsetOf(off, w.rightNode)
   const connAdj = w.connType === 'C' ? (N - 1) * 4 : 0
   const wlbp = w.wallLength + lOff + rOff - connAdj
-  const topOff = NODE_MAP.get(w.topEdge)?.heightOffset ?? 0
-  const botOff = NODE_MAP.get(w.bottomEdge)?.heightOffset ?? 0
+  const topOff = w.standalone ? 0 : NODE_MAP.get(w.topEdge)?.heightOffset ?? 0
+  const botOff = w.standalone ? 0 : NODE_MAP.get(w.bottomEdge)?.heightOffset ?? 0
   // Зазоры 7 + 5 мм по умолчанию; их можно изменить или обнулить в карточке стены.
   const gapTop = w.gapTop ?? DEFAULT_GAP_TOP
   const gapBottom = w.gapBottom ?? DEFAULT_GAP_BOTTOM
@@ -1148,21 +1161,21 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
   return (
     <div className="card" style={{ borderLeft: '3px solid #4c6ef5' }}>
       <div className="flex justify-between flex-center" style={{ marginBottom: 12 }}>
-        <input
+        {!wall.standalone && <input
           value={wall.drawCode}
           onChange={e => onChange({ drawCode: e.target.value })}
           placeholder="П50"
           title="Обозначение участка на чертеже, как в СП. Задано — панели нумеруются внутри участка (п.1, п.2…), пусто — сквозной нумерацией А1, А2…"
           style={{ fontWeight: 700, fontSize: '.9rem', width: 62, marginRight: 8, padding: '2px 6px', borderRadius: 5, border: '1px dashed #cbd5e1', background: '#f8fafc', color: '#1a4d8a' }}
-        />
+        />}
         <input
           value={wall.name}
           onChange={e => onChange({ name: e.target.value })}
-          title="Название участка стены — можно переименовать (например «Стена 1, справа от двери»)"
+          title={wall.standalone ? 'Название панели — можно переименовать' : 'Название участка стены — можно переименовать (например «Стена 1, справа от двери»)'}
           style={{ fontWeight: 700, fontSize: '1rem', border: 'none', background: 'transparent', outline: 'none', padding: 0, color: '#1a1a2e', flex: 1 }}
         />
-        <span className="no-print" style={{ fontSize: '.72rem', color: '#94a3b8', marginRight: 10, whiteSpace: 'nowrap' }}>
-          участок стены · название можно изменить
+        <span className="no-print card-hint" style={{ fontSize: '.72rem', color: '#94a3b8', marginRight: 10, whiteSpace: 'nowrap' }}>
+          {wall.standalone ? 'отдельная панель' : 'участок стены'} · название можно изменить
         </span>
         {canRemove && <button className="btn btn-danger btn-sm" onClick={onRemove}>✕</button>}
       </div>
@@ -1172,16 +1185,16 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
         {/* Размеры + кол-во */}
         <div className="grid-4" style={{ marginBottom: 10 }}>
           <div className="field">
-            <label>Высота стены, мм</label>
+            <label>{wall.standalone ? 'Высота панели, мм' : 'Высота стены, мм'}</label>
             <input type="number" value={wall.wallHeight || ''} min={0}
               onChange={e => onChange({ wallHeight: +e.target.value })} />
           </div>
           <div className="field">
-            <label>Длина стены, мм</label>
+            <label>{wall.standalone ? 'Ширина панели, мм' : 'Длина стены, мм'}</label>
             <input type="number" value={wall.wallLength || ''} min={0}
               onChange={e => onChange({ wallLength: +e.target.value })} />
           </div>
-          <div className="field">
+          {!wall.standalone && <div className="field">
             <label>
               Кол-во панелей
               <button type="button" onClick={() => onChange({ numPanels: suggestPanels(wall, wallOffsets) })}
@@ -1192,16 +1205,16 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
             </label>
             <input type="number" min={1} max={30} value={wall.numPanels || ''}
               onChange={e => onChange({ numPanels: Math.max(1, +e.target.value) })} />
-          </div>
+          </div>}
           <div className="field">
-            <label>Копий (одинак. стен)</label>
+            <label>{wall.standalone ? 'Количество, шт' : 'Копий (одинак. стен)'}</label>
             <input type="number" min={1} value={wall.copies}
               onChange={e => onChange({ copies: Math.max(1, +e.target.value) })} />
           </div>
         </div>
 
         {/* Зазоры по высоте + ряды */}
-        <div className="grid-4" style={{ marginBottom: 10 }}>
+        {!wall.standalone && <div className="grid-4" style={{ marginBottom: 10 }}>
           <div className="field">
             <label>Зазор сверху, мм</label>
             <input type="number" min={0} value={wall.gapTop ?? DEFAULT_GAP_TOP}
@@ -1226,11 +1239,11 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
               <input value="один ряд" disabled style={{ background: '#f5f5f5' }} />
             )}
           </div>
-        </div>
+        </div>}
 
         {/* ── Раскладка панелей: одна сетка вместо отдельных блоков ширин,
              высот, разбивки по столбцам и объединения ─────────────────────── */}
-        {calc.valid && (
+        {calc.valid && !wall.standalone && (
           <div style={{ marginBottom: 10, padding: '10px 12px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 7 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', marginBottom: 10 }}>
               <span style={{ fontSize: '.78rem', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '.04em' }}>
@@ -1434,17 +1447,17 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
         )}
 
         {/* Узлы */}
-        <div className="grid-3" style={{ marginBottom: 10 }}>
+        <div className={wall.standalone ? 'grid-2' : 'grid-3'} style={{ marginBottom: 10 }}>
           <div className="field">
             <label>Узел левого края</label>
             <JointSelectCode value={wall.leftNode} codes={allCodes} jointTypes={jointTypes} fallback={NODE_FALLBACK}
               onChange={code => onChange({ leftNode: code })} />
           </div>
-          <div className="field">
+          {!wall.standalone && <div className="field">
             <label>Соединение панелей</label>
             <JointSelectCode value={wall.connType} codes={allCodes} jointTypes={jointTypes} fallback={NODE_FALLBACK}
               onChange={code => onChange({ connType: code as ConnType })} />
-          </div>
+          </div>}
           <div className="field">
             <label>Узел правого края</label>
             <JointSelectCode value={wall.rightNode} codes={allCodes} jointTypes={jointTypes} fallback={NODE_FALLBACK}
@@ -1592,6 +1605,9 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
       {(!phase || phase === 'geometry') && calc.valid && (
         <>
           <div className="calc-result">
+            {wall.standalone ? (
+              <><strong>Размер панели:</strong> высота <strong>{calc.panelHeight}</strong> × ширина <strong>{calc.panelWidth} мм</strong></>
+            ) : (<>
             <strong>Расчёт:</strong>{' '}
             длина по узлам <strong>{calc.wallLengthByPanels} мм</strong>
             {' '}&nbsp;|&nbsp;{' '}
@@ -1615,6 +1631,7 @@ function WallCard({ wall, panels = [], jointTypes, finishGroups, profileColors, 
                   </span>
                 )}</>
             )}
+            </>)}
           </div>
           {limitWarnings.length > 0 && (
             <div style={{ marginTop: 8, background: '#fef2f2', color: '#b91c1c', border: '1px solid #fecaca', borderRadius: 7, padding: '8px 12px', fontSize: '.85rem' }}>
@@ -2378,16 +2395,19 @@ function SaveOrderModal({
 const snapshotOf = (walls: WallSeg[], doors: DoorSeg[], itemOrder: ItemOrder) =>
   JSON.stringify({ walls, doors, itemOrder })
 
-export default function Configurator({ series = '60' }: { series?: Series }) {
+export default function Configurator({ series = '60', panelsOnly = false }: { series?: Series; panelsOnly?: boolean }) {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
   const editOrderId = searchParams.get('order')
 
-  const [walls, setWalls] = useState<WallSeg[]>([])
+  // Раздел «Панели»: заказ из отдельных панелей без стен и проёмов —
+  // сразу открывается с одной пустой панелью.
+  const [initPanel] = useState(() => panelsOnly && !editOrderId ? makePanel(1) : null)
+  const [walls, setWalls] = useState<WallSeg[]>(initPanel ? [initPanel] : [])
   const [doors, setDoors] = useState<DoorSeg[]>([])
-  const [wallSeq, setWallSeq] = useState(0)
+  const [wallSeq, setWallSeq] = useState(initPanel ? 1 : 0)
   const [doorSeq, setDoorSeq] = useState(0)
-  const [itemOrder, setItemOrder] = useState<ItemOrder>([])
+  const [itemOrder, setItemOrder] = useState<ItemOrder>(initPanel ? [{ type: 'wall', id: initPanel.id }] : [])
   const [activeStep, setActiveStep] = useState<number>(1)
   // Виды спереди и сверху показываем вместе; кнопкой включаются разрезы дверей.
   // 'scheme' — прежняя экранная схема (цветная, с превью узлов по наведению):
@@ -2417,7 +2437,8 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
   const [loadingOrder, setLoadingOrder] = useState(false)
   // Слепок набранного на момент последнего сохранения/загрузки заказа —
   // по нему понимаем, есть ли несохранённые изменения.
-  const [savedSnapshot, setSavedSnapshot] = useState('')
+  const [savedSnapshot, setSavedSnapshot] = useState(() =>
+    initPanel ? snapshotOf([initPanel], [], [{ type: 'wall', id: initPanel.id }]) : '')
   const [pendingSave, setPendingSave] = useState(false)
 
   const [jointTypes, setJointTypes] = useState<JointType[]>([])
@@ -2426,7 +2447,7 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
   const [profileColors, setProfileColors] = useState<ProfileColor[]>([])
 
   useEffect(() => {
-    document.title = `NUOVO ${series} — Конфигуратор панелей`
+    document.title = `NUOVO ${series} — ${panelsOnly ? 'панели' : 'Конфигуратор панелей'}`
     fetchJointTypes(series).then(setJointTypes).catch(() => {})
     fetchFinishGroups(series).then(setFinishGroups).catch(() => {})
     fetchAluminumProfiles().then(setAluminumProfiles).catch(() => {})
@@ -2472,9 +2493,12 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
   const hasItems = walls.length > 0 || doors.length > 0
   const unsaved = hasItems && snapshot !== savedSnapshot
 
+  // Заказ только что сохранён: переход в него не блокируем, даже если слепок
+  // успел измениться (синхронизация отделки «как на 1-й панели» и т.п.).
+  const justSaved = useRef(false)
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
-      unsaved && currentLocation.pathname !== nextLocation.pathname,
+      unsaved && !justSaved.current && currentLocation.pathname !== nextLocation.pathname,
   )
 
   // Закрытие вкладки / перезагрузка — штатное предупреждение браузера
@@ -2544,6 +2568,12 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
         w.gapBottom = prevWall.gapBottom
       }
     }
+    setWalls(prev => [...prev, w])
+    setItemOrder(prev => [...prev, { type: 'wall', id: w.id }])
+  }
+  const addPanel = () => {
+    const n = walls.filter(x => x.standalone).length + 1
+    const w = makePanel(n)
     setWalls(prev => [...prev, w])
     setItemOrder(prev => [...prev, { type: 'wall', id: w.id }])
   }
@@ -2639,6 +2669,7 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
           series={series}
           onClose={() => { setShowSaveModal(false); setPendingSave(false) }}
           onSaved={id => {
+            justSaved.current = true
             setSavedSnapshot(snapshot)
             setShowSaveModal(false)
             // Сохраняли из-за ухода из раздела — продолжаем прерванный переход,
@@ -2647,14 +2678,15 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
               setPendingSave(false)
               blocker.proceed()
             } else {
-              navigate(`/orders/${id}`)
+              // После перерисовки: иначе блокировщик ещё видит «несохранённое».
+              setTimeout(() => navigate(`/orders/${id}`), 0)
             }
           }}
         />
       )}
       <div className="page">
         <div className="container">
-          <h1 className="page-title no-print">Конфигуратор панелей — NUOVO {series}</h1>
+          <h1 className="page-title no-print">{panelsOnly ? 'Панели' : 'Конфигуратор панелей'} — NUOVO {series}</h1>
 
           <StepNav step={activeStep} onStep={setActiveStep} />
 
@@ -2664,8 +2696,12 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
               <SchemeHint series={series} />
               <LimitsBanner />
               <div className="flex gap-2 no-print" style={{ marginBottom: 20 }}>
-                <button className="btn btn-primary" onClick={addWall} title="Участок стены: панели в один ряд между узлами. Стена с дверью посередине = участок + проём + участок">+ Добавить стену</button>
-                <button className="btn btn-ghost" onClick={addDoor}>+ Дверной проём</button>
+                {panelsOnly ? (
+                  <button className="btn btn-primary" onClick={addPanel} title="Отдельная панель: свой размер, узлы и отделка">+ Добавить панель</button>
+                ) : (<>
+                  <button className="btn btn-primary" onClick={addWall} title="Участок стены: панели в один ряд между узлами. Стена с дверью посередине = участок + проём + участок">+ Добавить стену</button>
+                  <button className="btn btn-ghost" onClick={addDoor}>+ Дверной проём</button>
+                </>)}
                 <div style={{ marginLeft: 'auto' }}>
                   <button className="btn btn-primary" onClick={() => setActiveStep(2)}>
                     Далее: Отделки →
@@ -2705,7 +2741,7 @@ export default function Configurator({ series = '60' }: { series?: Series }) {
                 </div>
               )}
 
-              {spec.panels.length > 0 && (
+              {spec.panels.length > 0 && !panelsOnly && (
                 <div className="card dw-print-root" style={{ marginTop: 24 }}>
                   <div className="flex gap-2 no-print" style={{ alignItems: 'center', marginBottom: 10, flexWrap: 'wrap' }}>
                     <h2 style={{ margin: 0 }}>{SHOW_DRAWING ? 'Чертёж' : 'Раскладка'}</h2>

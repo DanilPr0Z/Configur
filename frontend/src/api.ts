@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const api = axios.create({ baseURL: import.meta.env.VITE_API_URL ?? '/api/' })
+export const api = axios.create({ baseURL: import.meta.env.VITE_API_URL ?? '/api/' })
 
 // ─── Вход в cascate.ru → доступ к записи заказов ──────────────────────────────
 // SidebarAuth после входа кладёт { id_person, login, token } в localStorage.
@@ -24,6 +24,29 @@ api.interceptors.request.use(config => {
     if (u?.token) config.headers['X-Cascate-Token'] = u.token
   } catch { /* пустой/битый localStorage — просто без заголовка */ }
   return config
+})
+
+// Сессия на сервере пропала (истекла, БД пересоздана, токен отозван), а в
+// localStorage остался старый токен: любой запрос получает 403. Раньше помогал
+// только «выйти — войти». Теперь забываем мёртвый токен сами и просим войти
+// заново; набранное в конфигураторе при этом не теряется (см. AuthGate).
+export const SESSION_EXPIRED_EVENT = 'cascate-session-expired'
+const AUTH_CHANGED_EVENT = 'cascate-auth'   // тот же, что AUTH_EVENT в AuthGate
+
+api.interceptors.response.use(undefined, error => {
+  const status = error?.response?.status
+  const url: string = error?.config?.url ?? ''
+  const isAuthCall = /cascate-login|cascate-logout/.test(url)
+  if ((status === 401 || status === 403) && !isAuthCall && isCascateLoggedIn()) {
+    // Только отказ из-за входа: у других 403 в detail нет слов про вход.
+    const detail = String(error?.response?.data?.detail ?? '')
+    if (/войдите|вход|учетные данные|учётные данные|credentials/i.test(detail)) {
+      try { localStorage.removeItem(CASCATE_USER_KEY) } catch { /* приватный режим */ }
+      window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT))
+      window.dispatchEvent(new Event(AUTH_CHANGED_EVENT))
+    }
+  }
+  return Promise.reject(error)
 })
 
 export type Series = '50' | '60'
